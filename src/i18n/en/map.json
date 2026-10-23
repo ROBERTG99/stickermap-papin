@@ -1,0 +1,80 @@
+{
+  "banner": {
+    "offline": "No connection. Showing what you saw last.",
+    "unplacedOne": "You have {n} photo without a location",
+    "unplaced": "You have {n} photos without a location",
+    "unfinished": "You have an unfinished batch: {done} of {total} uploaded",
+    "continue": "Continue",
+    "place": "Place them"
+  },
+  "loading": "Loading stickers…",
+  "empty": {
+    "body": "Try fewer filters or look at another area.",
+    "none": "There are no stickers on the map yet. Add the first one.",
+    "add": "Add sticker"
+  },
+  "notFound": {
+    "body": "It may have been deleted, or the link is wrong.",
+    "offline": "We could not open it offline. Try again when you are back online.",
+    "back": "Back to the map"
+  },
+  "spot": {
+    "editFor": "You can edit for {time}",
+    "other": "Other:",
+    "linkCopied": "Link copied",
+    "shareFailed": "We could not share it. Copy the link by hand.",
+    "prev": "Previous sticker",
+    "next": "Next sticker",
+    "unnamed": "Unnamed place"
+  },
+  "report": {
+    "title": "Report this sticker?",
+    "body": "An admin will review it. Use it if the photo, place or type is wrong.",
+    "confirm": "Report",
+    "cancel": "Never mind",
+    "done": "Thanks. We will review it.",
+    "failed": "We could not send the report.",
+    "knowTitle": "I know who stuck it",
+    "knowBody": "Tell us the name and an admin will assign it.",
+    "knowLabel": "Who was it?",
+    "knowPlaceholder": "Name",
+    "send": "Send",
+    "knowDone": "Thanks. An admin will assign it."
+  },
+  "filters": {
+    "title": "Filters",
+    "close": "Close filters",
+    "types": "Sticker type",
+    "placers": "Stuck by",
+    "reporters": "Uploaded by",
+    "countries": "Country",
+    "date": "Date",
+    "searchPerson": "Search person",
+    "showAll": "Show all {n}",
+    "showLess": "Show less",
+    "noMatch": "Nobody with that name",
+    "clear": "Clear",
+    "show": "Show {n} stickers",
+    "showOne": "Show 1 sticker",
+    "showNone": "No stickers",
+    "dateAll": "Any time",
+    "dateMonth": "Last month",
+    "dateHalfYear": "Last 6 months",
+    "dateYear": "Last year"
+  },
+  "legend": {
+    "only": "Showing only {type}"
+  },
+  "search": {
+    "searching": "Searching…",
+    "none": "We could not find that place.",
+    "error": "We could not search. Try again.",
+    "results": "Search results"
+  },
+  "menu": {
+    "title": "Language and theme"
+  },
+  "locate": {
+    "failed": "We could not locate you. Check the location permission."
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "banner": {
+    "offline": "Sin conexión. Mostramos lo último que viste.",
+    "unplacedOne": "Tenés {n} foto sin ubicar",
+    "unplaced": "Tenés {n} fotos sin ubicar",
+    "unfinished": "Tenés un lote sin terminar: {done} de {total} subidas",
+    "continue": "Seguir",
+    "place": "Ubicar"
+  },
+  "loading": "Cargando stickers…",
+  "empty": {
+    "body": "Probá con menos filtros o mirá otra zona.",
+    "none": "Todavía no hay stickers en el mapa. Agregá el primero.",
+    "add": "Agregar sticker"
+  },
+  "notFound": {
+    "body": "Puede que lo hayan borrado o que el link esté mal.",
+    "offline": "No pudimos abrirlo sin conexión. Probá de nuevo cuando vuelva.",
+    "back": "Volver al mapa"
+  },
+  "spot": {
+    "editFor": "Podés editar por {time}",
+    "other": "Otro:",
+    "linkCopied": "Link copiado",
+    "shareFailed": "No pudimos compartirlo. Copiá el link a mano.",
+    "prev": "Sticker anterior",
+    "next": "Sticker siguiente",
+    "unnamed": "Lugar sin nombre"
+  },
+  "report": {
+    "title": "¿Reportar este sticker?",
+    "body": "Un admin lo va a revisar. Usalo si la foto, el lugar o el tipo están mal.",
+    "confirm": "Reportar",
+    "cancel": "Mejor no",
+    "done": "Gracias. Lo vamos a revisar.",
+    "failed": "No pudimos enviar el reporte.",
+    "knowTitle": "Sé quién lo pegó",
+    "knowBody": "Decinos el nombre y un admin lo asigna.",
+    "knowLabel": "¿Quién fue?",
+    "knowPlaceholder": "Nombre",
+    "send": "Enviar",
+    "knowDone": "Gracias. Un admin lo va a asignar."
+  },
+  "filters": {
+    "title": "Filtros",
+    "close": "Cerrar filtros",
+    "types": "Tipo de sticker",
+    "placers": "Pegado por",
+    "reporters": "Cargado por",
+    "countries": "País",
+    "date": "Fecha",
+    "searchPerson": "Buscar persona",
+    "showAll": "Ver los {n}",
+    "showLess": "Ver menos",
+    "noMatch": "Nadie con ese nombre",
+    "clear": "Limpiar",
+    "show": "Ver {n} stickers",
+    "showOne": "Ver 1 sticker",
+    "showNone": "Sin stickers",
+    "dateAll": "Siempre",
+    "dateMonth": "Último mes",
+    "dateHalfYear": "Últimos 6 meses",
+    "dateYear": "Último año"
+  },
+  "legend": {
+    "only": "Mostrando solo {type}"
+  },
+  "search": {
+    "searching": "Buscando…",
+    "none": "No encontramos ese lugar.",
+    "error": "No pudimos buscar. Probá de nuevo.",
+    "results": "Resultados de la búsqueda"
+  },
+  "menu": {
+    "title": "Idioma y tema"
+  },
+  "locate": {
+    "failed": "No pudimos ubicarte. Revisá el permiso de ubicación."
+  }
+}
