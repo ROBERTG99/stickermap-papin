@@ -42,3 +42,7 @@ body { margin: 0; min-height: 100dvh; overscroll-behavior-y: none; }
 .profile__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .profile__grid a { display: block; border-radius: 10px; overflow: hidden; }
 .profile__grid img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+
+/* Spot photo in the expanded sheet and the side panel: shown whole, with its own proportions */
+.mp-photo--natural { display: block; aspect-ratio: auto; background: var(--surface-sunken); line-height: 0; }
+.mp-photo--natural img { display: block; width: 100%; height: auto; max-height: 62dvh; object-fit: contain; }
