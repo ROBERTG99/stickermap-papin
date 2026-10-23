@@ -1,12 +1,13 @@
 name: Backup nightly (D1)
-# 04:00 UYT = 07:00 UTC. Keeps 30 daily dumps (BUILD.md §13).
+# 04:00 UYT = 07:00 UTC. Keeps 30 daily dumps in R2 and Google Drive.
+# This repository is PUBLIC: dumps are never committed or uploaded as workflow artifacts (both are world-readable).
 on:
   schedule:
     - cron: "0 7 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write # push the plain dump to the `backups` branch
+  contents: read
 
 concurrency:
   group: backup-nightly
@@ -35,12 +36,6 @@ jobs:
           mv backup.sql.gz "d1-${DATE}.sql.gz"
           echo "DATE=${DATE}" >> "$GITHUB_ENV"
           echo "dump: $(wc -c < backup.sql) bytes, gz: $(wc -c < d1-${DATE}.sql.gz) bytes"
-      - name: Upload as workflow artifact (30 days, ~1 MB each)
-        uses: actions/upload-artifact@v4
-        with:
-          name: d1-${{ env.DATE }}
-          path: d1-${{ env.DATE }}.sql.gz
-          retention-days: 30
       - name: Install rclone
         run: curl -fsSL https://rclone.org/install.sh | sudo bash -s -- -v v1.69.1 || sudo apt-get install -y rclone
       - name: Copy to R2 (for "Descargar backup") and Google Drive, prune to 30
@@ -58,14 +53,3 @@ jobs:
           rclone delete r2:stickermap-photos/backups/d1 --min-age 30d
           rclone copyto "d1-${DATE}.sql.gz" "gdrive:BACKUP_ROOT/backups/d1/d1-${DATE}.sql.gz"
           rclone delete gdrive:BACKUP_ROOT/backups/d1 --min-age 30d
-      - name: Commit the dump to the `backups` branch (diffable history; this repository MUST stay private)
-        run: |
-          set -euo pipefail
-          # operational tables (rate limiting, audit trail) are not part of the diffable history
-          gunzip -c "d1-${DATE}.sql.gz" | grep -v -E '^INSERT INTO "?(submissions_rl|audit_log)"?' > backup.sql
-          git config user.name "backup-bot" && git config user.email "backup-bot@users.noreply.github.com"
-          if git ls-remote --exit-code --heads origin backups >/dev/null 2>&1; then git fetch origin backups && git checkout -B backups origin/backups; else git checkout --orphan backups && git rm -rf . >/dev/null 2>&1 || true; fi
-          mv backup.sql stickermap.sql
-          git add stickermap.sql
-          git commit -m "D1 dump ${DATE}" || echo "no changes"
-          git push origin backups
