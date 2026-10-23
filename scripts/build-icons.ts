@@ -6,7 +6,7 @@ import { mkdir } from "node:fs/promises";
 import sharp from "sharp";
 
 const BRAND = "#31872E";
-const SRC = "investigation/icons/papa.png";
+const SRC = "assets/stickers/papa.png";
 
 async function tile(size: number, opts: { radius: number; sticker: number; maskable?: boolean }): Promise<Buffer> {
   const r = Math.round(size * opts.radius);

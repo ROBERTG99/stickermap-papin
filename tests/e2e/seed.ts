@@ -26,7 +26,9 @@ export async function seed(persistPath: string): Promise<Seeded[]> {
   const proxy = await getPlatformProxy<{ DB: D1; PHOTOS: R2 }>({ configPath: "wrangler.jsonc", persist: { path: `${persistPath}/v3` } });
   const { DB, PHOTOS } = proxy.env;
   for (const slug of ["papa", "sexo-punto", "sexo-pregunta", "sexo-pregunta-og", "otro"]) {
-    await PHOTOS.put(`icons/${slug}.png`, await readFile(`investigation/icons/${slug}.png`), { httpMetadata: { contentType: "image/png" } });
+    // the real sticker art is not published; fall back to a plain disc so the suite also runs from a fresh clone (CI)
+    const art = await readFile(`assets/stickers/${slug}.png`).catch(() => sharp({ create: { width: 160, height: 160, channels: 4, background: "#31872E" } }).png().toBuffer());
+    await PHOTOS.put(`icons/${slug}.png`, art, { httpMetadata: { contentType: "image/png" } });
   }
   const out: Seeded[] = [];
   const people = new Map<string, number>();

@@ -1,7 +1,8 @@
 # macOS / Google Drive sync artifacts
 .DS_Store
 *.gdoc
-Icon?
+# macOS custom-folder-icon files are named "Icon\r"; match only that (a bare `Icon?` also matched our `icons/` directories)
+Icon[[:cntrl:]]
 .tmp.drivedownload*
 .tmp.driveupload*
 
@@ -36,3 +37,12 @@ src/public/flags/
 
 # e2e fixtures are generated
 tests/e2e/fixtures/generated/
+
+# Local-only inputs and one-off tooling (never published: they describe the original sticker map data)
+/source-data/
+/investigation/
+/BUILD.md
+/_meta/
+/legacy/
+/assets/stickers/
+/.claude/commands/

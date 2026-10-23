@@ -54,8 +54,6 @@
     "lint": "eslint .",
     "test": "vitest run && vitest run -c vitest.worker.config.ts",
     "e2e": "playwright test",
-    "extract": "python3 scripts/extract-fgdb.py",
-    "migrate": "tsx scripts/migrate.ts",
     "test:unit": "vitest run",
     "test:worker": "vitest run -c vitest.worker.config.ts",
     "check:emoji": "tsx scripts/check-no-emoji.ts",

@@ -57,8 +57,8 @@ for (let i = 0; i < 44; i++) {
   files.push(name);
 }
 for (let i = 0; i < 3; i++) await writeFile(join(OUT, "bulk-50", `nogps-${i + 1}.jpg`), await picture(200 + i));
-// "already on the map": byte-identical copy of a legacy photo (objectid 1, which has GPS EXIF)
-await copyFile("build/extract/photos/001__IMG_20230802_103101_Original.jpeg", join(OUT, "bulk-50", "already-on-map.jpeg"));
+// "already on the map": a byte-identical copy of a photo that is already in the database (the e2e seed registers its hash)
+await copyFile(join(OUT, "bulk-50", "gps-02.jpg"), join(OUT, "bulk-50", "already-on-map.jpeg"));
 // "repeated inside the batch": same bytes as gps-01
 await copyFile(join(OUT, "bulk-50", "gps-01.jpg"), join(OUT, "bulk-50", "repeat-of-gps-01.jpg"));
 // "unreadable"
