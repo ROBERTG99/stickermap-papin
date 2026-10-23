@@ -4,7 +4,7 @@
  *   npx tsx scripts/deploy.ts migrate|public|admin
  *
  * Values come from the environment (GitHub Actions variables in CI) or from a local, git-ignored `.deploy.env`:
- *   D1_DATABASE_ID, CONTACT_EMAIL, ADMIN_ORIGIN (public Worker), ACCESS_TEAM_DOMAIN + ACCESS_AUD (admin Worker).
+ *   D1_DATABASE_ID, CONTACT_EMAIL, TURNSTILE_SITEKEY, ADMIN_ORIGIN (public Worker), ACCESS_TEAM_DOMAIN + ACCESS_AUD (admin Worker).
  * It patches the config produced by `npm run build` (dist/stickermap/wrangler.json) and runs wrangler with it.
  * The admin Worker is the same build under another name, without the cron trigger, behind Cloudflare Access.
  */
@@ -34,7 +34,7 @@ const base = JSON.parse(readFileSync("dist/stickermap/wrangler.json", "utf8")) a
 };
 base.d1_databases[0]!.database_id = need("D1_DATABASE_ID");
 
-const config = { ...base, vars: { ...base.vars, CONTACT_EMAIL: need("CONTACT_EMAIL") } };
+const config = { ...base, vars: { ...base.vars, CONTACT_EMAIL: need("CONTACT_EMAIL"), PUBLIC_TURNSTILE_SITEKEY: need("TURNSTILE_SITEKEY") } };
 if (target === "admin") {
   Object.assign(config, { name: "stickermap-admin", triggers: { crons: [] } });
   Object.assign(config.vars, { ADMIN_ORIGIN: "", ACCESS_TEAM_DOMAIN: need("ACCESS_TEAM_DOMAIN"), ACCESS_AUD: need("ACCESS_AUD") });

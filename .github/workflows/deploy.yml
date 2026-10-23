@@ -42,6 +42,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+          TURNSTILE_SITEKEY: ${{ vars.TURNSTILE_SITEKEY }}
           CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
           ADMIN_ORIGIN: ${{ vars.ADMIN_ORIGIN }}
           ACCESS_TEAM_DOMAIN: ${{ vars.ACCESS_TEAM_DOMAIN }}
