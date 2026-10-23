@@ -66,6 +66,6 @@ describe("featureToDetail", () => {
 
 describe("spotUrl", () => {
   it("builds the public /s/<id> link", () => {
-    expect(spotUrl("S1", "https://mapapapin.workers.dev")).toBe("https://mapapapin.workers.dev/s/S1");
+    expect(spotUrl("S1", "https://example.test")).toBe("https://example.test/s/S1");
   });
 });
