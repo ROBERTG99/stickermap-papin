@@ -29,8 +29,8 @@ export async function cachedJson(c: Context<AppEnv>, build: () => Promise<{ body
   return respondFrom(res);
 }
 
-/** Drop the cached `GET /api/spots` after a write. */
+/** Drop the cached public documents after a write (spots, types, people, stats) so changes show at once. */
 export async function bustSpotsCache(c: { req: { url: string } }): Promise<void> {
   const cache = (caches as unknown as { default: Cache }).default;
-  await cache.delete(new Request(new URL("/api/spots", c.req.url).toString(), { method: "GET" }));
+  await Promise.all(["/api/spots", "/api/types", "/api/people", "/api/stats"].map((p) => cache.delete(new Request(new URL(p, c.req.url).toString(), { method: "GET" }))));
 }

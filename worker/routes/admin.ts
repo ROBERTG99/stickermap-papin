@@ -366,6 +366,7 @@ admin.post("/types", async (c) => {
     meterStatement(c.env.DB, icon.bytes),
     audit(c.env.DB, c.get("email"), "add_type", "sticker_type", slugValue.data, f),
   ]);
+  c.executionCtx.waitUntil(bustSpotsCache(c));
   return c.json({ slug: slugValue.data }, 201);
 });
 
