@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.65.0",
-    "@cloudflare/vitest-pool-workers": "0.23.0",
+    "@cloudflare/vitest-plugin": "1.4.7",
     "@cloudflare/workers-types": "5.20261023.1",
     "@playwright/test": "1.64.1",
     "@preact/preset-vite": "2.10.6",
@@ -51,11 +51,13 @@
     "prebuild": "npm run design",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.scripts.json",
+    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.scripts.json && tsc -p tests/worker/tsconfig.json",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "vitest run && vitest run -c vitest.worker.config.ts",
     "e2e": "playwright test",
     "extract": "python3 scripts/extract-fgdb.py",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",
+    "test:unit": "vitest run",
+    "test:worker": "vitest run -c vitest.worker.config.ts"
   }
 }
