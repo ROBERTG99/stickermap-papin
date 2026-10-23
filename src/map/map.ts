@@ -1,11 +1,13 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Feature, FeatureCollection } from "geojson";
-import { Map as MapLibreMap, Marker, type GeoJSONSource, type StyleSpecification } from "maplibre-gl";
+import { Map as MapLibreMap, Marker, setWorkerUrl, type GeoJSONSource, type StyleSpecification } from "maplibre-gl";
+// Vite's dependency pre-bundling does not copy MapLibre's worker file, so point MapLibre at it explicitly.
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import type { SpotFeature, StickerType } from "../shared/types";
 import { storage } from "../lib/local";
 import { computeBounds } from "./filters";
 import { NO_PADDING, samePadding, type Padding } from "./layout";
-import { CLUSTER_MAX_ZOOM, CLUSTER_RADIUS, MarkerLayer, SPOTS_SOURCE } from "./markers";
+import { CLUSTER_MAX_ZOOM, CLUSTER_RADIUS, MarkerLayer, SPOTS_LAYER, SPOTS_SOURCE } from "./markers";
 import { mapColors, SATELLITE_LAYER } from "./style";
 
 /**
@@ -26,8 +28,9 @@ export interface StickerMapCallbacks {
   onViewChange(view: MapView): void;
 }
 
+setWorkerUrl(workerUrl);
+
 const VIEW_KEY = "mapView";
-const HIDDEN_LAYER = "spots-hit";
 const WORLD_VIEW: MapView = { center: [-30, 22], zoom: 1.4 };
 
 export const loadSavedView = (): MapView | null => {
@@ -38,6 +41,15 @@ export const saveView = (view: MapView): void => storage.set(VIEW_KEY, view);
 
 const emptyCollection: FeatureCollection = { type: "FeatureCollection", features: [] };
 
+/** Liberty paints a few areas with sprite patterns (pedestrian hatching, wetlands) that ignore the retint: use the plain fill colour. */
+function withoutFillPatterns(layers: StyleSpecification["layers"]): StyleSpecification["layers"] {
+  return layers.map((l) => {
+    if (l.type !== "fill" || !l.paint || !("fill-pattern" in l.paint)) return l;
+    const { "fill-pattern": _pattern, ...paint } = l.paint;
+    return { ...l, paint };
+  });
+}
+
 /** The clustered source + an invisible layer (MapLibre only loads tiles for sources that a layer uses). */
 function withSpots(style: StyleSpecification, data: FeatureCollection, satellite: boolean): StyleSpecification {
   return {
@@ -47,8 +59,8 @@ function withSpots(style: StyleSpecification, data: FeatureCollection, satellite
       [SPOTS_SOURCE]: { type: "geojson", data, cluster: true, clusterRadius: CLUSTER_RADIUS, clusterMaxZoom: CLUSTER_MAX_ZOOM },
     },
     layers: [
-      ...style.layers.map((l) => (l.id === SATELLITE_LAYER ? { ...l, layout: { ...(l.layout ?? {}), visibility: satellite ? "visible" : "none" } } : l)),
-      { id: HIDDEN_LAYER, type: "circle", source: SPOTS_SOURCE, paint: { "circle-radius": 1, "circle-opacity": 0 } },
+      ...withoutFillPatterns(style.layers).map((l) => (l.id === SATELLITE_LAYER ? { ...l, layout: { ...(l.layout ?? {}), visibility: satellite ? "visible" : "none" } } : l)),
+      { id: SPOTS_LAYER, type: "circle", source: SPOTS_SOURCE, paint: { "circle-radius": 1, "circle-opacity": 0 } },
     ] as StyleSpecification["layers"],
   };
 }
@@ -80,7 +92,6 @@ export class StickerMap {
       style: withSpots(blankStyle(), emptyCollection, false),
       center: start.center,
       zoom: start.zoom,
-      minZoom: 0.6,
       maxZoom: 19,
       attributionControl: false,
       dragRotate: false,
@@ -88,6 +99,8 @@ export class StickerMap {
       renderWorldCopies: true,
       fadeDuration: 0,
     });
+    // test hook (e2e compares marker dots with map.project): harmless read-only handle
+    (window as unknown as { __mapaPapinMap?: MapLibreMap }).__mapaPapinMap = this.map;
     this.map.touchZoomRotate.disableRotation();
     this.map.keyboard.disableRotation();
 
