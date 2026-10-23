@@ -1,0 +1,15 @@
+{
+  "name": "stickermap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mapa Papin: self-hosted sticker map (Cloudflare Workers + D1 + R2)",
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  }
+}

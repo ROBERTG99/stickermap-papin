@@ -1,0 +1,32 @@
+# macOS / Google Drive sync artifacts
+.DS_Store
+*.gdoc
+Icon?
+.tmp.drivedownload*
+.tmp.driveupload*
+
+# Build / tooling
+node_modules/
+dist/
+build/
+.wrangler/
+.dev.vars
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+playwright-report/
+test-results/
+
+# Heavy inputs (live in Drive / R2)
+source-data/photos/
+source-data/delta-*/photos/
+*.zip
+*.gpkg
+*.gdbtable
+*.gdbtablx
+data/geocode-cache.json
+
+# Local Claude Code permissions (machine-specific)
+.claude/settings.local.json
