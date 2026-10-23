@@ -1,6 +1,5 @@
 import type { ComponentChildren } from "preact";
 import { AppHeader } from "./AppHeader";
-import { Fab } from "./Fab";
 import { TabBar, type NavTabId } from "./TabBar";
 import { isDesktop } from "../lib/media";
 import { t } from "../lib/i18n";
