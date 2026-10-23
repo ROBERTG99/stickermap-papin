@@ -1,0 +1,70 @@
+name: Backup nightly (D1)
+# 04:00 UYT = 07:00 UTC. Keeps 30 daily dumps (BUILD.md §13).
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # push the plain dump to the `backups` branch
+
+concurrency:
+  group: backup-nightly
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  d1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Dump D1
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +%F)
+          npx --yes wrangler@4.152.0 d1 export stickermap --remote --output=backup.sql
+          test -s backup.sql
+          gzip -9 -k backup.sql
+          mv backup.sql.gz "d1-${DATE}.sql.gz"
+          echo "DATE=${DATE}" >> "$GITHUB_ENV"
+          echo "dump: $(wc -c < backup.sql) bytes, gz: $(wc -c < d1-${DATE}.sql.gz) bytes"
+      - name: Upload as workflow artifact (30 days, ~1 MB each)
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-${{ env.DATE }}
+          path: d1-${{ env.DATE }}.sql.gz
+          retention-days: 30
+      - name: Install rclone
+        run: curl -fsSL https://rclone.org/install.sh | sudo bash -s -- -v v1.69.1 || sudo apt-get install -y rclone
+      - name: Copy to R2 (for "Descargar backup") and Google Drive, prune to 30
+        env:
+          RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG_B64" | base64 -d > ~/.config/rclone/rclone.conf
+          export RCLONE_CONFIG_R2_TYPE=s3 RCLONE_CONFIG_R2_PROVIDER=Cloudflare RCLONE_CONFIG_R2_ENDPOINT="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+          rclone copyto "d1-${DATE}.sql.gz" "r2:stickermap-photos/backups/d1/d1-${DATE}.sql.gz"
+          rclone delete r2:stickermap-photos/backups/d1 --min-age 30d
+          rclone copyto "d1-${DATE}.sql.gz" "gdrive:Stickermap/backups/d1/d1-${DATE}.sql.gz"
+          rclone delete gdrive:Stickermap/backups/d1 --min-age 30d
+      - name: Commit the plain dump to the `backups` branch (diffable history)
+        run: |
+          set -euo pipefail
+          gunzip -c "d1-${DATE}.sql.gz" > backup.sql
+          git config user.name "backup-bot" && git config user.email "backup-bot@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin backups >/dev/null 2>&1; then git fetch origin backups && git checkout -B backups origin/backups; else git checkout --orphan backups && git rm -rf . >/dev/null 2>&1 || true; fi
+          mv backup.sql stickermap.sql
+          git add stickermap.sql
+          git commit -m "D1 dump ${DATE}" || echo "no changes"
+          git push origin backups

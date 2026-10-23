@@ -5,5 +5,7 @@ import "./styles/components.css";
 import "./styles/app.css";
 import { render } from "preact";
 import { App } from "./App";
+import { registerServiceWorker } from "./lib/pwa";
 
+registerServiceWorker();
 render(<App />, document.getElementById("app")!);

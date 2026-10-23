@@ -1,0 +1,74 @@
+name: Backup weekly (photos + GeoPackage)
+# Sunday 06:00 UYT = 09:00 UTC. Photos go to Google Drive (never to GitHub artifacts: 500 MB cap, BUILD.md §4.1).
+on:
+  schedule:
+    - cron: "0 9 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-weekly
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install rclone and GDAL
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash -s -- -v v1.69.1 || sudo apt-get install -y rclone
+          sudo apt-get update && sudo apt-get install -y gdal-bin
+      - name: Configure rclone (Drive remote from secret, R2 through env)
+        env:
+          RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG_B64" | base64 -d > ~/.config/rclone/rclone.conf
+      - name: Photos R2 -> Google Drive, add-only (never deletes or overwrites)
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          export RCLONE_CONFIG_R2_ENDPOINT="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          rclone copy r2:stickermap-photos gdrive:Stickermap/backups/photos --immutable --exclude "backups/**" --transfers 4
+          R2=$(rclone size r2:stickermap-photos --exclude "backups/**" --json | python3 -c "import sys,json;print(json.load(sys.stdin)['count'])")
+          DRIVE=$(rclone size gdrive:Stickermap/backups/photos --json | python3 -c "import sys,json;print(json.load(sys.stdin)['count'])")
+          echo "objects: R2=${R2} Drive=${DRIVE}"
+          test "${DRIVE}" -ge "${R2}"
+      - name: GIS export (GeoJSON, CSV, GeoPackage)
+        run: |
+          set -euo pipefail
+          npx tsx scripts/export.ts --target remote --out build/export --origin "${{ vars.SITE_ORIGIN }}"
+          DATE=$(date -u +%F)
+          ogr2ogr -f GPKG "build/export/stickermap-${DATE}.gpkg" build/export/stickermap.geojson -nln spots -a_srs EPSG:4326
+          echo "DATE=${DATE}" >> "$GITHUB_ENV"
+      - name: Upload GeoPackage to Drive and R2, keep 12
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          export RCLONE_CONFIG_R2_ENDPOINT="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          F="build/export/stickermap-${DATE}.gpkg"
+          rclone copyto "$F" "gdrive:Stickermap/backups/gpkg/stickermap-${DATE}.gpkg"
+          rclone delete gdrive:Stickermap/backups/gpkg --min-age 85d
+          rclone copyto "$F" "r2:stickermap-photos/backups/weekly/stickermap-${DATE}.gpkg"
+          rclone delete r2:stickermap-photos/backups/weekly --min-age 85d
