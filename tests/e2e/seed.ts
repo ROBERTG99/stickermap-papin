@@ -23,7 +23,7 @@ export const SEED: Omit<Seeded, "id">[] = [
 ];
 
 export async function seed(persistPath: string): Promise<Seeded[]> {
-  const proxy = await getPlatformProxy<{ DB: D1; PHOTOS: R2 }>({ configPath: "wrangler.jsonc", persist: { path: persistPath } });
+  const proxy = await getPlatformProxy<{ DB: D1; PHOTOS: R2 }>({ configPath: "wrangler.jsonc", persist: { path: `${persistPath}/v3` } });
   const { DB, PHOTOS } = proxy.env;
   for (const slug of ["papa", "sexo-punto", "sexo-pregunta", "sexo-pregunta-og", "otro"]) {
     await PHOTOS.put(`icons/${slug}.png`, await readFile(`investigation/icons/${slug}.png`), { httpMetadata: { contentType: "image/png" } });

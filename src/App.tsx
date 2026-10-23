@@ -20,6 +20,9 @@ const AdminApp = lazy(() => import("./pages/admin/AdminApp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const KitchenSink = import.meta.env.DEV ? lazy(() => import("./pages/dev/KitchenSink")) : null;
 
+/** One Suspense boundary per page (the map keeps its boundary across `/` and `/s/:id`, so selecting a spot never remounts it). */
+const routeKey = (p: string): string => (match("/", p) || match("/s/:id", p) ? "map" : p.split("?")[0]!);
+
 function Routes() {
   const p = path.value;
   const spot = match("/s/:id", p);
@@ -47,7 +50,8 @@ export function App() {
       <IconSprite />
       <ToastHost />
       <InstallSheet />
-      <Suspense fallback={null}><Routes /></Suspense>
+      {/* keyed by route: leaving a page while its lazy chunk is still loading must not leave a stuck boundary (blank screen on a quick Back) */}
+      <Suspense fallback={null} key={routeKey(path.value)}><Routes /></Suspense>
     </>
   );
 }

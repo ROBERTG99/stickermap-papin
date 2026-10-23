@@ -1,6 +1,6 @@
 /* Mapa Papin service worker: offline shell, runtime caches and the Android share target.
    Plain JS on purpose (no build step): everything is cached as it is used, so there is no precache manifest to keep in sync. */
-const VERSION = "mp-v1";
+const VERSION = "mp-v2";
 const SHELL = `${VERSION}-shell`; // hashed JS/CSS/fonts/flags/icons + index.html
 const IMAGES = `${VERSION}-img`; // /img/thumb|display|icons (immutable)
 const DATA = `${VERSION}-data`; // GET /api/*
@@ -79,7 +79,7 @@ self.addEventListener("fetch", (event) => {
   }
   if (request.method !== "GET") return;
 
-  if (url.origin === "https://tiles.openfreemap.org") {
+  if (url.origin === "https://tiles.openfreemap.org" || url.origin === "https://tiles.maps.eox.at") {
     event.respondWith(staleWhileRevalidate(TILES)(request, event).catch(() => Response.error()));
     return;
   }

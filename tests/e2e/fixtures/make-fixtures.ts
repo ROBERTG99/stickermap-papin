@@ -44,6 +44,8 @@ await mkdir(join(OUT, "bulk-50"), { recursive: true });
 await writeFile(join(OUT, "gps-montevideo.jpg"), await picture(1, { lat: -34.9061, lng: -56.1993, takenAt: "2025:04:15 10:42:00" }));
 await writeFile(join(OUT, "nogps-1.jpg"), await picture(2));
 await writeFile(join(OUT, "nogps-2.jpg"), await picture(3));
+// more distinct no-GPS photos: a photo already on the map is a duplicate, so every spec that adds one needs its own
+for (let i = 3; i <= 10; i++) await writeFile(join(OUT, `nogps-${i}.jpg`), await picture(300 + i));
 
 // bulk fixture: 44 GPS around Montevideo/Buenos Aires, 3 without GPS, 1 on the map, 1 repeated, 1 unreadable
 const files: string[] = [];
@@ -61,6 +63,13 @@ await copyFile("build/extract/photos/001__IMG_20230802_103101_Original.jpeg", jo
 await copyFile(join(OUT, "bulk-50", "gps-01.jpg"), join(OUT, "bulk-50", "repeat-of-gps-01.jpg"));
 // "unreadable"
 await writeFile(join(OUT, "bulk-50", "broken.jpg"), Buffer.from("this is not an image"));
+
+// photos for the specs that send their own small batches (they must not overlap with the 50-photo set: a sent photo is "already on the map")
+await mkdir(join(OUT, "extra"), { recursive: true });
+for (let i = 0; i < 20; i++) {
+  const name = `extra-${String(i + 1).padStart(2, "0")}.jpg`;
+  await writeFile(join(OUT, "extra", name), await picture(500 + i, { lat: 40.4 + i * 0.002, lng: -3.7 + i * 0.002, takenAt: `2025:05:01 09:${String(i).padStart(2, "0")}:00` }));
+}
 
 const count = (await readFile(join(OUT, "bulk-50", "gps-01.jpg"))).length;
 console.log(`fixtures written to ${OUT} (gps-01.jpg is ${count} bytes); bulk-50 has ${files.length + 3 + 3} files`);

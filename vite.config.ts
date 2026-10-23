@@ -9,7 +9,7 @@ export default defineConfig({
   build: { outDir: "../dist", emptyOutDir: true, sourcemap: true },
   plugins: [preact(), cloudflare({
       configPath: "../wrangler.jsonc",
-      // Same local D1/R2 state as `wrangler d1/r2 --local` and scripts/migrate.ts (the Vite root is src/)
-      persistState: { path: fileURLToPath(new URL("./.wrangler/state", import.meta.url)) },
+      // Same local D1/R2 state as `wrangler d1/r2 --local` and scripts/migrate.ts (the Vite root is src/); e2e uses its own via MP_STATE_DIR
+      persistState: { path: fileURLToPath(new URL(`./${process.env.MP_STATE_DIR ?? ".wrangler/state"}`, import.meta.url)) },
     })],
 });
