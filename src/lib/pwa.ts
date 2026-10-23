@@ -14,7 +14,7 @@ export function registerServiceWorker(): void {
   if (!("serviceWorker" in navigator) || import.meta.env.DEV) return;
   addEventListener("load", () => {
     void navigator.serviceWorker.register("/sw.js").then((reg) => {
-      const active = reg.active ?? reg.installing ?? reg.waiting;
+      const active = reg?.active ?? reg?.installing ?? reg?.waiting;
       void navigator.serviceWorker.ready.then((r) => r.active?.postMessage("warm-shell"));
       return active;
     });

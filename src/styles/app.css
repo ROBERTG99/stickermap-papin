@@ -47,3 +47,7 @@ body { margin: 0; min-height: 100dvh; overscroll-behavior-y: none; }
 .mp-photo--natural { display: block; aspect-ratio: auto; background: var(--surface-sunken); line-height: 0; }
 .mp-photo--natural img { display: block; width: 100%; height: auto; max-height: 36dvh; object-fit: contain; } /* mobile: leave room for the details below */
 @media (min-width: 900px) { .mp-photo--natural img { max-height: 62dvh; } }
+
+/* MapLibre's own CSS (a lazy chunk, loaded after ours in production) sets `.maplibregl-map { position: relative }`, which would collapse
+   containers that we absolutely position. Two classes beat one regardless of load order. */
+.maplibregl-map.map-canvas, .maplibregl-map.add-map__canvas, .maplibregl-map.bulk-map__canvas { position: absolute; inset: 0; }
