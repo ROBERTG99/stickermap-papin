@@ -7,7 +7,7 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     // Static assets are free and unlimited; only these paths run the Worker (BUILD.md §4.1)
-    "run_worker_first": ["/api/*", "/img/*", "/s/*", "/media/*"]
+    "run_worker_first": ["/api/*", "/img/*", "/s/*", "/media/*", "/admin", "/admin/*"]
   },
   "d1_databases": [
     {
@@ -23,7 +23,9 @@
     "PUBLIC_TURNSTILE_SITEKEY": "1x00000000000000000000AA",
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
-    "CONTACT_EMAIL": "owner@example.com"
+    "CONTACT_EMAIL": "owner@example.com",
+    // Public Worker only: /admin redirects to the Access-protected admin Worker (scripts/deploy-admin.ts clears it there)
+    "ADMIN_ORIGIN": "https://admin.example.test"
   },
   // Reverse-geocode backfill, at most 4 Nominatim requests per run (BUILD.md §7.3b, §8)
   "triggers": { "crons": ["* * * * *"] },

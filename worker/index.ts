@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { secureHeaders } from "hono/secure-headers";
 import type { AppEnv } from "./app";
 import { runGeocodeCron } from "./cron/geocode";
@@ -36,6 +36,18 @@ app.route("/api/batches", batches);
 app.route("/api/admin", admin);
 app.route("/api", catalog);
 app.route("/img", img);
+
+// On workers.dev Cloudflare Access can only protect a whole Worker, so /admin lives in a second Worker (stickermap-admin)
+// and the public one just points there. On the admin Worker (no ADMIN_ORIGIN) the SPA is served from the assets.
+app.all("/admin", (c) => adminEntry(c));
+app.all("/admin/*", (c) => adminEntry(c));
+function adminEntry(c: Context<AppEnv>) {
+  if (c.env.ADMIN_ORIGIN) {
+    const url = new URL(c.req.url);
+    return c.redirect(`${c.env.ADMIN_ORIGIN}${url.pathname}${url.search}`, 302);
+  }
+  return c.env.ASSETS.fetch(c.req.raw).then(mutable);
+}
 
 app.get("/s/:id", async (c) => {
   const page = await c.env.ASSETS.fetch(new Request(new URL("/", c.req.url)));

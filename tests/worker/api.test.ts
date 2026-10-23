@@ -95,6 +95,15 @@ describe("admin", () => {
   });
 });
 
+describe("admin entry on the public Worker", () => {
+  it("sends /admin to the Access-protected admin Worker, keeping path and query", async () => {
+    const res = await call("/admin/datos?status=queue", { redirect: "manual" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe("https://admin.example.test/admin/datos?status=queue");
+    expect((await call("/admin", { redirect: "manual" })).status).toBe(302);
+  });
+});
+
 describe("bulk add", () => {
   async function startBatch() {
     mockTurnstile(true);

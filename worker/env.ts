@@ -7,6 +7,8 @@ export interface Env {
   ACCESS_TEAM_DOMAIN: string;
   ACCESS_AUD: string;
   CONTACT_EMAIL: string;
+  /** Public Worker only: where /admin lives (the separate Worker protected by Cloudflare Access). Empty on the admin Worker. */
+  ADMIN_ORIGIN?: string;
   TURNSTILE_SECRET: string;
   IP_HASH_SECRET: string;
   /** .dev.vars only: grants admin on localhost when Cloudflare Access is not configured. */
