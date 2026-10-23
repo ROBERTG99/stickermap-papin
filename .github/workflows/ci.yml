@@ -43,6 +43,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: cp .dev.vars.example .dev.vars
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
       - uses: actions/upload-artifact@v4

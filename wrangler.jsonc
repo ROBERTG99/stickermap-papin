@@ -19,7 +19,7 @@
   ],
   "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "stickermap-photos" }],
   "vars": {
-    // Turnstile always-pass test key for dev; replaced by the real site key at deploy
+    // Public Turnstile site key (production). Local dev and e2e override it with Cloudflare's always-pass test key in .dev.vars
     "PUBLIC_TURNSTILE_SITEKEY": "1x00000000000000000000AA",
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
