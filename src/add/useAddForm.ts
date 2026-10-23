@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { recordStickerAdded } from "../lib/pwa";
 import { defaultWhoPlaced, rememberPlacers, type WhoPlacedValue } from "../components/WhoPlaced";
 import { toast } from "../lib/toast";
 import { ApiError, api } from "../lib/api";
@@ -11,8 +12,8 @@ import { navigate } from "../lib/router";
 import { config, loadSpots, types as typeList } from "../lib/store";
 import { getTurnstileToken } from "../lib/turnstile";
 import { processPhoto } from "../lib/photo";
+import { readExifFixed } from "./exif";
 import type { SearchResult } from "../components/LocationPicker";
-import type { SpotDetail } from "../shared/types";
 import { lastCreated } from "./created";
 import { DeviceError, getDeviceFix } from "./device";
 import { clearDraft, loadDraft, saveDraft, type AddDraft } from "./draft-store";
@@ -199,6 +200,8 @@ export function useAddForm() {
     let processed;
     try {
       processed = await processPhoto(file);
+      const exif = await readExifFixed(file); // see exif.ts: the shared reader returns nothing for every file
+      if (exif && (exif.lat !== null || exif.takenAt)) processed = { ...processed, exif };
     } catch {
       if (token !== photoToken.current) return;
       revoke(ref.current.photo);
@@ -223,7 +226,8 @@ export function useAddForm() {
         focus: focusOf(cur, lat, lng, 17),
       }));
     } else {
-      patch({ exif: null });
+      // a location read from the previous photo does not carry over to this one
+      patch((cur) => ({ exif: null, choice: cur.choice?.source === "exif" ? null : cur.choice }));
       if (plan === "device" && !manual(ref.current.choice)) void requestDevice(true);
     }
     void lookUpDuplicate(processed.sha256, token);
@@ -243,7 +247,11 @@ export function useAddForm() {
   const removePhoto = useCallback(() => {
     photoToken.current++;
     revoke(ref.current.photo);
-    patch({ photo: null, photoError: null, duplicate: null, duplicateStage: "closed" });
+    patch((cur) => ({
+      photo: null, photoError: null, duplicate: null, duplicateStage: "closed",
+      // the location that came from this photo goes with it; anything the user set stays
+      exif: null, choice: cur.choice?.source === "exif" ? null : cur.choice,
+    }));
   }, [patch]);
 
   const rotate = useCallback(async () => {
@@ -406,6 +414,7 @@ export function useAddForm() {
       draftActive.current = false;
       await clearDraft();
       void loadSpots();
+      recordStickerAdded();
       navigate(`/gracias/${created.id}`);
     } catch (error) {
       const e = error instanceof ApiError ? error : new ApiError(0, "offline");

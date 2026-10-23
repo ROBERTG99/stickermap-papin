@@ -1,6 +1,7 @@
 import { useId, useState } from "preact/hooks";
 import type { StickerType } from "../shared/types";
 import { cx } from "../lib/cx";
+import { t as translate } from "../lib/i18n";
 import { Icon } from "./Icon";
 import { TypeSticker } from "./map-parts";
 
@@ -38,7 +39,7 @@ export function Legend({ types, activeType, onToggleType, collapsed, defaultColl
             <TypeSticker key={t.slug} type={t} />
           ))}
         </span>
-        Tipos
+        {translate("components.legend.title")}
         <Icon name={isCollapsed ? "chevron-up" : "chevron-down"} />
       </button>
       <ul class="mp-legend__list" id={listId}>

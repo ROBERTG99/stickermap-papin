@@ -1,0 +1,180 @@
+{
+  "title": "Varias fotos",
+  "titleDesktop": "Agregar varias fotos",
+  "limit": "Elegí hasta 100 por vez",
+  "noLocation": "Sin ubicación",
+  "allNoloc": "Tus fotos llegaron sin ubicación. Probá desde la compu: pasá las fotos y arrastralas acá.",
+  "choose": {
+    "title": "Subí un montón de una",
+    "lead": "Las fotos que tienen ubicación se agregan solas al mapa. Las que no, te las marcamos para que las ubiques vos.",
+    "desktopTip": "Tip: pasá las fotos del iPhone a la compu con AirDrop o “Exportar original sin modificar” y arrastralas. Así siempre conservan la ubicación."
+  },
+  "resume": {
+    "uploading": "Tenés un lote sin terminar: {done} de {total} subidas",
+    "review": "Tenés un lote sin terminar: {n} fotos para revisar",
+    "reviewOne": "Tenés un lote sin terminar: 1 foto para revisar",
+    "unplaced": "Tenés {n} fotos sin ubicar",
+    "unplacedOne": "Tenés 1 foto sin ubicar",
+    "continue": "Seguir",
+    "locate": "Ubicarlas",
+    "discard": "Descartar"
+  },
+  "discard": {
+    "title": "¿Descartar este lote?",
+    "body": "Se borran las fotos guardadas en este dispositivo. Lo que ya está en el mapa no se toca.",
+    "confirm": "Descartar el lote"
+  },
+  "replace": {
+    "title": "¿Empezar un lote nuevo?",
+    "body": "Tenés un lote sin terminar. Si seguís, se descarta y empezás con estas fotos.",
+    "confirm": "Empezar de nuevo"
+  },
+  "reading": {
+    "label": "Leyendo fotos… {done} de {total}",
+    "note": "Las leemos en tu teléfono: ubicación, fecha y tamaño. Todavía no se subió nada.",
+    "noteDesktop": "Las leemos en tu compu: ubicación, fecha y tamaño. Todavía no se subió nada.",
+    "listAria": "Fotos leídas"
+  },
+  "review": {
+    "title": "Revisar {n} fotos",
+    "titleOne": "Revisar 1 foto"
+  },
+  "map": {
+    "aria": "Mapa de las fotos con ubicación",
+    "count": "{n} en el mapa",
+    "unavailable": "No pudimos cargar el mapa. Las fotos se agregan igual.",
+    "gestureCtrl": "Usá Ctrl + scroll para mover el mapa",
+    "gestureCmd": "Usá ⌘ + scroll para mover el mapa",
+    "gestureTouch": "Usá dos dedos para mover el mapa"
+  },
+  "noloc": {
+    "banner": "Estas {n} fotos no traen ubicación. No las agregamos hasta que las ubiques.",
+    "bannerOne": "Esta foto no trae ubicación. No la agregamos hasta que la ubiques.",
+    "skipAll": "Omitir las {n}"
+  },
+  "list": {
+    "aria": "Fotos del lote",
+    "empty": "No hay fotos en este filtro."
+  },
+  "defaults": {
+    "title": "Para todas las fotos",
+    "done": "Listo",
+    "todo": "Falta el tipo",
+    "type": "¿Qué sticker?",
+    "typeHint": "(podés cambiarlo por foto)",
+    "typeAria": "Tipo de sticker",
+    "typeError": "Elegí al menos un tipo de sticker.",
+    "otherError": "Contanos cuál es el “Otro”.",
+    "soy": "Soy",
+    "soyPlaceholder": "Tu nombre (opcional)",
+    "more": "Más opciones",
+    "approx": "Ubicación aproximada para todas",
+    "approxHint": "Se muestra redondeada (~100 m). Útil para casas.",
+    "originals": "Subir también los originales",
+    "originalsHint": "{size}. Si lo apagás, solo se suben las versiones livianas."
+  },
+  "same": {
+    "pickTitle": "¿Cuál dejamos?",
+    "pickBody": "Dejamos la foto que elijas y omitimos las otras. Las omitidas se pueden incluir de nuevo.",
+    "photo": "Foto {n}",
+    "merge": "Juntar",
+    "cancel": "Mejor no"
+  },
+  "submit": {
+    "unplaced": "{n} sin ubicación quedan guardadas",
+    "unplacedOne": "1 sin ubicación queda guardada",
+    "ready": "Todo listo",
+    "turnstile": "Protegido por Turnstile"
+  },
+  "missing": {
+    "type": "Falta: tipo de sticker",
+    "other": "Falta: contanos cuál es el “Otro”",
+    "placer": "Falta: quién lo pegó",
+    "none": "No hay fotos listas para mandar"
+  },
+  "sheet": {
+    "aria": "Foto del lote"
+  },
+  "locate": {
+    "title": "¿Dónde está este sticker?",
+    "sub": "Foto {n} · sacada a las {time}",
+    "subNoTime": "Foto {n}",
+    "suggestHint": "tocá para usarla y ajustá el pin",
+    "tap": "Tocá el mapa o arrastrá el pin",
+    "confirm": "Confirmar ubicación",
+    "omit": "Omitir esta foto",
+    "placed": "Listo, ubicada. Ya se manda con las demás.",
+    "searchFailed": "No pudimos buscar ahora. Probá de nuevo o pegá un link.",
+    "parse": {
+      "invalid": "No pudimos leer eso. Probá con -34.9, -56.16 o un link de Google Maps.",
+      "range": "Esa ubicación no existe. Revisá los números.",
+      "short": "Ese link es corto y no lo podemos abrir. Abrilo y pegá el link largo, o las coordenadas."
+    }
+  },
+  "edit": {
+    "sub": "Foto {n} · {time}",
+    "subNoTime": "Foto {n}",
+    "movePin": "Mover pin",
+    "type": "¿Qué sticker?",
+    "note": "Nota (opcional)",
+    "done": "Listo",
+    "omit": "Omitir esta foto",
+    "needSoy": "Completá “Soy” en “Para todas las fotos” para elegir “Yo”."
+  },
+  "upload": {
+    "title": "Subiendo",
+    "keepOpen": "No cierres esta pantalla hasta que termine.",
+    "progress": "Subiendo {done} de {total}",
+    "sending": "Subiendo…",
+    "retry": "Reintentar fallidas ({n})",
+    "aria": "Fotos que se están subiendo",
+    "exists": "Ya está en el mapa",
+    "error": {
+      "offline": "se cortó la conexión",
+      "server": "el servidor no respondió",
+      "rate_limited": "llegaste al límite de hoy",
+      "too_large": "pesa demasiado",
+      "rejected": "no se pudo procesar la foto",
+      "batch_full": "el lote está lleno",
+      "token": "venció el permiso, reintentá",
+      "turnstile": "no pasó la verificación",
+      "missing": "falta la foto guardada",
+      "aborted": "se canceló",
+      "error": "algo falló"
+    }
+  },
+  "done": {
+    "new": "stickers nuevos",
+    "newOne": "sticker nuevo",
+    "already": "{n} fotos ya estaban en el mapa",
+    "alreadyOne": "1 foto ya estaba en el mapa",
+    "unplaced": "{n} fotos sin ubicación",
+    "unplacedOne": "1 foto sin ubicación",
+    "locate": "Ubicarlas ahora",
+    "locateOne": "Ubicarla ahora",
+    "view": "Ver en el mapa",
+    "more": "Agregar otras fotos",
+    "edit": "Podés editar por {time}",
+    "delete": "Borrar este lote",
+    "deleting": "Borrando…",
+    "deleteTitle": "¿Borrar este lote?",
+    "deleteBody": "Se sacan del mapa los {n} stickers que mandaste ahora. Las fotos sin ubicar quedan guardadas acá.",
+    "deleted": "Listo, borramos el lote.",
+    "deleteFailed": "No pudimos borrar el lote.",
+    "nothing": "No se agregó ninguna foto",
+    "nothingBody": "Todas ya estaban en el mapa."
+  },
+  "reason": {
+    "too-big": "Pesa más de 25 MB",
+    "not-image": "No es una foto",
+    "cant-open": "Este formato no se puede abrir acá. Probá con JPEG.",
+    "cant-read": "No se pudo leer el archivo",
+    "no-space": "No hay espacio en este dispositivo"
+  },
+  "back": "Volver",
+  "retry": "Reintentar",
+  "send": "Mandale Mecha",
+  "network": "Se cortó la conexión. Tu sticker sigue acá.",
+  "thanksTitle": "¡Mandaste mecha!",
+  "thanksLine": "Tu aporte Papin es reconocido y apreciado"
+}

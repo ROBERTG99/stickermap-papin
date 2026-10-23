@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "preact/hooks";
 import type { PersonSummary, PlacerStatus } from "../shared/types";
+import { t } from "../lib/i18n";
 import { AddChip, PersonAvatar, PersonChip } from "./Chip";
 import { Combobox } from "./Field";
 import { Segmented, type SegmentedOption } from "./Segmented";
@@ -18,11 +19,12 @@ export function defaultWhoPlaced(soy: string): WhoPlacedValue {
   return name ? { status: "self", placers: [name] } : { status: "unknown", placers: [] };
 }
 
+/** Spanish text of the validation error (kitchen-sink sample); the live validator returns the translated one. */
 export const WHO_PLACED_ERROR = "Poné al menos un nombre, o elegí “No sé”.";
 
 /** Returns the error message to show (on submit, then live) or `null` when valid. */
 export function validateWhoPlaced(value: WhoPlacedValue): string | null {
-  return value.status === "other" && value.placers.length === 0 ? WHO_PLACED_ERROR : null;
+  return value.status === "other" && value.placers.length === 0 ? t("components.who.error") : null;
 }
 
 const RECENT_KEY = "mp.recentPlacers";
@@ -50,10 +52,10 @@ export function rememberPlacers(names: readonly string[]): string[] {
   return next;
 }
 
-const OPTIONS: readonly SegmentedOption<PlacerStatus>[] = [
-  { value: "self", label: "Yo" },
-  { value: "other", label: "Otro/s" },
-  { value: "unknown", label: "No sé" },
+const options = (): readonly SegmentedOption<PlacerStatus>[] => [
+  { value: "self", label: t("components.who.me") },
+  { value: "other", label: t("components.who.others") },
+  { value: "unknown", label: t("components.who.unknown") },
 ];
 
 interface WhoPlacedProps {
@@ -115,16 +117,16 @@ export function WhoPlaced({ value, onChange, soy, people, recent = [], error, on
   return (
     <div class="mp-card mp-stack">
       <span class="mp-field__label" id={labelId}>
-        ¿Quién lo pegó?
+        {t("components.who.question")}
       </span>
-      <Segmented options={OPTIONS} value={value.status} onChange={setStatus} labelledBy={labelId} />
+      <Segmented options={options()} value={value.status} onChange={setStatus} labelledBy={labelId} />
 
       {value.status === "self" && (
         <div class="mp-spot__by">
           <PersonAvatar name={soyName} size={34} index={0} />
           <div>
-            <span class="mp-spot__by-label">PEGADO POR</span>
-            <span class="mp-spot__by-names">{soyName} (vos)</span>
+            <span class="mp-spot__by-label">{t("components.spot.placedBy")}</span>
+            <span class="mp-spot__by-names">{t("common.person.you", { name: soyName })}</span>
           </div>
         </div>
       )}
@@ -132,9 +134,9 @@ export function WhoPlaced({ value, onChange, soy, people, recent = [], error, on
       {value.status === "other" && (
         <>
           <Combobox
-            label="Agregar nombre"
+            label={t("components.who.addName")}
             hideLabel
-            placeholder="Agregar nombre"
+            placeholder={t("components.who.addName")}
             options={people.map((p) => ({ name: p.name, count: p.placed }))}
             value={value.placers}
             onChange={(placers) => onChange({ status: "other", placers })}
@@ -143,7 +145,7 @@ export function WhoPlaced({ value, onChange, soy, people, recent = [], error, on
             error={error ?? undefined}
             inputRef={comboInput}
           />
-          {recent.length > 0 && <span class="mp-field__hint">Recientes</span>}
+          {recent.length > 0 && <span class="mp-field__hint">{t("components.who.recent")}</span>}
           <div class="mp-chips">
             {recent.map((name, i) => (
               <PersonChip key={name} name={name} index={i} selected={value.placers.some((p) => p.toLowerCase() === name.toLowerCase())} onToggle={toggleRecent} />
@@ -157,18 +159,18 @@ export function WhoPlaced({ value, onChange, soy, people, recent = [], error, on
         <>
           <div class="mp-field">
             <label class="mp-field__label" for={noteId}>
-              ¿Algún dato? (opcional)
+              {t("components.who.note")}
             </label>
             <input
               id={noteId}
               class="mp-input"
-              placeholder="Ej: lo vio el hermano de JM"
+              placeholder={t("components.who.notePlaceholder")}
               maxLength={280}
               value={value.note ?? ""}
               onInput={(e) => onChange({ status: "unknown", placers: [], note: e.currentTarget.value || undefined })}
             />
           </div>
-          <span class="mp-field__hint">Queda como “Pegado por: ¿?” hasta que alguien sepa.</span>
+          <span class="mp-field__hint">{t("components.who.unknownHint")}</span>
         </>
       )}
     </div>

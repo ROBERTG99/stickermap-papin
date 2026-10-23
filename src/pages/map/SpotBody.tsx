@@ -25,7 +25,6 @@ function useEditRemaining(id: string): number {
     setMs(read());
     const timer = setInterval(() => setMs(read()), 30_000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `read` only depends on `id`
   }, [id]);
   return ms;
 }
@@ -61,7 +60,7 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport, onKnowPlacer 
         <div class="mp-spot__owner">
           <button type="button" class="mp-btn mp-btn--secondary mp-btn--sm" onClick={() => navigate(`/editar/${detail.id}`)}>
             <Icon name="pencil" size="sm" />
-            {t("action.edit")}
+            {t("common.action.edit")}
           </button>
           <small>
             <Icon name="clock" size="sm" />

@@ -1,0 +1,217 @@
+{
+  "header": {
+    "logoLabel": "Mapa Papin, inicio",
+    "searchPlace": "Buscar lugar",
+    "filters": "Filtros",
+    "filtersOne": "Filtros, {count} activo",
+    "filtersMany": "Filtros, {count} activos",
+    "menu": "Menú (idioma ES/EN, tema)",
+    "help": "Ayuda",
+    "sections": "Secciones"
+  },
+  "person": {
+    "you": "(vos)",
+    "unidentified": "Persona sin identificar"
+  },
+  "hint": {
+    "tap": "Tocá un sticker para ver la foto",
+    "add": "Agregá el tuyo con +",
+    "ok": "¡Dale!"
+  },
+  "sheet": {
+    "selected": "Sticker seleccionado",
+    "collapse": "Achicar",
+    "expand": "Expandir"
+  },
+  "dialog": {
+    "cancel": "Mejor no"
+  },
+  "toast": {
+    "close": "Cerrar aviso"
+  },
+  "photo": {
+    "alt": "Foto: sticker {type}",
+    "placedBy": "Pegado por {name}",
+    "of": "Foto {n}"
+  },
+  "batch": {
+    "queued": "En cola",
+    "queuedText": "en cola",
+    "busy": "Subiendo",
+    "busyText": "subiendo",
+    "done": "Subido",
+    "doneText": "subido",
+    "failed": "Falló",
+    "failedText": "no se pudo subir",
+    "editPhoto": "Editar foto {n}",
+    "noLocation": "Sin ubicación",
+    "noGps": "sin GPS",
+    "locate": "Ubicar",
+    "skip": "Omitir",
+    "skipPhoto": "Omitir foto {n}",
+    "exists": "Ya está en el mapa",
+    "view": "Ver",
+    "viewOnMap": "Ver foto {n} en el mapa",
+    "dup": "Repetida en este lote",
+    "sameAs": "igual a la foto {n}",
+    "unreadable": "No se pudo leer",
+    "skipped": "Omitida",
+    "notAdded": "no se agrega",
+    "include": "Incluir",
+    "includePhoto": "Incluir foto {n}",
+    "uploadingPhoto": "Subiendo foto {n}"
+  },
+  "dropzone": {
+    "title": "Soltá acá tus fotos",
+    "hintDesktop": "Fotos o carpetas enteras, hasta {max}. Las que traen ubicación se agregan solas.",
+    "hintPhone": "Hasta {max} por vez. Todavía no se sube nada.",
+    "pickPhone": "Elegir fotos",
+    "pickDesktop": "O elegilas"
+  },
+  "iphone": {
+    "title": "En iPhone, antes de “Agregar”:",
+    "step1Pre": "Tocá ",
+    "step1Bold": "Opciones",
+    "step1Post": " arriba de las fotos.",
+    "step2Pre": "Activá ",
+    "step2Bold": "Ubicación",
+    "step2Post": ".",
+    "selected": "{n} seleccionadas",
+    "options": "Opciones",
+    "location": "Ubicación",
+    "warning": "Sin esto, el iPhone saca la ubicación de las fotos y te van a quedar todas “Sin ubicación”."
+  },
+  "suggest": {
+    "near": "¿Cerca de la foto de las {time}?"
+  },
+  "same": {
+    "group": "Posible mismo sticker",
+    "title": "¿Mismo sticker?",
+    "text": "Fotos {a} y {b}: a {meters} m y {minutes} min.",
+    "merge": "Juntar",
+    "keep": "No, son distintos"
+  },
+  "filter": {
+    "group": "Filtrar fotos",
+    "all": "Todas",
+    "ready": "Listas",
+    "noloc": "Sin ubicación",
+    "skipped": "Omitidas"
+  },
+  "chip": {
+    "remove": "Quitar {name}",
+    "addName": "agregar nombre"
+  },
+  "typegrid": {
+    "label": "Tipo de sticker",
+    "which": "¿Cuál?",
+    "placeholder": "Ej: el de la vaca"
+  },
+  "field": {
+    "add": "Agregar “{name}”"
+  },
+  "table": {
+    "range": "{from}–{to} de {total}",
+    "pages": "Páginas",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {n}",
+    "pickedOne": "{n} elegido",
+    "pickedMany": "{n} elegidos",
+    "pickAll": "Elegir todos",
+    "pickRow": "Elegir {name}"
+  },
+  "legend": {
+    "title": "Tipos"
+  },
+  "lightbox": {
+    "label": "Foto de {place}, {n} de {count}",
+    "pinch": "Pellizcá para hacer zoom"
+  },
+  "mapctl": {
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "locate": "Mi ubicación",
+    "satellite": "Satélite"
+  },
+  "panel": {
+    "spot": "Spot"
+  },
+  "marker": {
+    "sticker": "Sticker",
+    "withMore": "{first} y {n} más",
+    "cluster": "{count} stickers, acercá para ver",
+    "exactDot": "← coordenada exacta"
+  },
+  "submit": {
+    "missing": "Falta: {what}",
+    "missingGeneric": "Falta completar el formulario",
+    "ready": "Todo listo",
+    "verified": "Verificado por Cloudflare",
+    "uploading": "Subiendo foto…",
+    "sending": "Mandando…"
+  },
+  "card": {
+    "done": "Lista"
+  },
+  "spot": {
+    "noName": "Lugar sin nombre",
+    "viewPhoto": "Ver foto",
+    "viewFull": "Ver foto en pantalla completa",
+    "placedBy": "PEGADO POR",
+    "knowWho": "¿Sabés quién fue?",
+    "uploadedBy": "Cargado por:",
+    "maps": "Ver en Google Maps",
+    "editWindow": "podés editar por {h} h"
+  },
+  "date": {
+    "hoursAgo": "hace {n} h",
+    "minutesAgo": "hace {n} min"
+  },
+  "who": {
+    "error": "Poné al menos un nombre, o elegí “No sé”.",
+    "me": "Yo",
+    "others": "Otro/s",
+    "unknown": "No sé",
+    "question": "¿Quién lo pegó?",
+    "addName": "Agregar nombre",
+    "recent": "Recientes",
+    "note": "¿Algún dato? (opcional)",
+    "notePlaceholder": "Ej: lo vio el hermano de JM",
+    "unknownHint": "Queda como “Pegado por: ¿?” hasta que alguien sepa."
+  },
+  "loc": {
+    "exif": "Ubicación de la foto",
+    "exifRevert": "Volver a la foto",
+    "device": "Tu ubicación",
+    "deviceRevert": "Volver a tu ubicación",
+    "pin": "Ajustada a mano",
+    "pinRevert": "Volver a la anterior",
+    "search": "Búsqueda",
+    "searchRevert": "Volver a la búsqueda",
+    "paste": "Link pegado",
+    "pasteRevert": "Volver al link",
+    "legacy": "Ubicación guardada",
+    "legacyRevert": "Volver a la guardada",
+    "finding": "Buscando tu ubicación…",
+    "lowAccuracy": "Estás a ±{m} m. Arrastrá el pin justo arriba del sticker.",
+    "dragPin": "Arrastrá el pin si no es exacto.",
+    "conflictTitle": "Estas ubicaciones no coinciden",
+    "whereTitle": "¿Dónde está el sticker?",
+    "choose": "Elegí dónde está el sticker",
+    "photoTaken": "Donde se sacó la foto:",
+    "youAre": "Donde estás vos:",
+    "apart": "Están a {km} km. Elegí dónde está el sticker.",
+    "mapLabel": "Mapa para ubicar el sticker",
+    "denied": "Sin permiso de ubicación. Tranqui: buscá el lugar o pegá un link.",
+    "useMine": "Usar mi ubicación",
+    "pasteLink": "Pegar link o coordenadas",
+    "searchPlaceholder": "Buscar lugar o dirección",
+    "results": "Resultados de la búsqueda",
+    "iphonePre": "¿No aparece la ubicación? En iPhone tocá ",
+    "iphoneBold": "Opciones → Ubicación",
+    "iphonePost": " al elegir la foto.",
+    "approx": "Ubicación aproximada",
+    "approxHint": "Se muestra redondeada (~100 m). Útil para casas."
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { AppHeader } from "../components/AppHeader";
+import { AppMenu } from "../components/AppMenu";
 import { Banner, FirstVisitHint } from "../components/Banner";
 import { BottomSheet, type SheetSnap } from "../components/BottomSheet";
 import { EmptyState } from "../components/EmptyState";
@@ -9,7 +10,7 @@ import { MapAttribution, MapControls } from "../components/MapControls";
 import { Shell } from "../components/Shell";
 import { SidePanel } from "../components/SidePanel";
 import { Skeleton, SpotSkeleton } from "../components/Skeleton";
-import { bulkReminder } from "../lib/handoff";
+import { bulkReminder } from "../lib/drafts";
 import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
 import { storage } from "../lib/local";
@@ -25,7 +26,6 @@ import { featureToDetail } from "../map/spot-view";
 import { DEFAULT_STYLE_URL, loadStyle } from "../map/style";
 import type { SpotDetail } from "../shared/types";
 import { FilterFooter, FilterSections } from "./map/Filters";
-import { MapMenu } from "./map/MapMenu";
 import { PhotoViewer } from "./map/PhotoViewer";
 import { PlaceSearchBox } from "./map/PlaceSearchBox";
 import { ReportDialog, type ReportTarget } from "./map/ReportDialog";
@@ -97,10 +97,8 @@ export default function MapPage({ spotId }: { spotId?: string }) {
     navigate("/");
   };
   const dismissHint = () => {
-    setHint((visible) => {
-      if (visible) storage.set("hintSeen", true);
-      return false;
-    });
+    storage.set("hintSeen", true);
+    setHint(false);
   };
   // The map is created once; its callbacks always call the latest closures.
   const live = useRef({ select, close, dismissHint });
@@ -180,7 +178,6 @@ export default function MapPage({ spotId }: { spotId?: string }) {
     fittedRef.current = true;
     if (savedViewRef.current || spotId) return;
     sm.fitToSpots(all, { top: desktop ? 0 : headerBottom(), right: 0, bottom: 0, left: 0 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the first time spots arrive
   }, [all.length]);
 
   // Selection: grow the marker, keep the dot clear of the sheet / panel, ease the camera there.
@@ -213,7 +210,6 @@ export default function MapPage({ spotId }: { spotId?: string }) {
     lastFocusRef.current = spotId;
     firstFocusRef.current = false;
     intentRef.current = "nav";
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `detail` is covered by coordKey
   }, [spotId, sheetOpen, coordKey, desktop, snap, filtersOpen]);
 
   // Esc closes the desktop filter drawer (the mobile sheet handles its own Esc).
@@ -256,7 +252,7 @@ export default function MapPage({ spotId }: { spotId?: string }) {
     }
     setFilters({ ...previous, types: [slug] });
     const label = types.value.find((tp) => tp.slug === slug)?.label ?? slug;
-    toast.show({ message: t("map.legend.only", { type: label }), action: { label: t("action.undo"), onClick: () => setFilters(previous) } });
+    toast.show({ message: t("map.legend.only", { type: label }), action: { label: t("common.action.undo"), onClick: () => setFilters(previous) } });
   };
 
   const step = (dir: 1 | -1) => {
@@ -266,11 +262,11 @@ export default function MapPage({ spotId }: { spotId?: string }) {
 
   // ── chrome ──────────────────────────────────────────────────────────────
   const searchEl = <PlaceSearchBox onPick={flyToPlace} />;
-  const menuEl = <MapMenu />;
+  const menuEl = <AppMenu />;
   const toggleFilters = () => setFiltersOpen((open) => !open);
   const legendTypes = types.value.map((tp) => ({ ...tp, count: counts.types.get(tp.slug) ?? 0 }));
   const activeType = filters.value.types.length === 1 ? (filters.value.types[0] ?? null) : null;
-  const legendCollapsed = legendPref.value ?? !desktop;
+  const legendCollapsed = legendPref.value ?? !(desktop && sheetOpen);
   const mobileModalOpen = !desktop && (sheetOpen || filtersOpen);
   const reminder = bulkReminder.value;
   const panelOpen = desktop && sheetOpen;
@@ -319,7 +315,7 @@ export default function MapPage({ spotId }: { spotId?: string }) {
 
           <div class="map-stack">
             {offline && (
-              <Banner kind="offline" action={{ label: t("action.retry"), onClick: () => void loadSpots() }}>
+              <Banner kind="offline" action={{ label: t("common.action.retry"), onClick: () => void loadSpots() }}>
                 {t("map.banner.offline")}
               </Banner>
             )}
@@ -352,11 +348,12 @@ export default function MapPage({ spotId }: { spotId?: string }) {
           )}
 
           {!mobileModalOpen &&
-            (loading || types.value.length === 0 ? (
+            (loading ? (
               <div class="mp-legend mp-legend--collapsed map-legend map-legend--skeleton" aria-hidden="true">
                 <Skeleton radius={12} class="map-legend__skel" />
               </div>
             ) : (
+              types.value.length > 0 && (
               <Legend
                 class="map-legend"
                 types={legendTypes}
@@ -365,18 +362,19 @@ export default function MapPage({ spotId }: { spotId?: string }) {
                 collapsed={legendCollapsed}
                 onCollapsedChange={setLegendCollapsed}
               />
+              )
             ))}
 
           <MapAttribution satellite={satellite} class="map-attrib" />
 
-          {hint && !loading && !offline && all.length > 0 && !sheetOpen && !filtersOpen && <FirstVisitHint class="map-hint" onDismiss={dismissHint} />}
+          {hint && !loading && !offline && !empty && all.length > 0 && !spotId && !filtersOpen && <FirstVisitHint class="map-hint" onDismiss={dismissHint} />}
 
           {empty && (
             <div class="map-center">
               {all.length > 0 ? (
-                <EmptyState card icon="/img/icons/papa.png" title={t("empty.filter")} body={t("map.empty.body")} action={{ label: t("action.clear"), onClick: clearFilters }} />
+                <EmptyState card icon="/img/icons/papa.png" title={t("common.empty.filter")} body={t("map.empty.body")} action={{ label: t("common.action.clear"), onClick: clearFilters }} />
               ) : (
-                <EmptyState card icon="/img/icons/papa.png" title={t("empty.filter")} body={t("map.empty.none")} action={{ label: t("map.empty.add"), href: "/nuevo" }} />
+                <EmptyState card icon="/img/icons/papa.png" title={t("common.empty.filter")} body={t("map.empty.none")} action={{ label: t("map.empty.add"), href: "/nuevo" }} />
               )}
             </div>
           )}
@@ -386,7 +384,7 @@ export default function MapPage({ spotId }: { spotId?: string }) {
               <EmptyState
                 card
                 icon="/img/icons/papa.png"
-                title={t("empty.notFound")}
+                title={t("common.empty.notFound")}
                 body={t(missing ? "map.notFound.body" : "map.notFound.offline")}
                 action={{ label: t("map.notFound.back"), href: "/" }}
               />

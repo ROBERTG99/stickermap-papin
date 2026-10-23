@@ -1,5 +1,7 @@
 import type { IconFit, StickerType } from "../shared/types";
 import { cx } from "../lib/cx";
+import { formatDate } from "../lib/format";
+import { lang, t } from "../lib/i18n";
 
 /** Small pieces shared by the map surfaces (marker, legend, spot block, lightbox). */
 
@@ -72,8 +74,6 @@ export function PlacerAvatar({ name, index = 0, size = 34 }: { name: string; ind
   );
 }
 
-const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-
 /** "15 abr 2025", or "hace 3 h" / "hace 12 min" when under 24 h. Returns "" for a missing date. */
 export function formatSpotDate(iso: string | null | undefined, now: number = Date.now()): string {
   if (!iso) return "";
@@ -82,16 +82,15 @@ export function formatSpotDate(iso: string | null | undefined, now: number = Dat
   const diff = now - time;
   if (diff >= 0 && diff < 24 * 3_600_000) {
     const hours = Math.floor(diff / 3_600_000);
-    if (hours >= 1) return `hace ${hours} h`;
-    return `hace ${Math.max(1, Math.floor(diff / 60_000))} min`;
+    if (hours >= 1) return t("components.date.hoursAgo", { n: hours });
+    return t("components.date.minutesAgo", { n: Math.max(1, Math.floor(diff / 60_000)) });
   }
-  const d = new Date(time);
-  return `${d.getDate()} ${MONTHS[d.getMonth()] ?? ""} ${d.getFullYear()}`;
+  return formatDate(time, lang.value);
 }
 
 /** Joins names the way the sheet shows them: "Beto, Caro". An unknown placer is "¿?". */
 export function placersLabel(placers: string[]): string {
-  return placers.length > 0 ? placers.join(", ") : "¿?";
+  return placers.length > 0 ? placers.join(", ") : t("common.person.unknownPlacer");
 }
 
 /** Marker/legend helper: the fit of a type as the marker head modifier. */

@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Avatar } from "./Avatar";
 import { formatInt } from "./StatSticker";
 
@@ -51,7 +52,7 @@ export function Leaderboard({ rows, limit = 5, hrefFor = (name) => `/p/${encodeU
                   {row.isYou && (
                     <>
                       {" "}
-                      <small>(vos)</small>
+                      <small>{t("components.person.you")}</small>
                     </>
                   )}
                 </span>

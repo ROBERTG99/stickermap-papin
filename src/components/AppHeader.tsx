@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { CountBadge } from "./Badge";
 import { Icon } from "./Icon";
 import { NAV_TABS, type NavTabId } from "./TabBar";
@@ -12,14 +13,14 @@ interface LogoProps {
 /** Potato sticker + "Mapa Papin", links home. */
 export function Logo({ tagline }: LogoProps) {
   return (
-    <a class="mp-logo" href="/" aria-label="Mapa Papin, inicio">
+    <a class="mp-logo" href="/" aria-label={t("components.header.logoLabel")}>
       <span class="mp-sticker mp-sticker--contain" style={{ "--tilt": "var(--tilt-1)" }}>
         <img src="/img/icons/papa.png" alt="" />
       </span>
       {tagline ? (
         <span>
           Mapa Papin
-          <small>Mapa global de los stickers papines</small>
+          <small>{t("common.app.tagline")}</small>
         </span>
       ) : (
         "Mapa Papin"
@@ -41,8 +42,8 @@ export function PlaceSearch({ value, onInput }: PlaceSearchProps) {
       <input
         class="mp-input"
         type="search"
-        placeholder="Buscar lugar"
-        aria-label="Buscar lugar"
+        placeholder={t("components.header.searchPlace")}
+        aria-label={t("components.header.searchPlace")}
         value={value}
         onInput={(e) => onInput?.(e.currentTarget.value)}
       />
@@ -51,8 +52,8 @@ export function PlaceSearch({ value, onInput }: PlaceSearchProps) {
 }
 
 function filtersLabel(count: number): string {
-  if (count <= 0) return "Filtros";
-  return `Filtros, ${count} ${count === 1 ? "activo" : "activos"}`;
+  if (count <= 0) return t("components.header.filters");
+  return t(count === 1 ? "components.header.filtersOne" : "components.header.filtersMany", { count });
 }
 
 interface FiltersButtonProps {
@@ -74,7 +75,7 @@ export function FiltersButton({ count, onClick }: FiltersButtonProps) {
 /** Default menu button (language ES/EN, theme). Replace via the header's `menu` slot. */
 export function MenuButton({ onClick }: { onClick?: () => void }) {
   return (
-    <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label="Menú (idioma ES/EN, tema)" onClick={onClick}>
+    <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label={t("components.header.menu")} onClick={onClick}>
       <Icon name="menu" />
     </button>
   );
@@ -125,11 +126,11 @@ export function AppHeader(props: AppHeaderProps) {
     return (
       <header class={cx("mp-appbar mp-appbar--bar", props.class)}>
         <div class="mp-appbar__row">
-          <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label="Cerrar" onClick={props.onClose}>
+          <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label={t("common.action.close")} onClick={props.onClose}>
             <Icon name="x" />
           </button>
           <h1 class="mp-appbar__title">{props.title}</h1>
-          <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label="Ayuda" onClick={props.onHelp}>
+          <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label={t("components.header.help")} onClick={props.onHelp}>
             <Icon name="info" />
           </button>
         </div>
@@ -160,7 +161,7 @@ export function AppHeader(props: AppHeaderProps) {
   return (
     <header class={cx("mp-topnav", props.class)}>
       <Logo tagline />
-      <nav class="mp-topnav__tabs" aria-label="Secciones">
+      <nav class="mp-topnav__tabs" aria-label={t("components.header.sections")}>
         {NAV_TABS.map((tab) => (
           <a key={tab.id} class="mp-topnav__tab" href={tab.href} aria-current={tab.id === props.active ? "page" : undefined}>
             <Icon name={tab.icon} />
@@ -173,7 +174,7 @@ export function AppHeader(props: AppHeaderProps) {
         {filters}
         <a class="mp-btn mp-btn--primary" href={props.addHref ?? "/nuevo"}>
           <Icon name="plus" />
-          Agregar sticker
+          {t("common.nav.add")}
         </a>
         {menu}
       </div>

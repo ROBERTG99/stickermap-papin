@@ -1,8 +1,10 @@
 import { lazy, Suspense } from "preact/compat";
 import { useEffect } from "preact/hooks";
 import { IconSprite } from "./components/Icon";
+import { InstallSheet } from "./components/InstallSheet";
 import { ToastHost } from "./components/Toast";
 import { match, path } from "./lib/router";
+import { refreshBulkReminder } from "./add/bulk/bulk";
 import { loadBase, loadSpots } from "./lib/store";
 
 const MapPage = lazy(() => import("./pages/MapPage"));
@@ -39,11 +41,12 @@ function Routes() {
 }
 
 export function App() {
-  useEffect(() => { void loadBase(); void loadSpots(); }, []);
+  useEffect(() => { void loadBase(); void loadSpots(); void refreshBulkReminder(); }, []);
   return (
     <>
       <IconSprite />
       <ToastHost />
+      <InstallSheet />
       <Suspense fallback={null}><Routes /></Suspense>
     </>
   );

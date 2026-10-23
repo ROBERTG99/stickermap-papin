@@ -71,7 +71,7 @@ export function Modal({ open, title, onClose, children, actions, wide, sticky }:
     <div class="mp-admin-modal" style={{ alignItems: sheet ? "flex-end" : "center" }}>
       <div class="mp-scrim" aria-hidden="true" onClick={sticky ? undefined : onClose} />
       <div ref={ref} class={cx("mp-dialog", "mp-admin-modal__card", sheet && "mp-dialog--sheet", wide && "mp-admin-modal__card--wide")} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        {sheet && <button type="button" class="mp-sheet__grab" aria-label={t("action.close")} onClick={onClose} />}
+        {sheet && <button type="button" class="mp-sheet__grab" aria-label={t("common.action.close")} onClick={onClose} />}
         <h2 class="mp-dialog__title" id={titleId}>
           {title}
         </h2>

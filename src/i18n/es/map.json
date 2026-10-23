@@ -71,9 +71,6 @@
     "error": "No pudimos buscar. Probá de nuevo.",
     "results": "Resultados de la búsqueda"
   },
-  "menu": {
-    "title": "Idioma y tema"
-  },
   "locate": {
     "failed": "No pudimos ubicarte. Revisá el permiso de ubicación."
   }

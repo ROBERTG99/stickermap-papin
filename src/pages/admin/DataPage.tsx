@@ -196,7 +196,7 @@ export default function DataPage() {
       header: t("admin.table.reporter"),
       sortable: true,
       cell: (r) => (
-        <InlineText value={r.reporter} label={t("admin.table.reporter")} placeholder={t("person.anonymous")} maxLength={255} onSave={(v) => saveField(r, { reporter: v })} />
+        <InlineText value={r.reporter} label={t("admin.table.reporter")} placeholder={t("common.person.anonymous")} maxLength={255} onSave={(v) => saveField(r, { reporter: v })} />
       ),
     },
     {
@@ -253,7 +253,7 @@ export default function DataPage() {
           ))}
         {hasActiveFilters(effective) && (
           <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={() => { setQ(""); change({ ...EMPTY_FILTERS, sort: filters.sort, dir: filters.dir }); }}>
-            {t("action.clear")}
+            {t("common.action.clear")}
           </button>
         )}
       </div>
@@ -284,7 +284,7 @@ export default function DataPage() {
           rowKey={(r) => r.id}
           rowLabel={(r) => placeLabel(r)}
           loading={loading}
-          empty={<EmptyState icon="/img/icons/papa.png" title={t("empty.filter")} />}
+          empty={<EmptyState icon="/img/icons/papa.png" title={t("common.empty.filter")} />}
           selectable
           selected={selected}
           onSelectionChange={setSelected}

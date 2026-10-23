@@ -51,7 +51,7 @@ export function AddSubmitBar({ state, missing, progress = 0, failure, onSubmit, 
         {state === "failed" && (
           <div class="mp-banner mp-banner--error" role="alert">
             <Icon name="wifi-off" />
-            <span>{failure ?? t("error.network")}</span>
+            <span>{failure ?? t("add.error.network")}</span>
           </div>
         )}
 
@@ -63,7 +63,7 @@ export function AddSubmitBar({ state, missing, progress = 0, failure, onSubmit, 
         ) : state === "failed" ? (
           <button type="button" class="mp-btn mp-btn--primary mp-btn--lg mp-btn--block" onClick={onSubmit}>
             <Icon name="rotate" />
-            {t("action.retry")}
+            {t("add.common.retry")}
           </button>
         ) : (
           <button
@@ -72,7 +72,7 @@ export function AddSubmitBar({ state, missing, progress = 0, failure, onSubmit, 
             aria-disabled={state === "disabled" ? "true" : undefined}
             onClick={onSubmit}
           >
-            {t("action.submit")}
+            {t("add.common.submit")}
           </button>
         )}
       </div>

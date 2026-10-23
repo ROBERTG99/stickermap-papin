@@ -130,7 +130,7 @@ export function FilterSections() {
         names={placerNames}
         counts={counts.placers}
         selected={f.placers}
-        special={{ [UNKNOWN_PLACER]: t("person.unknownPlacer") }}
+        special={{ [UNKNOWN_PLACER]: t("common.person.unknownPlacer") }}
         searchable
         onToggle={(n) => setFilters({ ...filters.value, placers: toggleValue(filters.value.placers, n) })}
       />
@@ -139,7 +139,7 @@ export function FilterSections() {
         names={reporterNames}
         counts={counts.reporters}
         selected={f.reporters}
-        special={{ [ANONYMOUS_REPORTER]: t("person.anonymous") }}
+        special={{ [ANONYMOUS_REPORTER]: t("common.person.anonymous") }}
         onToggle={(n) => setFilters({ ...filters.value, reporters: toggleValue(filters.value.reporters, n) })}
       />
       {countries.length > 0 && (

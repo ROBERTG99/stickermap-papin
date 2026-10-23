@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon, type IconName } from "./Icon";
 
 export type BannerKind = "offline" | "countdown" | "error" | "info";
@@ -59,16 +60,16 @@ export function FirstVisitHint({ onDismiss, class: className }: FirstVisitHintPr
           <span class="mp-marker__tail" />
           <span class="mp-marker__dot" />
         </span>
-        Tocá un sticker para ver la foto
+        {t("components.hint.tap")}
       </div>
       <div class="mp-hint__row">
         <span class="mp-fab mp-fab--round" style={{ width: "var(--tap-min)", height: "var(--tap-min)" }} aria-hidden="true">
           <Icon name="plus" />
         </span>
-        Agregá el tuyo con +
+        {t("components.hint.add")}
       </div>
       <button type="button" class="mp-btn mp-btn--primary" style={{ justifySelf: "start" }} onClick={onDismiss}>
-        ¡Dale!
+        {t("components.hint.ok")}
       </button>
     </div>
   );

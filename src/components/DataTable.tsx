@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 import { Skeleton } from "./Skeleton";
 import { formatInt } from "./StatSticker";
@@ -129,11 +130,11 @@ function Pager({ page, pageSize, total, onPageChange }: PagerProps) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)" }}>
       <span class="mp-pager mp-num" aria-live="polite">
-        {formatInt(from)}–{formatInt(to)} de {formatInt(total)}
+        {t("components.table.range", { from: formatInt(from), to: formatInt(to), total: formatInt(total) })}
       </span>
       {count > 1 && (
-        <nav class="mp-pager" aria-label="Páginas">
-          <button type="button" class="mp-pager__page" aria-label="Anterior" disabled={page <= 1} onClick={() => onPageChange?.(page - 1)}>
+        <nav class="mp-pager" aria-label={t("components.table.pages")}>
+          <button type="button" class="mp-pager__page" aria-label={t("components.table.prev")} disabled={page <= 1} onClick={() => onPageChange?.(page - 1)}>
             <Icon name="chevron-left" size="sm" />
           </button>
           {pageItems(page, count).map((item, i) =>
@@ -147,14 +148,14 @@ function Pager({ page, pageSize, total, onPageChange }: PagerProps) {
                 type="button"
                 class="mp-pager__page"
                 aria-current={item === page ? "page" : undefined}
-                aria-label={`Página ${item}`}
+                aria-label={t("components.table.page", { n: item })}
                 onClick={() => onPageChange?.(item)}
               >
                 {item}
               </button>
             ),
           )}
-          <button type="button" class="mp-pager__page" aria-label="Siguiente" disabled={page >= count} onClick={() => onPageChange?.(page + 1)}>
+          <button type="button" class="mp-pager__page" aria-label={t("components.table.next")} disabled={page >= count} onClick={() => onPageChange?.(page + 1)}>
             <Icon name="chevron-right" size="sm" />
           </button>
         </nav>
@@ -233,11 +234,11 @@ export function DataTable<T>({
 
       {selectable && picked.size > 0 && (
         <div class="mp-bulkbar" role="status">
-          <span class="mp-num">{formatInt(picked.size)} {picked.size === 1 ? "elegido" : "elegidos"}</span>
+          <span class="mp-num">{t(picked.size === 1 ? "components.table.pickedOne" : "components.table.pickedMany", { n: formatInt(picked.size) })}</span>
           {bulkActions}
           <span style={{ flex: 1 }} />
           <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" style={{ color: "var(--bg)" }} onClick={() => emit(new Set())}>
-            Cancelar
+            {t("common.action.cancel")}
           </button>
         </div>
       )}
@@ -256,7 +257,7 @@ export function DataTable<T>({
             <tr>
               {selectable && (
                 <th scope="col">
-                  <Check state={headState} label="Elegir todos" onToggle={toggleAll} />
+                  <Check state={headState} label={t("components.table.pickAll")} onToggle={toggleAll} />
                 </th>
               )}
               {columns.map((col) => {
@@ -298,7 +299,7 @@ export function DataTable<T>({
                     <tr key={key} aria-selected={selectable ? (isPicked ? "true" : "false") : undefined}>
                       {selectable && (
                         <td>
-                          <Check state={isPicked ? "true" : "false"} label={`Elegir ${rowLabel ? rowLabel(row) : key}`} onToggle={() => toggleRow(key)} />
+                          <Check state={isPicked ? "true" : "false"} label={t("components.table.pickRow", { name: rowLabel ? rowLabel(row) : key })} onToggle={() => toggleRow(key)} />
                         </td>
                       )}
                       {columns.map((col) => (

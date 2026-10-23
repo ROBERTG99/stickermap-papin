@@ -31,7 +31,9 @@ const CSS = `
 .add-map { position: relative; width: 100%; height: 100%; min-height: 0; }
 .add-map__canvas { position: absolute; inset: 0; }
 .add-map__canvas .maplibregl-canvas { outline: 0; }
-.add-map .maplibregl-ctrl-attrib { font-size: var(--fs-micro); }
+.add-map__attrib { position: absolute; left: var(--space-2); bottom: var(--space-2); z-index: var(--z-overlay); font-size: var(--fs-micro); }
+.add-map__attrib a { color: inherit; text-decoration: none; }
+.add--desktop .add-map__attrib { left: auto; right: var(--space-2); }
 .add-map__expand { position: absolute; right: var(--space-2); bottom: var(--space-2); width: 40px; min-height: 40px; padding: 0; z-index: var(--z-overlay); }
 .add-map__note { position: absolute; left: var(--space-2); top: var(--space-2); z-index: var(--z-overlay); }
 .add-map__controls { position: absolute; top: var(--space-6); right: var(--space-6); }
@@ -63,15 +65,17 @@ const CSS = `
 
 /* Thanks */
 .thanks { min-height: 100dvh; background: var(--bg); display: flex; flex-direction: column; }
-.thanks__hero { position: relative; display: grid; place-items: center; background: var(--mint); min-height: 340px; overflow: hidden; }
+.thanks__hero { position: relative; display: grid; place-items: center; background: var(--mint); min-height: clamp(224px, 32dvh, 300px); overflow: hidden; }
 .thanks__rays { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
 .thanks__rays i { position: absolute; left: -3px; top: 0; width: 6px; height: 22px; border-radius: 3px; background: var(--brand); transform-origin: 3px 0; opacity: 0; animation: thanks-ray 420ms 180ms ease-out forwards; }
 @keyframes thanks-ray { from { opacity: 0; } to { opacity: .9; } }
+.thanks__sticker-wrap { display: inline-grid; }
+.thanks__sticker-wrap > .thanks__sticker { animation-delay: inherit; }
 .thanks__sticker { --s: 180px; position: relative; z-index: 1; animation: mp-slap 420ms cubic-bezier(.2,.9,.3,1.1) both; }
 .thanks__body { display: grid; gap: var(--space-3); justify-items: center; width: 100%; max-width: 480px; margin: 0 auto; padding: var(--space-6) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom)); text-align: center; }
 .thanks__title { margin: 0; font: var(--fw-display) var(--fs-display)/var(--lh-display) var(--font-display); letter-spacing: var(--ls-display); color: var(--ink-strong); }
 .thanks__line { margin: 0; font-size: 17px; line-height: 24px; color: var(--ink); }
-.thanks__polaroid { width: min(240px, 64%); margin: var(--space-3) 0; }
+.thanks__polaroid { width: min(188px, 52%); margin: var(--space-2) 0 var(--space-3); }
 .thanks__actions { display: grid; gap: var(--space-2); width: 100%; margin-top: var(--space-2); }
 .thanks__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .thanks__body .mp-banner { width: 100%; text-align: left; }
@@ -83,8 +87,8 @@ const CSS = `
 
 /* Edit */
 .edit__banner { padding: var(--space-3) var(--space-4) 0; max-width: 640px; margin: 0 auto; width: 100%; }
-.edit--desktop .edit__banner { padding-left: 0; padding-right: 0; }
 .edit__bar { display: grid; gap: var(--space-2); }
+.edit__bar .mp-btn--danger-ghost { justify-self: center; }
 .edit-loc { position: relative; height: 200px; border-radius: var(--radius-md); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
 .edit__state { display: grid; place-items: center; min-height: 60dvh; padding: var(--space-6) var(--space-4); }
 `;

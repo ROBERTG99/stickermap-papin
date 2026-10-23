@@ -50,7 +50,7 @@
     "prebuild": "npm run design",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.scripts.json && tsc -p tests/worker/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.src.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.scripts.json && tsc -p tests/tsconfig.json && tsc -p tests/worker/tsconfig.json",
     "lint": "eslint .",
     "test": "vitest run && vitest run -c vitest.worker.config.ts",
     "e2e": "playwright test",

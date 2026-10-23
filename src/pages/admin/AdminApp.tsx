@@ -46,7 +46,7 @@ function Logo() {
         <img src="/img/icons/papa.png" alt="" />
       </span>
       <span>
-        {t("app.name")}
+        {t("common.app.name")}
         <small>{t("admin.nav.admin")}</small>
       </span>
     </a>
@@ -62,7 +62,7 @@ function Sidebar({ active }: { active: Section["id"] | null }) {
         {SECTIONS.map((s) => (
           <a key={s.id} class="mp-side__item" href={s.href} aria-current={active === s.id ? "page" : undefined}>
             <Icon name={s.icon} />
-            {t(s.label)}
+            <span class="mp-side__label">{t(s.label)}</span>
             {s.id === "review" && c.queue !== null && c.queue > 0 && <span class="mp-badge mp-badge--solid">{c.queue}</span>}
             {s.id === "data" && c.total !== null && <span class="mp-badge">{c.total}</span>}
           </a>
@@ -78,7 +78,7 @@ function Sidebar({ active }: { active: Section["id"] | null }) {
         </span>
         <a class="mp-side__item" href="/">
           <Icon name="map" />
-          {t("admin.nav.map")}
+          <span class="mp-side__label">{t("admin.nav.map")}</span>
         </a>
       </div>
     </nav>
@@ -103,7 +103,7 @@ function Login({ offline }: { offline: boolean }) {
           {offline ? t("admin.login.offline") : t("admin.login.denied")}
         </p>
         <Button variant="primary" block icon={offline ? "rotate" : "mail"} onClick={() => (offline ? void checkAuth() : location.reload())}>
-          {offline ? t("action.retry") : t("admin.login.cta")}
+          {offline ? t("common.action.retry") : t("admin.login.cta")}
         </Button>
         <span class="mp-turnstile mp-admin-login__note">
           <Icon name="shield" />
@@ -151,7 +151,7 @@ function Body({ section }: { section: Section["id"] | null }) {
 export default function AdminApp() {
   const { state } = auth.value;
   useEffect(() => {
-    document.title = `${t("admin.nav.admin")} · ${t("app.name")}`;
+    document.title = `${t("admin.nav.admin")} · ${t("common.app.name")}`;
     void checkAuth();
   }, []);
   useEffect(() => {

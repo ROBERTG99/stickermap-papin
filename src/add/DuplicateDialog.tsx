@@ -19,7 +19,7 @@ export function DuplicateDialog({ form }: { form: AddForm }) {
   const place = spot?.place_name || spot?.city || spot?.country || "";
   const typeLabels = spot ? spot.types.map((slug) => typeBySlug.value.get(slug)?.label ?? slug).join(", ") : "";
   const meta = [place, typeLabels].filter(Boolean).join(" · ");
-  const by = spot ? t("add.dup.by", { name: spot.reporter ?? t("person.anonymous"), date: formatDate(spot.created_at, lang.value) }) : "";
+  const by = spot ? t("add.dup.by", { name: spot.reporter ?? t("add.common.anonymous"), date: formatDate(spot.created_at, lang.value) }) : "";
   const close = () => actions.dismissDuplicate(false);
 
   if (stage === "add") {
@@ -35,7 +35,7 @@ export function DuplicateDialog({ form }: { form: AddForm }) {
               {t("add.dup.addSubmit")}
             </Button>
             <Button variant="secondary" onClick={() => form.set({ duplicateStage: "ask" })}>
-              {t("action.back")}
+              {t("add.common.back")}
             </Button>
           </>
         }

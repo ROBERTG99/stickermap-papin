@@ -49,7 +49,7 @@ export default function AddPage() {
       state={state}
       missing={missingText(issues.map((i) => i.code))}
       progress={s.progress}
-      failure={s.error ? t(s.error === "network" ? "error.network" : `add.error.${s.error}`) : undefined}
+      failure={s.error ? t(s.error === "network" ? "add.error.network" : `add.error.${s.error}`) : undefined}
       onSubmit={onSubmit}
     />
   );

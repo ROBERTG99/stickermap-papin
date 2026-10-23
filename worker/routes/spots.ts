@@ -181,7 +181,7 @@ spots.post("/", async (c) => {
 
   const sha = o ? await sha256Hex(o.bytes) : (meta.photo_sha256 ?? null);
   if (sha) {
-    const existing = await db.prepare("SELECT id FROM spots WHERE photo_sha256 = ?1").bind(sha).first<{ id: string }>();
+    const existing = await db.prepare("SELECT id FROM spots WHERE photo_sha256 = ?1 AND status != 'hidden'").bind(sha).first<{ id: string }>();
     if (existing) return c.json({ error: "photo_exists", id: existing.id }, 409);
   }
 
@@ -243,7 +243,7 @@ spots.post("/", async (c) => {
     // a concurrent retry of the same batch photo / same file: report the winner instead of an error
     const winner = auth.batchId && meta.client_ref
       ? await db.prepare("SELECT id FROM spots WHERE batch_id = ?1 AND client_ref = ?2").bind(auth.batchId, meta.client_ref).first<{ id: string }>()
-      : sha ? await db.prepare("SELECT id FROM spots WHERE photo_sha256 = ?1").bind(sha).first<{ id: string }>() : null;
+      : sha ? await db.prepare("SELECT id FROM spots WHERE photo_sha256 = ?1 AND status != 'hidden'").bind(sha).first<{ id: string }>() : null;
     if (winner) return auth.batchId ? c.json({ id: winner.id, existing: true }) : c.json({ error: "photo_exists", id: winner.id }, 409);
     throw error;
   }

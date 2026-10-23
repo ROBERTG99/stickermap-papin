@@ -2,6 +2,7 @@ import type { ComponentChildren, TargetedPointerEvent, TargetedWheelEvent } from
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { StickerType } from "../shared/types";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 import { Flag, TypeSticker, placersLabel, tiltByIndex } from "./map-parts";
 
@@ -88,7 +89,7 @@ function clamp(value: number, min: number, max: number): number {
 
 function Media({ item, index, style, peek }: { item: LightboxItem; index: number; style?: string; peek?: boolean }) {
   const first = item.types[0];
-  const alt = `Foto: sticker ${first?.label ?? "sticker"}`;
+  const alt = t("components.photo.alt", { type: first?.label ?? "sticker" });
   if (item.photo) {
     return <img src={item.photo} alt={peek ? "" : alt} draggable={false} style={`${IMG_STYLE};${style ?? ""}`} />;
   }
@@ -376,16 +377,16 @@ export function Lightbox({ items, index, onPrev, onNext, onClose, onShare, capti
       class={cx("mp-lightbox", className)}
       role="dialog"
       aria-modal="true"
-      aria-label={`Foto de ${item.place}, ${index + 1} de ${count}`}
+      aria-label={t("components.lightbox.label", { place: item.place, n: index + 1, count })}
       style={contained ? undefined : "position:fixed"}
     >
       <div class="mp-lightbox__top" style="padding-top:calc(env(safe-area-inset-top, 0px) + var(--space-4))">
-        <button ref={closeBtnRef} type="button" class="mp-lightbox__btn" aria-label="Cerrar" onClick={onClose}>
+        <button ref={closeBtnRef} type="button" class="mp-lightbox__btn" aria-label={t("common.action.close")} onClick={onClose}>
           <Icon name="x" />
         </button>
         <span class="mp-lightbox__count" aria-live="polite">{`${index + 1} / ${count}`}</span>
         {onShare ? (
-          <button type="button" class="mp-lightbox__btn" aria-label="Compartir" onClick={() => onShare(item)}>
+          <button type="button" class="mp-lightbox__btn" aria-label={t("common.action.share")} onClick={() => onShare(item)}>
             <Icon name="share" />
           </button>
         ) : (
@@ -420,7 +421,7 @@ export function Lightbox({ items, index, onPrev, onNext, onClose, onShare, capti
         {hintVisible && (
           <span class="mp-lightbox__hint">
             <Icon name="expand" />
-            Pellizcá para hacer zoom
+            {t("components.lightbox.pinch")}
           </span>
         )}
         {caption ?? (
@@ -429,7 +430,7 @@ export function Lightbox({ items, index, onPrev, onNext, onClose, onShare, capti
               {item.place}
               {item.countryCode && <Flag code={item.countryCode} />}
             </span>
-            <span class="mp-lightbox__meta">{`Pegado por ${placersLabel(item.placers)}${item.date ? ` · ${item.date}` : ""}`}</span>
+            <span class="mp-lightbox__meta">{`${t("components.photo.placedBy", { name: placersLabel(item.placers) })}${item.date ? ` · ${item.date}` : ""}`}</span>
             {item.types.length > 0 && (
               <span class="mp-lightbox__meta" style="display:flex;align-items:center;gap:var(--space-2)">
                 {item.types.map((t) => (

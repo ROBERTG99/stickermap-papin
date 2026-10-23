@@ -4,6 +4,7 @@
  * (`draft-idb.ts`), so a reload resumes.
  */
 import { computed, signal } from "@preact/signals";
+import { recordStickerAdded } from "../../lib/pwa";
 import { defaultWhoPlaced } from "../../components/WhoPlaced";
 import { rememberPlacers } from "../../components/WhoPlaced";
 import { api, ApiError } from "../../lib/api";
@@ -64,15 +65,16 @@ const byTaken = (a: PhotoMeta, b: PhotoMeta): number => {
 
 /** Review list: photos not yet on the server, ordered by `taken_at` ascending. */
 export const rows = computed<Row[]>(() => {
-  const live = photos.value.filter((p) => !isUploaded(p));
-  const classes = classifyMetas(live);
-  const sorted = live.map((photo, i) => ({ photo, cls: classes[i]!, i })).sort((a, b) => byTaken(a.photo, b.photo));
+  const all = photos.value;
+  const classes = classifyMetas(all);
+  const live = all.map((photo, i) => ({ photo, cls: classes[i]! })).filter((x) => !isUploaded(x.photo));
+  const sorted = live.sort((a, b) => byTaken(a.photo, b.photo));
   const numberOf = new Map(sorted.map((x, n) => [x.photo.id, n + 1]));
   return sorted.map((x, n) => ({
     photo: x.photo,
     number: n + 1,
     status: x.cls.status,
-    sameAsNumber: x.cls.sameAs !== undefined ? numberOf.get(live[x.cls.sameAs]!.id) : undefined,
+    sameAsNumber: x.cls.sameAs !== undefined ? numberOf.get(all[x.cls.sameAs]!.id) : undefined,
   }));
 });
 
@@ -234,7 +236,7 @@ function initialDefaults(): BulkDefaults {
 
 /** Throw away the draft in memory and on disk. Safe to call without one. */
 export async function discardDraft(): Promise<void> {
-  const d = draft.value;
+  const ids = new Set([draft.value?.id, resumable.value?.draft.id].filter((x): x is string => !!x));
   clearTimeout(persistTimer);
   dirty.clear();
   draftDirty = false;
@@ -247,8 +249,8 @@ export async function discardDraft(): Promise<void> {
   reviewFilter.value = "all";
   phase.value = "choose";
   bulkReminder.value = { unplaced: 0, unfinished: null };
-  if (d) {
-    try { await deleteDraft(d.id); } catch { /* nothing to clean */ }
+  for (const id of ids) {
+    try { await deleteDraft(id); } catch { /* nothing to clean */ }
   }
 }
 
@@ -503,11 +505,9 @@ async function uploadPhoto(p: PhotoMeta): Promise<void> {
     return;
   }
   let attempt = 0;
-  let sentToken: string | undefined;
-  let renewed = false;
+  let refusedToken: string | undefined;
   for (;;) {
-    const server = await ensureBatch(sentToken);
-    sentToken = server.batchToken;
+    const server = await ensureBatch(refusedToken);
     const form = new FormData();
     form.set("meta", JSON.stringify(meta));
     form.set("display", blobs.display, `display.${extensionOf(blobs.display)}`);
@@ -517,6 +517,7 @@ async function uploadPhoto(p: PhotoMeta): Promise<void> {
     try {
       const res = await api.createSpot(form, { batchToken: server.batchToken, onProgress: (f) => setBusy(p.id, Math.round(f * 100)) });
       markUpload(p.id, { state: "done", spotId: res.id });
+      if (!res.existing) recordStickerAdded();
       void dropHeavyBlobs(d.id, p.id).catch(() => undefined);
       return;
     } catch (e) {
@@ -525,8 +526,8 @@ async function uploadPhoto(p: PhotoMeta): Promise<void> {
         markUpload(p.id, { state: "exists", spotId: failure.id ?? undefined });
         return;
       }
-      if (failure.kind === "renew" && !renewed) {
-        renewed = true;
+      if (failure.kind === "renew" && refusedToken === undefined) {
+        refusedToken = server.batchToken;
         continue;
       }
       if (failure.kind === "retry" && attempt < MAX_RETRIES) {
@@ -647,8 +648,7 @@ export async function deleteLastBatch(): Promise<boolean> {
   } catch {
     return false;
   }
-  const leftovers = photos.value.filter((p) => !isUploaded(p) && p.upload.state === "idle");
-  if (summarizeDraft("review", photos.value).unplaced > 0 || leftovers.some((p) => !p.error)) {
+  if (summarizeDraft("review", photos.value).unplaced > 0) {
     touchDraft({ lastSend: null });
     reviewFilter.value = "noloc";
     setPhase("review");

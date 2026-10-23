@@ -1,5 +1,6 @@
 import type { IconFit } from "../shared/types";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { tiltById } from "./map-parts";
 
 export interface MarkerOptions {
@@ -23,10 +24,10 @@ export interface MarkerOptions {
 /** "Papa y 1 más, Puerta del Sol" */
 export function markerAriaLabel(o: Pick<MarkerOptions, "types" | "n" | "label">): string {
   const count = o.n ?? o.types.length;
-  const first = o.types[0] ?? "Sticker";
-  const more = count > 1 ? ` y ${count - 1} más` : "";
+  const first = o.types[0] ?? t("components.marker.sticker");
+  const head = count > 1 ? t("components.marker.withMore", { first, n: count - 1 }) : first;
   const place = o.label ? `, ${o.label}` : "";
-  return `${first}${more}${place}`;
+  return `${head}${place}`;
 }
 
 /** Cluster bubble size by count: default 36px for 2-9, `md` 48px for 10-49, `lg` 64px for 50+. */
@@ -46,7 +47,7 @@ function formatCount(count: number): string {
 }
 
 export function clusterAriaLabel(count: number): string {
-  return `${formatCount(count)} stickers, acercá para ver`;
+  return t("components.marker.cluster", { count: formatCount(count) });
 }
 
 /**
@@ -155,7 +156,7 @@ export function MarkerExactDot(props: Omit<MarkerOptions, "selected">) {
         style="width:var(--space-12);margin-left:calc(var(--marker-head) / -2 + var(--marker-dot) / 2);margin-bottom:calc(var(--marker-dot) / 2);border-top:1.5px dashed var(--ink-strong)"
       />
       <span class="mp-attrib" style="margin-left:var(--space-2);margin-bottom:calc(var(--marker-dot) / 2 - 7px)">
-        {"← coordenada exacta"}
+        {t("components.marker.exactDot")}
       </span>
     </div>
   );

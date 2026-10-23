@@ -1,0 +1,217 @@
+{
+  "header": {
+    "logoLabel": "Mapa Papin, home",
+    "searchPlace": "Search places",
+    "filters": "Filters",
+    "filtersOne": "Filters, {count} active",
+    "filtersMany": "Filters, {count} active",
+    "menu": "Menu (language ES/EN, theme)",
+    "help": "Help",
+    "sections": "Sections"
+  },
+  "person": {
+    "you": "(you)",
+    "unidentified": "Unidentified person"
+  },
+  "hint": {
+    "tap": "Tap a sticker to see the photo",
+    "add": "Add yours with +",
+    "ok": "Got it!"
+  },
+  "sheet": {
+    "selected": "Selected sticker",
+    "collapse": "Collapse",
+    "expand": "Expand"
+  },
+  "dialog": {
+    "cancel": "Never mind"
+  },
+  "toast": {
+    "close": "Dismiss notice"
+  },
+  "photo": {
+    "alt": "Photo: {type} sticker",
+    "placedBy": "Placed by {name}",
+    "of": "Photo {n}"
+  },
+  "batch": {
+    "queued": "Queued",
+    "queuedText": "queued",
+    "busy": "Uploading",
+    "busyText": "uploading",
+    "done": "Uploaded",
+    "doneText": "uploaded",
+    "failed": "Failed",
+    "failedText": "couldn't upload",
+    "editPhoto": "Edit photo {n}",
+    "noLocation": "No location",
+    "noGps": "no GPS",
+    "locate": "Locate",
+    "skip": "Skip",
+    "skipPhoto": "Skip photo {n}",
+    "exists": "Already on the map",
+    "view": "View",
+    "viewOnMap": "View photo {n} on the map",
+    "dup": "Duplicate in this batch",
+    "sameAs": "same as photo {n}",
+    "unreadable": "Couldn't read it",
+    "skipped": "Skipped",
+    "notAdded": "won't be added",
+    "include": "Include",
+    "includePhoto": "Include photo {n}",
+    "uploadingPhoto": "Uploading photo {n}"
+  },
+  "dropzone": {
+    "title": "Drop your photos here",
+    "hintDesktop": "Photos or whole folders, up to {max}. The ones with a location are added automatically.",
+    "hintPhone": "Up to {max} at a time. Nothing is uploaded yet.",
+    "pickPhone": "Choose photos",
+    "pickDesktop": "Or choose them"
+  },
+  "iphone": {
+    "title": "On iPhone, before “Add”:",
+    "step1Pre": "Tap ",
+    "step1Bold": "Options",
+    "step1Post": " above the photos.",
+    "step2Pre": "Turn on ",
+    "step2Bold": "Location",
+    "step2Post": ".",
+    "selected": "{n} selected",
+    "options": "Options",
+    "location": "Location",
+    "warning": "Without this, iPhone strips the location from your photos and they will all end up “No location”."
+  },
+  "suggest": {
+    "near": "Near the photo from {time}?"
+  },
+  "same": {
+    "group": "Possibly the same sticker",
+    "title": "Same sticker?",
+    "text": "Photos {a} and {b}: {meters} m and {minutes} min apart.",
+    "merge": "Merge",
+    "keep": "No, they're different"
+  },
+  "filter": {
+    "group": "Filter photos",
+    "all": "All",
+    "ready": "Ready",
+    "noloc": "No location",
+    "skipped": "Skipped"
+  },
+  "chip": {
+    "remove": "Remove {name}",
+    "addName": "add name"
+  },
+  "typegrid": {
+    "label": "Sticker type",
+    "which": "Which one?",
+    "placeholder": "E.g. the cow one"
+  },
+  "field": {
+    "add": "Add “{name}”"
+  },
+  "table": {
+    "range": "{from}–{to} of {total}",
+    "pages": "Pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {n}",
+    "pickedOne": "{n} selected",
+    "pickedMany": "{n} selected",
+    "pickAll": "Select all",
+    "pickRow": "Select {name}"
+  },
+  "legend": {
+    "title": "Types"
+  },
+  "lightbox": {
+    "label": "Photo of {place}, {n} of {count}",
+    "pinch": "Pinch to zoom"
+  },
+  "mapctl": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "locate": "My location",
+    "satellite": "Satellite"
+  },
+  "panel": {
+    "spot": "Spot"
+  },
+  "marker": {
+    "sticker": "Sticker",
+    "withMore": "{first} and {n} more",
+    "cluster": "{count} stickers, zoom in to see",
+    "exactDot": "← exact coordinate"
+  },
+  "submit": {
+    "missing": "Missing: {what}",
+    "missingGeneric": "The form is incomplete",
+    "ready": "All set",
+    "verified": "Verified by Cloudflare",
+    "uploading": "Uploading photo…",
+    "sending": "Sending…"
+  },
+  "card": {
+    "done": "Done"
+  },
+  "spot": {
+    "noName": "Unnamed place",
+    "viewPhoto": "View photo",
+    "viewFull": "View photo full screen",
+    "placedBy": "PLACED BY",
+    "knowWho": "Know who it was?",
+    "uploadedBy": "Uploaded by:",
+    "maps": "View on Google Maps",
+    "editWindow": "you can edit for {h} h"
+  },
+  "date": {
+    "hoursAgo": "{n} h ago",
+    "minutesAgo": "{n} min ago"
+  },
+  "who": {
+    "error": "Add at least one name, or choose “Don't know”.",
+    "me": "Me",
+    "others": "Others",
+    "unknown": "Don't know",
+    "question": "Who placed it?",
+    "addName": "Add name",
+    "recent": "Recent",
+    "note": "Any details? (optional)",
+    "notePlaceholder": "E.g. JM's brother saw it",
+    "unknownHint": "Stays as “Placed by: ?” until someone knows."
+  },
+  "loc": {
+    "exif": "Photo location",
+    "exifRevert": "Back to the photo",
+    "device": "Your location",
+    "deviceRevert": "Back to your location",
+    "pin": "Adjusted by hand",
+    "pinRevert": "Back to the previous one",
+    "search": "Search",
+    "searchRevert": "Back to the search",
+    "paste": "Pasted link",
+    "pasteRevert": "Back to the link",
+    "legacy": "Saved location",
+    "legacyRevert": "Back to the saved one",
+    "finding": "Finding your location…",
+    "lowAccuracy": "You're within ±{m} m. Drag the pin right onto the sticker.",
+    "dragPin": "Drag the pin if it's not exact.",
+    "conflictTitle": "These locations don't match",
+    "whereTitle": "Where is the sticker?",
+    "choose": "Choose where the sticker is",
+    "photoTaken": "Where the photo was taken:",
+    "youAre": "Where you are:",
+    "apart": "They are {km} km apart. Choose where the sticker is.",
+    "mapLabel": "Map to place the sticker",
+    "denied": "No location permission. No worries: search for the place or paste a link.",
+    "useMine": "Use my location",
+    "pasteLink": "Paste link or coordinates",
+    "searchPlaceholder": "Search for a place or address",
+    "results": "Search results",
+    "iphonePre": "Can't see the location? On iPhone, tap ",
+    "iphoneBold": "Options → Location",
+    "iphonePost": " when choosing the photo.",
+    "approx": "Approximate location",
+    "approxHint": "Shown rounded (~100 m). Handy for houses."
+  }
+}

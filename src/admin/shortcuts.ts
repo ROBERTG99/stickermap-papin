@@ -10,16 +10,23 @@ interface KeyLike {
   ctrlKey?: boolean;
   metaKey?: boolean;
   altKey?: boolean;
-  target?: { tagName?: string; isContentEditable?: boolean; getAttribute?: (name: string) => string | null } | null;
+  target?: unknown;
+}
+
+interface ElementLike {
+  tagName?: string;
+  isContentEditable?: boolean;
+  getAttribute?: (name: string) => string | null;
 }
 
 /** Shortcuts must never fire while the admin is typing (inputs, textareas, selects, comboboxes, contenteditable). */
-export function isTypingTarget(target: KeyLike["target"]): boolean {
-  if (!target) return false;
-  const tag = (target.tagName ?? "").toUpperCase();
+export function isTypingTarget(target: unknown): boolean {
+  if (!target || typeof target !== "object") return false;
+  const el = target as ElementLike;
+  const tag = (el.tagName ?? "").toUpperCase();
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-  if (target.isContentEditable) return true;
-  const role = target.getAttribute?.("role");
+  if (el.isContentEditable) return true;
+  const role = el.getAttribute?.("role");
   return role === "combobox" || role === "textbox";
 }
 

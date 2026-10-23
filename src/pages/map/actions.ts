@@ -38,7 +38,7 @@ export async function submitReport(id: string, reason: ReportReason, note: strin
     toast.show({
       message: t("map.report.failed"),
       kind: "error",
-      action: { label: t("action.retry"), onClick: () => void submitReport(id, reason, note) },
+      action: { label: t("common.action.retry"), onClick: () => void submitReport(id, reason, note) },
     });
     return false;
   }

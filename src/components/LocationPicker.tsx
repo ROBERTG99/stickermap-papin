@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { Icon, type IconName } from "./Icon";
 import { cx } from "../lib/cx";
+import { lang, t } from "../lib/i18n";
 import type { LocationSource } from "../shared/types";
 
 /** Device fixes worse than this (metres) turn the badge tomato and ask the user to drag the pin. */
@@ -23,18 +24,26 @@ interface SourceMeta {
   revert: string;
 }
 
-const SOURCES: Record<LocationSource, SourceMeta> = {
-  exif: { icon: "camera", label: "Ubicación de la foto", revert: "Volver a la foto" },
-  device: { icon: "locate", label: "Tu ubicación", revert: "Volver a tu ubicación" },
-  pin: { icon: "hand", label: "Ajustada a mano", revert: "Volver a la anterior" },
-  search: { icon: "search", label: "Búsqueda", revert: "Volver a la búsqueda" },
-  paste: { icon: "link", label: "Link pegado", revert: "Volver al link" },
-  legacy: { icon: "pin", label: "Ubicación guardada", revert: "Volver a la guardada" },
+const SOURCE_ICONS: Record<LocationSource, IconName> = {
+  exif: "camera",
+  device: "locate",
+  pin: "hand",
+  search: "search",
+  paste: "link",
+  legacy: "pin",
 };
+
+function sourceInfo(source: LocationSource): SourceMeta {
+  return {
+    icon: SOURCE_ICONS[source],
+    label: t(`components.loc.${source === "paste" ? "paste" : source}`),
+    revert: t(`components.loc.${source}Revert`),
+  };
+}
 
 /** Icon + words for a location source (shared with the bulk-add rows). */
 export function sourceMeta(source: LocationSource): Pick<SourceMeta, "icon" | "label"> {
-  const { icon, label } = SOURCES[source];
+  const { icon, label } = sourceInfo(source);
   return { icon, label };
 }
 
@@ -52,11 +61,11 @@ export function LocationBadge({ source, accuracyM, class: className }: LocationB
     return (
       <span class={cx("mp-src mp-src--pending", className)}>
         <span class="mp-spinner" aria-hidden="true" />
-        Buscando tu ubicación…
+        {t("components.loc.finding")}
       </span>
     );
   }
-  const { icon, label } = SOURCES[source];
+  const { icon, label } = sourceInfo(source);
   const hasAccuracy = source === "device" && accuracyM != null;
   const warn = hasAccuracy && accuracyM > LOW_ACCURACY_M;
   return (
@@ -141,7 +150,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
 }
 
 const NO_RESULTS: readonly SearchResult[] = [];
-const kmFormat = new Intl.NumberFormat("es-UY");
+const kmFormats = { es: new Intl.NumberFormat("es-UY"), en: new Intl.NumberFormat("en-US") };
 
 /** The "Ubicación" card of the add form: mini-map slot + source badge + tools. */
 export function LocationPicker(props: LocationPickerProps) {
@@ -231,21 +240,21 @@ export function LocationPicker(props: LocationPickerProps) {
     : null;
 
   const hint =
-    state.kind === "lowAccuracy" ? `Estás a ±${Math.round(state.accuracyM)} m. Arrastrá el pin justo arriba del sticker.`
+    state.kind === "lowAccuracy" ? t("components.loc.lowAccuracy", { m: Math.round(state.accuracyM) })
     : state.kind === "exif" || state.kind === "device" || state.kind === "search" || state.kind === "link"
-      ? "Arrastrá el pin si no es exacto."
+      ? t("components.loc.dragPin")
     : null;
 
-  const revertLabel = state.kind === "moved" && state.from ? SOURCES[state.from].revert : null;
+  const revertLabel = state.kind === "moved" && state.from ? sourceInfo(state.from).revert : null;
 
   return (
     <div class={cx("mp-card", className)} style={GRID}>
       {(state.kind === "empty" || conflict) && !searchOpen && (
-        <h3 class="mp-card__title">{conflict ? "Estas ubicaciones no coinciden" : "¿Dónde está el sticker?"}</h3>
+        <h3 class="mp-card__title">{conflict ? t("components.loc.conflictTitle") : t("components.loc.whereTitle")}</h3>
       )}
 
       {conflict && (
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" role="group" aria-label="Elegí dónde está el sticker">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" role="group" aria-label={t("components.loc.choose")}>
           {(["exif", "device"] as const).map((which) => {
             const option = state[which];
             return (
@@ -261,7 +270,7 @@ export function LocationPicker(props: LocationPickerProps) {
                 <div class="mp-photo mp-photo--empty" style="--ratio:3/2" data-pin="confirmed">{option.map}</div>
                 <span>
                   <Icon name={which === "exif" ? "camera" : "locate"} size="sm" />{" "}
-                  {which === "exif" ? "Donde se sacó la foto:" : "Donde estás vos:"}
+                  {which === "exif" ? t("components.loc.photoTaken") : t("components.loc.youAre")}
                   <br />
                   <b>{option.place}</b>
                 </span>
@@ -271,7 +280,7 @@ export function LocationPicker(props: LocationPickerProps) {
         </div>
       )}
       {conflict && (
-        <span class="mp-field__hint">Están a {kmFormat.format(state.distanceKm)} km. Elegí dónde está el sticker.</span>
+        <span class="mp-field__hint">{t("components.loc.apart", { km: kmFormats[lang.value].format(state.distanceKm) })}</span>
       )}
 
       {!conflict && !searchOpen && (
@@ -279,7 +288,7 @@ export function LocationPicker(props: LocationPickerProps) {
           class="mp-photo mp-photo--empty"
           style="--ratio:13/6"
           role="group"
-          aria-label="Mapa para ubicar el sticker"
+          aria-label={t("components.loc.mapLabel")}
           data-pin={state.kind === "empty" || state.kind === "resolving" ? "unconfirmed" : "confirmed"}
         >
           {children}
@@ -289,7 +298,7 @@ export function LocationPicker(props: LocationPickerProps) {
       {locateDenied && !conflict && (
         <div class="mp-banner mp-banner--error" id={`${uid}-denied`} role="status">
           <Icon name="locate" />
-          Sin permiso de ubicación. Tranqui: buscá el lugar o pegá un link.
+          {t("components.loc.denied")}
         </div>
       )}
 
@@ -324,7 +333,7 @@ export function LocationPicker(props: LocationPickerProps) {
                 onClick={onUseDevice}
               >
                 <Icon name="locate" size="sm" />
-                Usar mi ubicación
+                {t("components.loc.useMine")}
               </button>
               <button
                 type="button"
@@ -334,14 +343,14 @@ export function LocationPicker(props: LocationPickerProps) {
                 onClick={() => setPasteOpen((open) => !open)}
               >
                 <Icon name="link" size="sm" />
-                Pegar link o coordenadas
+                {t("components.loc.pasteLink")}
               </button>
             </div>
           )}
 
           {!searchOpen && showPaste && (
             <div class="mp-field" id={`${uid}-paste`}>
-              <label class="mp-field__label" for={`${uid}-paste-input`}>Pegar link o coordenadas</label>
+              <label class="mp-field__label" for={`${uid}-paste-input`}>{t("components.loc.pasteLink")}</label>
               <input
                 ref={pasteInput}
                 id={`${uid}-paste-input`}
@@ -368,8 +377,8 @@ export function LocationPicker(props: LocationPickerProps) {
             <Icon name="search" />
             <input
               class="mp-input"
-              placeholder="Buscar lugar o dirección"
-              aria-label="Buscar lugar"
+              placeholder={t("components.loc.searchPlaceholder")}
+              aria-label={t("components.header.searchPlace")}
               role="combobox"
               aria-autocomplete="list"
               aria-expanded={searchOpen}
@@ -382,7 +391,7 @@ export function LocationPicker(props: LocationPickerProps) {
             />
           </label>
           {searchOpen && (
-            <ul class="mp-listbox" role="listbox" id={listId} aria-label="Resultados de la búsqueda">
+            <ul class="mp-listbox" role="listbox" id={listId} aria-label={t("components.loc.results")}>
               {searchResults.map((result, i) => (
                 <li
                   key={result.id}
@@ -402,7 +411,7 @@ export function LocationPicker(props: LocationPickerProps) {
 
           {state.kind === "empty" && (
             <span class="mp-field__hint">
-              <Icon name="info" size="sm" /> ¿No aparece la ubicación? En iPhone tocá <b>Opciones → Ubicación</b> al elegir la foto.
+              <Icon name="info" size="sm" /> {t("components.loc.iphonePre")}<b>{t("components.loc.iphoneBold")}</b>{t("components.loc.iphonePost")}
             </span>
           )}
         </div>
@@ -411,8 +420,8 @@ export function LocationPicker(props: LocationPickerProps) {
       {!conflict && !searchOpen && (
         <div class="mp-switchrow">
           <div class="mp-switchrow__text" id={`${uid}-approx`}>
-            <b>Ubicación aproximada</b>
-            <span>Se muestra redondeada (~100 m). Útil para casas.</span>
+            <b>{t("components.loc.approx")}</b>
+            <span>{t("components.loc.approxHint")}</span>
           </div>
           <button
             type="button"

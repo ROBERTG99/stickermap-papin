@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 
 interface ProgressBarProps {
@@ -50,11 +51,11 @@ export function SubmitBar({ state, missing, progress = 0, onSubmit, onRetry, chi
           <div class="mp-submitbar__row">
             <span class="mp-submitbar__hint">
               <Icon name="alert" />
-              {missing ? `Falta: ${missing}` : "Falta completar el formulario"}
+              {missing ? t("components.submit.missing", { what: missing }) : t("components.submit.missingGeneric")}
             </span>
           </div>
           <button type="button" class="mp-btn mp-btn--primary mp-btn--lg mp-btn--block" disabled>
-            Mandale Mecha
+            {t("common.action.submit")}
           </button>
         </>
       )}
@@ -63,26 +64,26 @@ export function SubmitBar({ state, missing, progress = 0, onSubmit, onRetry, chi
           <div class="mp-submitbar__row">
             <span class="mp-submitbar__hint" style={{ color: "var(--brand-ink)" }}>
               <Icon name="check" />
-              Todo listo
+              {t("components.submit.ready")}
             </span>
             {children ?? (
               <span class="mp-turnstile">
                 <Icon name="shield" />
-                Verificado por Cloudflare
+                {t("components.submit.verified")}
               </span>
             )}
           </div>
           <button type="button" class="mp-btn mp-btn--primary mp-btn--lg mp-btn--block" onClick={onSubmit}>
-            Mandale Mecha
+            {t("common.action.submit")}
           </button>
         </>
       )}
       {state === "uploading" && (
         <>
-          <ProgressBar value={progress} label="Subiendo foto…" />
+          <ProgressBar value={progress} label={t("components.submit.uploading")} />
           <button type="button" class="mp-btn mp-btn--primary mp-btn--lg mp-btn--block is-loading" disabled aria-busy="true">
             <span class="mp-spinner" aria-hidden="true" />
-            Mandando…
+            {t("components.submit.sending")}
           </button>
         </>
       )}
@@ -90,11 +91,11 @@ export function SubmitBar({ state, missing, progress = 0, onSubmit, onRetry, chi
         <>
           <div class="mp-banner mp-banner--error" role="alert">
             <Icon name="wifi-off" />
-            Se cortó la conexión. Tu sticker sigue acá.
+            {t("common.error.network")}
           </div>
           <button type="button" class="mp-btn mp-btn--primary mp-btn--lg mp-btn--block" onClick={onRetry}>
             <Icon name="rotate" />
-            Reintentar
+            {t("common.action.retry")}
           </button>
         </>
       )}

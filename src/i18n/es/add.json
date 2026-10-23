@@ -1,0 +1,162 @@
+{
+  "title": "Agregar sticker",
+  "steps": "3 pasos · ~20 s",
+  "status": {
+    "missing": "Falta"
+  },
+  "help": {
+    "title": "Cómo se agrega un sticker",
+    "body": "Elegí una foto, confirmá dónde está el sticker y marcá de qué tipo es. Si la foto trae ubicación, el pin ya aparece en su lugar. Si no, buscá el lugar, pegá un link o arrastrá el pin.",
+    "ok": "Entendido"
+  },
+  "draft": {
+    "restored": "Recuperamos un sticker que no llegó a mandarse.",
+    "discard": "Descartar"
+  },
+  "photo": {
+    "title": "Foto",
+    "optional": "Opcional",
+    "reading": "Leyendo la foto…",
+    "camera": "Sacar foto",
+    "gallery": "Elegir de galería",
+    "many": "Varias fotos",
+    "hint": "Opcional, pero sin foto no hay gloria.",
+    "alt": "Foto del sticker",
+    "rotate": "Rotar",
+    "change": "Cambiar",
+    "remove": "Quitar",
+    "rotateFailed": "No pudimos rotar la foto. Probá de nuevo.",
+    "undecoded": "Tu navegador no puede achicar esta foto. La mandamos tal cual y un admin la revisa.",
+    "error": {
+      "bad_type": "Ese archivo no es una foto que podamos usar. Elegí un JPG, PNG, WebP o HEIC.",
+      "too_big": "Esa foto pesa más de 25 MB. Elegí una más liviana.",
+      "unreadable": "No pudimos leer esa foto. Probá con otra o seguí sin foto."
+    }
+  },
+  "dup": {
+    "title": "Esta foto ya está en el mapa",
+    "body": "¿Es otro sticker en la misma foto?",
+    "addHere": "Agregar sticker a ese lugar",
+    "other": "No, es otro lugar",
+    "review": "Ver",
+    "by": "cargado por {name}, {date}",
+    "addTitle": "Agregar sticker a ese lugar",
+    "addBody": "Elegí qué sticker es y quién lo pegó.",
+    "addSubmit": "Agregar sticker",
+    "added": "Listo, sumamos el sticker a ese lugar.",
+    "gone": "Ese lugar ya no está en el mapa. Mandalo como un sticker nuevo."
+  },
+  "location": {
+    "title": "Ubicación",
+    "resolving": "Buscando…",
+    "error": "Marcá dónde está el sticker: buscá el lugar, pegá un link o tocá el mapa.",
+    "pinLabel": "Pin del sticker. Con las flechas lo movés de a poco.",
+    "dragHint": "Arrastrá el pin o tocá el mapa",
+    "expand": "Agrandar mapa",
+    "shrink": "Achicar mapa",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "useMine": "Mi ubicación",
+    "satellite": "Satélite",
+    "noBasemap": "Sin mapa de fondo. Igual podés buscar o pegar un link.",
+    "deviceFailed": "No pudimos saber dónde estás. Buscá el lugar o pegá un link.",
+    "deviceFailedAuto": "No pudimos saber dónde estás. Marcá el lugar en el mapa.",
+    "searchFailed": "No pudimos buscar ahora. Pegá un link o tocá el mapa.",
+    "gestures": {
+      "desktop": "Usá Ctrl + scroll para acercar el mapa",
+      "mobile": "Usá dos dedos para mover el mapa"
+    },
+    "paste": {
+      "empty": "Pegá un link de Google Maps o Apple Maps, o las coordenadas.",
+      "invalid": "No encontramos coordenadas ahí. Probá con “-34.9, -56.16” o con un link de Google Maps.",
+      "out_of_range": "Esas coordenadas no existen: la latitud va de -90 a 90 y la longitud de -180 a 180.",
+      "short_link": "Ese link es corto y no trae coordenadas. Abrilo y pegá el link largo, o las coordenadas."
+    }
+  },
+  "what": {
+    "title": "¿Qué sticker?",
+    "group": "Tipo de sticker",
+    "typeError": "Elegí al menos un tipo de sticker.",
+    "soy": "Soy:",
+    "addNote": "Agregar nota",
+    "note": "Nota",
+    "notePlaceholder": "Ej: arriba del secamanos, al lado del espejo."
+  },
+  "missing": {
+    "photo_busy": "terminar de leer la foto",
+    "no_location": "ubicación",
+    "no_type": "tipo de sticker",
+    "no_placers": "quién lo pegó"
+  },
+  "submit": {
+    "missing": "Falta: {what}",
+    "missingGeneric": "Falta completar el formulario",
+    "ready": "Todo listo",
+    "verified": "Verificado por Cloudflare",
+    "uploading": "Subiendo foto…",
+    "sending": "Mandando…"
+  },
+  "error": {
+    "network": "Se cortó la conexión. Tu sticker sigue acá.",
+    "rate_limited": "Mandaste muchos stickers seguidos. Tu sticker sigue acá: esperá un rato y reintentá.",
+    "turnstile": "No pudimos verificar que sos una persona. Tu sticker sigue acá: reintentá.",
+    "too_large": "La foto es demasiado pesada. Elegí otra más liviana.",
+    "bad_image": "Ese formato de foto no se puede subir. Probá con un JPG, PNG, WebP o HEIC.",
+    "exists": "Esta foto ya está en el mapa.",
+    "invalid": "Algo de lo que cargaste no es válido. Revisá los datos y reintentá.",
+    "server": "Algo falló de nuestro lado. Tu sticker sigue acá: reintentá en un rato."
+  },
+  "thanks": {
+    "view": "Ver en el mapa",
+    "another": "Agregar otro",
+    "edit": "Editar",
+    "editFor": "Podés editar por",
+    "newSpot": "Tu sticker",
+    "shareText": "Mirá el sticker que sumé al Mapa Papin",
+    "copied": "Link copiado"
+  },
+  "edit": {
+    "title": "Editar sticker",
+    "save": "Guardar cambios",
+    "saved": "Listo, guardamos los cambios.",
+    "nothing": "No cambiaste nada todavía.",
+    "delete": "Borrar sticker",
+    "deleting": "Borrando…",
+    "deleted": "Sticker borrado.",
+    "confirmTitle": "¿Borrar este sticker?",
+    "confirmBody": "Se va del mapa y de los rankings. No hay vuelta atrás.",
+    "keep": "Mejor no",
+    "expired": "Pasaron las 24 h para editar este sticker.",
+    "photoLocked": "La foto no se cambia. Si te equivocaste, borrá el sticker y mandá uno nuevo.",
+    "noPhoto": "Este sticker no tiene foto.",
+    "pinHint": "Arrastrá el pin o tocá el mapa para moverlo.",
+    "revertPin": "Volver a la anterior",
+    "approx": "Ubicación aproximada",
+    "approxHint": "Se muestra redondeada (~100 m). Útil para casas.",
+    "helpTitle": "Editar tu sticker",
+    "helpBody": "Podés cambiar el tipo, quién lo pegó, la nota y el lugar durante 24 h, solo desde el dispositivo con el que lo mandaste.",
+    "missingBody": "Puede que ya lo hayan borrado.",
+    "toMap": "Ir al mapa",
+    "offlineTitle": "No pudimos cargar el sticker",
+    "noGrantTitle": "Este sticker no se edita desde acá",
+    "noGrantBody": "Solo se edita desde el dispositivo con el que se mandó, durante 24 h.",
+    "seeOnMap": "Ver en el mapa",
+    "error": {
+      "forbidden": "Pasaron las 24 h o este sticker se mandó desde otro dispositivo, así que no lo podés cambiar.",
+      "gone": "Este sticker ya no está.",
+      "invalid": "Algo de lo que cambiaste no es válido. Revisalo y reintentá.",
+      "server": "Algo falló de nuestro lado. Reintentá en un rato."
+    }
+  },
+  "common": {
+    "submit": "Mandale Mecha",
+    "retry": "Reintentar",
+    "back": "Volver",
+    "share": "Compartir",
+    "anonymous": "Anónimo",
+    "appName": "Mapa Papin",
+    "thanksTitle": "¡Mandaste mecha!",
+    "thanksLine": "Tu aporte Papin es reconocido y apreciado",
+    "notFound": "Este sticker se despegó"
+  }
+}

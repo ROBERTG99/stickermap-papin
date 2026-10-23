@@ -71,9 +71,6 @@
     "error": "We could not search. Try again.",
     "results": "Search results"
   },
-  "menu": {
-    "title": "Language and theme"
-  },
   "locate": {
     "failed": "We could not locate you. Check the location permission."
   }

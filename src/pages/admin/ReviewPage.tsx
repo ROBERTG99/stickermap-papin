@@ -17,9 +17,13 @@ import { readExif } from "../../lib/photo";
 import { path, navigate } from "../../lib/router";
 import { loadBase } from "../../lib/store";
 import { toast } from "../../lib/toast";
+import { haversineMeters } from "../../shared/geo";
 import { formatInt } from "../../components/StatSticker";
-import { AssignPlacersDialog, PageHead, PlaceCell, ReasonBadges, SearchBox, SpotThumb, useDebounced } from "./parts";
+import { AssignPlacersDialog, PageHead, PlaceCell, ReasonBadges, SearchBox, SpotThumb, StatusBadge, useDebounced } from "./parts";
 import { KeysLegend, SpotEditor } from "./SpotEditor";
+
+/** A pin fix under this distance keeps the geocoded place name; a bigger move lets the server clear it so the cron looks it up again. */
+const NEAR_M = 1000;
 
 type Dlg = null | "delete" | "help" | "assign" | "hideBatch";
 
@@ -165,7 +169,7 @@ export default function ReviewPage() {
     setBusy(false);
     if (!done) return;
     dropFromList([spot.id]);
-    toast.show({ kind: "success", message: t(`admin.toast.${kind}`), action: { label: t("action.undo"), onClick: () => void undo(spot) }, durationMs: 8000 });
+    toast.show({ kind: "success", message: t(`admin.toast.${kind}`), action: { label: t("common.action.undo"), onClick: () => void undo(spot) }, durationMs: 8000 });
   };
 
   const patchSpot = async (spot: AdminSpot, body: SpotPatch, message?: string) => {
@@ -177,17 +181,26 @@ export default function ReviewPage() {
     return true;
   };
 
+  /** Coordinates change body: near moves carry the current place name so the API does not wipe it. */
+  const moveBody = (spot: AdminSpot, lat: number, lng: number, source: SpotPatch["location_source"]): SpotPatch => ({
+    lat,
+    lng,
+    location_source: source,
+    is_approximate: spot.is_approximate, // an approximate (fuzzed) spot stays approximate: the API rounds the new coordinates
+    ...(spot.place_name && haversineMeters(spot.lat, spot.lng, lat, lng) < NEAR_M ? { place_name: spot.place_name } : {}),
+  });
+
   const moveTo = async (spot: AdminSpot, lat: number, lng: number) => {
-    const from = { lat: spot.lat, lng: spot.lng, location_source: spot.location_source };
-    const ok = await patchSpot(spot, { lat, lng, location_source: "pin", is_approximate: false });
+    const near = haversineMeters(spot.lat, spot.lng, lat, lng) < NEAR_M && spot.place_name;
+    const ok = await patchSpot(spot, moveBody(spot, lat, lng, "pin"));
     if (!ok) {
       await reloadOne(spot.id); // snap the marker back
       return;
     }
     toast.show({
       kind: "success",
-      message: t("admin.toast.moved"),
-      action: { label: t("action.undo"), onClick: () => void patchSpot(spot, { lat: from.lat, lng: from.lng, location_source: from.location_source }, t("admin.toast.undone")) },
+      message: t(near ? "admin.toast.movedNear" : "admin.toast.moved"),
+      action: { label: t("common.action.undo"), onClick: () => void patchSpot(spot, moveBody({ ...spot, lat, lng }, spot.lat, spot.lng, spot.location_source), t("admin.toast.undone")) },
       durationMs: 8000,
     });
   };
@@ -207,13 +220,12 @@ export default function ReviewPage() {
         toast.show({ kind: "info", message: t("admin.gps.none") });
         return;
       }
-      const from = { lat: spot.lat, lng: spot.lng, location_source: spot.location_source };
-      const ok = await patchSpot(spot, { lat: exif.lat, lng: exif.lng, location_source: "exif", is_approximate: false });
+      const ok = await patchSpot(spot, moveBody(spot, exif.lat, exif.lng, "exif"));
       if (ok) {
         toast.show({
           kind: "success",
           message: t("admin.gps.used"),
-          action: { label: t("action.undo"), onClick: () => void patchSpot(spot, { lat: from.lat, lng: from.lng, location_source: from.location_source }, t("admin.toast.undone")) },
+          action: { label: t("common.action.undo"), onClick: () => void patchSpot(spot, moveBody({ ...spot, lat: exif.lat!, lng: exif.lng! }, spot.lat, spot.lng, spot.location_source), t("admin.toast.undone")) },
           durationMs: 8000,
         });
       }
@@ -335,7 +347,7 @@ export default function ReviewPage() {
                 </Button>
                 <span style={{ flex: 1 }} />
                 <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" style={{ color: "var(--bg)" }} onClick={() => setChecked(new Set())}>
-                  {t("action.cancel")}
+                  {t("common.action.cancel")}
                 </button>
               </div>
             )}
@@ -360,7 +372,7 @@ export default function ReviewPage() {
                 icon="/img/icons/papa.png"
                 title={filtersOn ? t("admin.review.emptyFiltered") : t("admin.review.empty")}
                 body={filtersOn ? t("admin.review.emptyFilteredBody") : t("admin.review.emptyBody")}
-                action={filtersOn ? { label: t("action.clear"), onClick: () => { setReason(""); setPlacerUnknown(false); setBatch(""); setQ(""); } } : undefined}
+                action={filtersOn ? { label: t("common.action.clear"), onClick: () => { setReason(""); setPlacerUnknown(false); setBatch(""); setQ(""); } } : undefined}
               />
             )}
 
@@ -369,7 +381,7 @@ export default function ReviewPage() {
                 <Icon name="alert" />
                 <span>{t("admin.error.loadFailed")}</span>
                 <Button size="sm" variant="secondary" class="mp-banner__action" onClick={() => void load()}>
-                  {t("action.retry")}
+                  {t("common.action.retry")}
                 </Button>
               </div>
             )}
@@ -385,7 +397,7 @@ export default function ReviewPage() {
                         <PlaceCell spot={r} />
                       </b>
                       <span class="mp-queue__badges">
-                        {r.review_reasons.length > 0 ? <ReasonBadges reasons={r.review_reasons} /> : <span class="mp-badge mp-badge--alert">{t(`admin.status.${r.status === "pending" ? "pending" : "review"}`)}</span>}
+                        {r.review_reasons.length > 0 ? <ReasonBadges reasons={r.review_reasons} /> : <StatusBadge spot={r} />}
                       </span>
                       <span class="mp-field__hint mp-queue__when">{formatAgo(r.created_at)}</span>
                     </span>

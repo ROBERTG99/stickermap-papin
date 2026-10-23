@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { adminApi, type AdminType } from "../../admin/api";
 import { adminTypes, loadAdminTypes, refreshCounts } from "../../admin/state";
 import { errorText, slugify } from "../../admin/util";
@@ -58,8 +58,8 @@ export function TypeFormModal({ mode, onClose }: { mode: TypeFormMode | null; on
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
-  // Reset the form each time it opens.
-  useEffect(() => {
+  // Reset the form each time it opens (before paint, so nothing typed right away is overwritten).
+  useLayoutEffect(() => {
     if (!mode) return;
     const types = adminTypes.value;
     setFile(null);
@@ -172,7 +172,7 @@ export function TypeFormModal({ mode, onClose }: { mode: TypeFormMode | null; on
       actions={
         <>
           <Button variant="secondary" onClick={onClose}>
-            {t("action.cancel")}
+            {t("common.action.cancel")}
           </Button>
           <Button variant="primary" loading={busy} icon={mode?.kind === "edit" ? "check" : "plus"} onClick={() => void submit()}>
             {busy ? t("admin.types.saving") : mode?.kind === "edit" ? t("admin.types.save") : promote ? t("admin.types.promoteConfirm") : t("admin.types.create")}

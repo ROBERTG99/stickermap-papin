@@ -1,6 +1,7 @@
 import type { ComponentChildren, TargetedKeyboardEvent, TargetedMouseEvent, TargetedPointerEvent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 
 export type SheetSnap = "peek" | "expanded";
 
@@ -91,7 +92,7 @@ export function BottomSheet({ open, snap, onSnapChange, onClose, title, children
 
   const expanded = snap === "expanded";
   const role = expanded || modal ? "dialog" : "region";
-  const label = expanded || modal ? title : "Sticker seleccionado";
+  const label = expanded || modal ? title : t("components.sheet.selected");
 
   const toggleSnap = () => onSnapChange(expanded ? "peek" : "expanded");
 
@@ -222,7 +223,7 @@ export function BottomSheet({ open, snap, onSnapChange, onClose, title, children
         }}
         onClick={onSheetClick}
       >
-        <button ref={grabRef} type="button" class="mp-sheet__grab" aria-label={expanded ? "Achicar" : "Expandir"} style="touch-action:none" onClick={toggleSnap} />
+        <button ref={grabRef} type="button" class="mp-sheet__grab" aria-label={expanded ? t("components.sheet.collapse") : t("components.sheet.expand")} style="touch-action:none" onClick={toggleSnap} />
         <div style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain">{children}</div>
       </div>
     </>

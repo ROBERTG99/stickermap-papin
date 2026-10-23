@@ -1,5 +1,6 @@
 import type { MouseEventHandler } from "preact";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 
 export interface FabProps {
@@ -14,23 +15,24 @@ export interface FabProps {
 }
 
 /** The always-visible "+ Agregar sticker" action (mobile only; desktop uses a primary button in the nav). */
-export function Fab({ href, onClick, round, label = "Agregar sticker", class: className }: FabProps) {
+export function Fab({ href, onClick, round, label, class: className }: FabProps) {
+  const text = label ?? t("common.nav.add");
   const cls = cx("mp-fab", round && "mp-fab--round", className);
   const content = (
     <>
       <Icon name="plus" />
-      {round ? null : label}
+      {round ? null : text}
     </>
   );
   if (href) {
     return (
-      <a class={cls} href={href} aria-label={round ? label : undefined} onClick={onClick}>
+      <a class={cls} href={href} aria-label={round ? text : undefined} onClick={onClick}>
         {content}
       </a>
     );
   }
   return (
-    <button type="button" class={cls} aria-label={round ? label : undefined} onClick={onClick}>
+    <button type="button" class={cls} aria-label={round ? text : undefined} onClick={onClick}>
       {content}
     </button>
   );

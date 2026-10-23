@@ -33,9 +33,10 @@ export function hasLocation(lat: number | null, lng: number | null): boolean {
  */
 export function classifyPhotos(photos: readonly ClassifyInput[]): Classification[] {
   const firstByHash = new Map<string, number>();
+  const onMap = new Set(photos.flatMap((p) => (p.existsId && p.sha256 ? [p.sha256] : [])));
   return photos.map((p, i) => {
     if (p.error) return { status: "error" };
-    if (p.existsId) return { status: "exists" };
+    if (p.existsId || (p.sha256 && onMap.has(p.sha256))) return { status: "exists" };
     if (p.sha256) {
       const first = firstByHash.get(p.sha256);
       if (first !== undefined) return { status: "dup-batch", sameAs: first };
@@ -51,12 +52,18 @@ export function effectiveCoords(p: Pick<PhotoMeta, "lat" | "lng" | "placed">): {
   return p.placed ? { lat: p.placed.lat, lng: p.placed.lng } : { lat: p.lat, lng: p.lng };
 }
 
-export function classifyMetas(photos: readonly PhotoMeta[]): Classification[] {
-  return classifyPhotos(photos.map((p) => ({ ...effectiveCoords(p), sha256: p.sha256, error: p.error, existsId: p.existsId, omitted: p.omitted })));
-}
-
 /** Photos sent or already on the server no longer take part in the review. */
 export const isUploaded = (p: Pick<PhotoMeta, "upload">): boolean => p.upload.state === "done" || p.upload.state === "exists";
+
+/** Classify the whole draft; a photo that already went up counts as "on the map", so a later copy of it is not offered again. */
+export function classifyMetas(photos: readonly PhotoMeta[]): Classification[] {
+  return classifyPhotos(
+    photos.map((p) => ({
+      ...effectiveCoords(p), sha256: p.sha256, error: p.error, omitted: p.omitted,
+      existsId: p.existsId ?? (isUploaded(p) ? (p.upload.spotId ?? "uploaded") : null),
+    })),
+  );
+}
 
 export interface DraftSummary {
   unplaced: number;

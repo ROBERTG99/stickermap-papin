@@ -39,9 +39,9 @@ export function selectionPadding(l: SelectionLayout): Padding {
   if (l.snap === "peek") {
     return { top: Math.max(l.headerBottom, MARKER_CLEARANCE_PX), right: 0, bottom: SHEET_PEEK_PX + PANEL_INSET_PX, left: 0 };
   }
-  // Expanded: the sheet covers 88% of the screen, so the dot goes just above its top edge.
+  // Expanded: the sheet covers 88% of the screen, so the dot goes just above its top edge (the marker head needs ~84px above it, so it may peek out at the top).
   const sheetTop = l.viewportHeight * (1 - SHEET_EXPANDED_RATIO);
-  const dotY = Math.max(40, sheetTop - PANEL_INSET_PX);
+  const dotY = Math.max(40, sheetTop - 6);
   return { top: 0, right: 0, bottom: Math.max(0, l.mapHeight - dotY * 2), left: 0 };
 }
 

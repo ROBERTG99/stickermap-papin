@@ -12,6 +12,8 @@ import { markerSpec } from "./spot-view";
  * `icon-allow-overlap` and pre-rendered marker images instead of one DOM node per spot.
  */
 export const SPOTS_SOURCE = "spots";
+/** Invisible circle layer on the source: MapLibre only loads tiles for sources a layer uses, and it lets us ask what is on screen. */
+export const SPOTS_LAYER = "spots-hit";
 export const CLUSTER_MAX_ZOOM = 5;
 export const CLUSTER_RADIUS = 40;
 
@@ -33,8 +35,8 @@ interface Entry {
   sig: string;
 }
 
-/** How far outside the viewport (as a fraction of its size) markers are kept, so panning does not pop. */
-const VIEW_MARGIN = 0.5;
+/** How far outside the viewport (px) markers are kept, so panning does not pop. */
+const VIEW_MARGIN_PX = 240;
 
 export class MarkerLayer {
   private entries = new Map<string, Entry>();
@@ -47,20 +49,22 @@ export class MarkerLayer {
     const detailed = Math.floor(zoom) > 5; // z6+: no clusters
     const small = zoom < 6; // lone spots at world / continent zoom get the 32px head
     const spots = this.host.spots();
-    const bounds = this.map.getBounds();
-    const dx = (bounds.getEast() - bounds.getWest()) * VIEW_MARGIN;
-    const dy = (bounds.getNorth() - bounds.getSouth()) * VIEW_MARGIN;
-    const inView = (lng: number, lat: number) =>
-      lat >= bounds.getSouth() - dy && lat <= bounds.getNorth() + dy && lng >= bounds.getWest() - dx && lng <= bounds.getEast() + dx;
-
     interface Wanted { key: string; kind: "spot" | "cluster"; lng: number; lat: number; spot?: SpotFeature; clusterId?: number; count?: number }
     const wanted = new Map<string, Wanted>();
 
-    let rendered: ReturnType<MapLibreMap["querySourceFeatures"]> = [];
+    // What the source draws right now (its ideal tiles only: querySourceFeatures would also return stale parent tiles
+    // and show a cluster twice). A margin around the viewport keeps panning from popping markers in.
+    const canvas = this.map.getCanvas();
+    const margin = VIEW_MARGIN_PX;
+    if (!this.map.getLayer(SPOTS_LAYER)) return; // style swapping: the next sync (style.load / idle) fills in
+    let rendered: ReturnType<MapLibreMap["queryRenderedFeatures"]> = [];
     try {
-      rendered = this.map.querySourceFeatures(SPOTS_SOURCE);
+      rendered = this.map.queryRenderedFeatures(
+        [[-margin, -margin], [canvas.clientWidth + margin, canvas.clientHeight + margin]],
+        { layers: [SPOTS_LAYER] },
+      );
     } catch {
-      rendered = []; // style swapping: the next sync (sourcedata / idle) fills in
+      return;
     }
     for (const f of rendered) {
       if (f.geometry.type !== "Point") continue;
@@ -68,16 +72,14 @@ export class MarkerLayer {
       if (props.cluster) {
         if (detailed) continue;
         const [lng, lat] = f.geometry.coordinates as [number, number];
-        if (!inView(lng, lat)) continue;
         const clusterId = Number(props.cluster_id);
         const count = Number(props.point_count);
         wanted.set(`c:${clusterId}:${count}`, { key: `c:${clusterId}:${count}`, kind: "cluster", lng, lat, clusterId, count });
         continue;
       }
-      const spot = spots.get(String(props.id ?? f.id ?? ""));
+      const spot = spots.get(String(props.id ?? ""));
       if (!spot) continue;
       const [lng, lat] = spot.geometry.coordinates; // the exact stored point, not the tile-quantised one
-      if (!inView(lng, lat)) continue;
       wanted.set(`s:${spot.id}`, { key: `s:${spot.id}`, kind: "spot", lng, lat, spot });
     }
 

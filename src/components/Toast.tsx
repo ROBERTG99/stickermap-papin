@@ -1,4 +1,5 @@
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { toast, type ToastAction, type ToastKind } from "../lib/toast";
 import { Icon, type IconName } from "./Icon";
 
@@ -30,7 +31,7 @@ export function Toast({ kind = "info", message, action, onClose, announce = true
         </button>
       )}
       {onClose && (
-        <button type="button" class="mp-toast__action" onClick={onClose} aria-label="Cerrar aviso">
+        <button type="button" class="mp-toast__action" onClick={onClose} aria-label={t("components.toast.close")}>
           <Icon name="x" size="sm" />
         </button>
       )}

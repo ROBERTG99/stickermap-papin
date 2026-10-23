@@ -44,7 +44,14 @@ export function exifDateToNaive(raw: unknown): string | null {
 
 export async function readExif(file: Blob): Promise<PhotoExif> {
   try {
-    const tags = (await parseExif(file, { gps: true, pick: ["DateTimeOriginal", "GPSHPositioningError", "latitude", "longitude"], reviveValues: false })) as
+    // The lite build rejects `pick` together with `gps: true`; naming the segments and tags works and still skips the rest of the file.
+    const options = {
+      tiff: false, xmp: false, icc: false, iptc: false, jfif: false, ifd1: false, interop: false,
+      exif: ["DateTimeOriginal"],
+      gps: ["GPSLatitude", "GPSLongitude", "GPSLatitudeRef", "GPSLongitudeRef", "GPSHPositioningError"],
+      reviveValues: false, translateValues: false, mergeOutput: true,
+    };
+    const tags = (await parseExif(file, options as never)) as
       { latitude?: number; longitude?: number; GPSHPositioningError?: number; DateTimeOriginal?: unknown } | undefined;
     const ok = validGps(tags?.latitude, tags?.longitude);
     return {

@@ -1,6 +1,7 @@
 import type { ComponentChildren, JSX, LooseInputHTMLAttributes, Ref } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { PersonAvatar, RemovablePersonChip } from "./Chip";
 import { Icon } from "./Icon";
 
@@ -67,7 +68,7 @@ function OptionList({ id, label, items, active, query, onPick, onHover }: Option
           {it.add ? (
             <>
               <Icon name="plus" />
-              Agregar “{it.label}”
+              {t("components.field.add", { name: it.label })}
             </>
           ) : (
             <>

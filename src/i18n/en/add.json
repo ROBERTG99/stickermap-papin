@@ -1,0 +1,162 @@
+{
+  "title": "Add sticker",
+  "steps": "3 steps · ~20 s",
+  "status": {
+    "missing": "Missing"
+  },
+  "help": {
+    "title": "How to add a sticker",
+    "body": "Pick a photo, confirm where the sticker is and choose its type. If the photo has a location the pin is already in place. If not, search for the place, paste a link or drag the pin.",
+    "ok": "Got it"
+  },
+  "draft": {
+    "restored": "We recovered a sticker that never got sent.",
+    "discard": "Discard"
+  },
+  "photo": {
+    "title": "Photo",
+    "optional": "Optional",
+    "reading": "Reading the photo…",
+    "camera": "Take photo",
+    "gallery": "Choose from gallery",
+    "many": "Many photos",
+    "hint": "Optional, but no photo means no glory.",
+    "alt": "Sticker photo",
+    "rotate": "Rotate",
+    "change": "Change",
+    "remove": "Remove",
+    "rotateFailed": "We could not rotate the photo. Try again.",
+    "undecoded": "Your browser cannot shrink this photo. We send it as it is and an admin reviews it.",
+    "error": {
+      "bad_type": "That file is not a photo we can use. Pick a JPG, PNG, WebP or HEIC.",
+      "too_big": "That photo is over 25 MB. Pick a lighter one.",
+      "unreadable": "We could not read that photo. Try another or continue without a photo."
+    }
+  },
+  "dup": {
+    "title": "This photo is already on the map",
+    "body": "Is it another sticker in the same photo?",
+    "addHere": "Add a sticker to that spot",
+    "other": "No, it is another place",
+    "review": "See",
+    "by": "added by {name}, {date}",
+    "addTitle": "Add a sticker to that spot",
+    "addBody": "Pick which sticker it is and who stuck it.",
+    "addSubmit": "Add sticker",
+    "added": "Done, we added the sticker to that spot.",
+    "gone": "That spot is no longer on the map. Send it as a new sticker."
+  },
+  "location": {
+    "title": "Location",
+    "resolving": "Looking…",
+    "error": "Mark where the sticker is: search for the place, paste a link or tap the map.",
+    "pinLabel": "Sticker pin. Use the arrow keys to nudge it.",
+    "dragHint": "Drag the pin or tap the map",
+    "expand": "Enlarge map",
+    "shrink": "Shrink map",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "useMine": "My location",
+    "satellite": "Satellite",
+    "noBasemap": "No basemap. You can still search or paste a link.",
+    "deviceFailed": "We could not tell where you are. Search for the place or paste a link.",
+    "deviceFailedAuto": "We could not tell where you are. Mark the place on the map.",
+    "searchFailed": "We could not search right now. Paste a link or tap the map.",
+    "gestures": {
+      "desktop": "Use Ctrl + scroll to zoom the map",
+      "mobile": "Use two fingers to move the map"
+    },
+    "paste": {
+      "empty": "Paste a Google Maps or Apple Maps link, or the coordinates.",
+      "invalid": "We found no coordinates there. Try “-34.9, -56.16” or a Google Maps link.",
+      "out_of_range": "Those coordinates do not exist: latitude goes from -90 to 90 and longitude from -180 to 180.",
+      "short_link": "That short link carries no coordinates. Open it and paste the long link, or the coordinates."
+    }
+  },
+  "what": {
+    "title": "Which sticker?",
+    "group": "Sticker type",
+    "typeError": "Pick at least one sticker type.",
+    "soy": "I am:",
+    "addNote": "Add note",
+    "note": "Note",
+    "notePlaceholder": "E.g. above the hand dryer, next to the mirror."
+  },
+  "missing": {
+    "photo_busy": "finish reading the photo",
+    "no_location": "location",
+    "no_type": "sticker type",
+    "no_placers": "who stuck it"
+  },
+  "submit": {
+    "missing": "Missing: {what}",
+    "missingGeneric": "The form is not complete",
+    "ready": "All set",
+    "verified": "Verified by Cloudflare",
+    "uploading": "Uploading photo…",
+    "sending": "Sending…"
+  },
+  "error": {
+    "network": "The connection dropped. Your sticker is still here.",
+    "rate_limited": "You sent a lot of stickers in a row. Your sticker is still here: wait a bit and retry.",
+    "turnstile": "We could not verify you are a person. Your sticker is still here: retry.",
+    "too_large": "The photo is too heavy. Pick a lighter one.",
+    "bad_image": "That photo format cannot be uploaded. Try a JPG, PNG, WebP or HEIC.",
+    "exists": "This photo is already on the map.",
+    "invalid": "Something you entered is not valid. Check the details and retry.",
+    "server": "Something failed on our side. Your sticker is still here: retry in a while."
+  },
+  "thanks": {
+    "view": "See on the map",
+    "another": "Add another",
+    "edit": "Edit",
+    "editFor": "You can edit for",
+    "newSpot": "Your sticker",
+    "shareText": "Look at the sticker I added to Mapa Papin",
+    "copied": "Link copied"
+  },
+  "edit": {
+    "title": "Edit sticker",
+    "save": "Save changes",
+    "saved": "Done, we saved your changes.",
+    "nothing": "You have not changed anything yet.",
+    "delete": "Delete sticker",
+    "deleting": "Deleting…",
+    "deleted": "Sticker deleted.",
+    "confirmTitle": "Delete this sticker?",
+    "confirmBody": "It leaves the map and the rankings. There is no undo.",
+    "keep": "Not now",
+    "expired": "The 24 h to edit this sticker are over.",
+    "photoLocked": "The photo cannot be changed. If you got it wrong, delete the sticker and send a new one.",
+    "noPhoto": "This sticker has no photo.",
+    "pinHint": "Drag the pin or tap the map to move it.",
+    "revertPin": "Back to the previous one",
+    "approx": "Approximate location",
+    "approxHint": "Shown rounded (~100 m). Handy for homes.",
+    "helpTitle": "Edit your sticker",
+    "helpBody": "You can change the type, who stuck it, the note and the place for 24 h, only from the device you sent it from.",
+    "missingBody": "It may have been deleted already.",
+    "toMap": "Go to the map",
+    "offlineTitle": "We could not load the sticker",
+    "noGrantTitle": "This sticker cannot be edited from here",
+    "noGrantBody": "It can only be edited from the device it was sent from, for 24 h.",
+    "seeOnMap": "See on the map",
+    "error": {
+      "forbidden": "The 24 h are over or this sticker was sent from another device, so you cannot change it.",
+      "gone": "This sticker is gone.",
+      "invalid": "Something you changed is not valid. Check it and retry.",
+      "server": "Something failed on our side. Retry in a while."
+    }
+  },
+  "common": {
+    "submit": "Mandale Mecha",
+    "retry": "Retry",
+    "back": "Back",
+    "share": "Share",
+    "anonymous": "Anonymous",
+    "appName": "Mapa Papin",
+    "thanksTitle": "You sent it!",
+    "thanksLine": "Your Papin contribution is recognised and appreciated",
+    "notFound": "This sticker came unstuck"
+  }
+}

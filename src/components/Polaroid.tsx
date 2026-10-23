@@ -1,4 +1,5 @@
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import type { IconFit } from "../shared/types";
 import { tiltStyle } from "./Avatar";
 
@@ -58,7 +59,7 @@ export interface PolaroidProps {
 export function Polaroid({ href, index, types, photoSrc, ratio = "4/5", tone = "stone", place, placer, class: className }: PolaroidProps) {
   const shown = types.slice(0, 2);
   const extra = types.length - shown.length;
-  const alt = `Foto: sticker ${types.map((t) => t.label).join(", ")}`;
+  const alt = t("components.photo.alt", { type: types.map((ty) => ty.label).join(", ") });
   const lead = shown[0];
   return (
     <a class={cx("mp-polaroid", className)} href={href} style={tiltStyle(index)}>
@@ -76,7 +77,7 @@ export function Polaroid({ href, index, types, photoSrc, ratio = "4/5", tone = "
         </div>
       )}
       <span class="mp-polaroid__place">{place}</span>
-      <span class="mp-polaroid__by">Pegado por {placer?.trim() || "¿?"}</span>
+      <span class="mp-polaroid__by">{t("components.photo.placedBy", { name: placer?.trim() || t("common.person.unknownPlacer") })}</span>
     </a>
   );
 }

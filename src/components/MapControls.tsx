@@ -1,4 +1,5 @@
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 
 interface MapControlsProps {
@@ -19,19 +20,19 @@ export function MapControls({ satellite, onToggleSatellite, onZoomIn, onZoomOut,
   return (
     <div class={cx("mp-mapctl", className)}>
       <div class="mp-mapctl__group">
-        <button type="button" class="mp-mapctl__btn" aria-label="Acercar" onClick={onZoomIn}>
+        <button type="button" class="mp-mapctl__btn" aria-label={t("components.mapctl.zoomIn")} onClick={onZoomIn}>
           <Icon name="plus" />
         </button>
-        <button type="button" class="mp-mapctl__btn" aria-label="Alejar" onClick={onZoomOut}>
+        <button type="button" class="mp-mapctl__btn" aria-label={t("components.mapctl.zoomOut")} onClick={onZoomOut}>
           <Icon name="minus" />
         </button>
       </div>
-      <button type="button" class="mp-mapctl__btn mp-mapctl__btn--solo" aria-label="Mi ubicación" aria-busy={locating ? "true" : undefined} onClick={onLocate}>
+      <button type="button" class="mp-mapctl__btn mp-mapctl__btn--solo" aria-label={t("components.mapctl.locate")} aria-busy={locating ? "true" : undefined} onClick={onLocate}>
         <Icon name="locate" />
       </button>
       <button type="button" class="mp-sat" aria-pressed={satellite} onClick={onToggleSatellite}>
         <Icon name="layers" />
-        Satélite
+        {t("components.mapctl.satellite")}
       </button>
     </div>
   );

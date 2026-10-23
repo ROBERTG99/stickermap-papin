@@ -64,7 +64,7 @@ export function ReportDialog({ target, onClose }: Props) {
       title={t("map.report.knowTitle")}
       onClose={onClose}
       art={
-        <div class="mp-field">
+        <div class="mp-field map-report-field">
           <label class="mp-field__label" for={fieldId}>{t("map.report.knowLabel")}</label>
           <span class="mp-field__hint">{t("map.report.knowBody")}</span>
           <input

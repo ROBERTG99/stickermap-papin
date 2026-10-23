@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon, type IconName } from "./Icon";
 
 export type DialogLayout = "auto" | "sheet" | "centered";
@@ -105,7 +106,7 @@ export function Dialog({ open, role = "dialog", title, art, children, actions, o
     <div style={frame}>
       <div class="mp-scrim" aria-hidden="true" onClick={role === "alertdialog" || !interactive ? undefined : onClose} />
       <div ref={dialogRef} class={cx("mp-dialog", sheet && "mp-dialog--sheet", className)} role={role} aria-modal="true" aria-labelledby={titleId}>
-        {sheet && <button type="button" class="mp-sheet__grab" aria-label="Cerrar" onClick={onClose} />}
+        {sheet && <button type="button" class="mp-sheet__grab" aria-label={t("common.action.close")} onClick={onClose} />}
         <h2 class="mp-dialog__title" id={titleId}>
           {title}
         </h2>
@@ -135,7 +136,7 @@ interface ConfirmDialogProps {
 }
 
 /** `alertdialog` with the recommended action first and "Mejor no" as the way out. */
-export function ConfirmDialog({ open, title, body, confirmLabel, cancelLabel = "Mejor no", danger = false, icon, onConfirm, onCancel, layout, contained, interactive }: ConfirmDialogProps) {
+export function ConfirmDialog({ open, title, body, confirmLabel, cancelLabel, danger = false, icon, onConfirm, onCancel, layout, contained, interactive }: ConfirmDialogProps) {
   const iconName = icon ?? (danger ? "trash" : undefined);
   return (
     <Dialog
@@ -153,7 +154,7 @@ export function ConfirmDialog({ open, title, body, confirmLabel, cancelLabel = "
             {confirmLabel}
           </button>
           <button type="button" class="mp-btn mp-btn--secondary" onClick={onCancel}>
-            {cancelLabel}
+            {cancelLabel ?? t("components.dialog.cancel")}
           </button>
         </>
       }

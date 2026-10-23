@@ -52,7 +52,7 @@ export default function ThanksPage({ id }: { id: string }) {
     const url = `${location.origin}/s/${id}`;
     try {
       if (typeof navigator.share === "function") {
-        await navigator.share({ title: t("app.name"), text: t("add.thanks.shareText"), url });
+        await navigator.share({ title: t("add.common.appName"), text: t("add.thanks.shareText"), url });
         return;
       }
     } catch (error) {
@@ -70,11 +70,11 @@ export default function ThanksPage({ id }: { id: string }) {
     <div class="thanks">
       <AddStyles />
       {desktop && <AppHeader variant="desktop" active="map" search={<></>} />}
-      <section class="thanks__hero" aria-hidden="false">
+      <section class="thanks__hero">
         <div class="thanks__rays" aria-hidden="true">
           {RAYS.map((deg) => <i key={deg} style={{ transform: `rotate(${deg}deg) translateY(-${size / 2 + 40}px)` }} />)}
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "var(--space-4)", padding: "var(--space-8) var(--space-4)", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "var(--space-4)", padding: "var(--space-6) var(--space-4)", position: "relative", zIndex: 1 }}>
           {types.length === 0 ? (
             <TypeSticker type={lead} size={size} class="thanks__sticker" />
           ) : (
@@ -87,8 +87,8 @@ export default function ThanksPage({ id }: { id: string }) {
         </div>
       </section>
       <main class="thanks__body">
-        <h1 class="thanks__title">{t("thanks.title")}</h1>
-        <p class="thanks__line">{t("thanks.line")}</p>
+        <h1 class="thanks__title">{t("add.common.thanksTitle")}</h1>
+        <p class="thanks__line">{t("add.common.thanksLine")}</p>
         {photo && (
           <div class="thanks__polaroid">
             <Polaroid
@@ -106,7 +106,7 @@ export default function ThanksPage({ id }: { id: string }) {
           <a class="mp-btn mp-btn--primary mp-btn--lg" href={`/s/${id}`}>{t("add.thanks.view")}</a>
           <div class="thanks__row">
             <a class="mp-btn mp-btn--secondary" href="/nuevo">{t("add.thanks.another")}</a>
-            <Button variant="secondary" icon="share" onClick={() => void share()}>{t("action.share")}</Button>
+            <Button variant="secondary" icon="share" onClick={() => void share()}>{t("add.common.share")}</Button>
           </div>
         </div>
         {remaining > 0 && (

@@ -244,7 +244,7 @@ export function SpotEditor(props: SpotEditorProps) {
       </div>
 
       <p class="mp-spot__meta mp-review__meta">
-        {t("admin.review.by")} <b>{spot.reporter ?? t("person.anonymous")}</b> · {spot.taken_at ? formatNaiveDate(spot.taken_at) : formatAgo(spot.created_at)} ·{" "}
+        {t("admin.review.by")} <b>{spot.reporter ?? t("common.person.anonymous")}</b> · {spot.taken_at ? formatNaiveDate(spot.taken_at) : formatAgo(spot.created_at)} ·{" "}
         <span class="mp-review__mono">{formatCoords(spot.lat, spot.lng)}</span> ·{" "}
         <span class="mp-review__source">
           <Icon name={source.icon} size="sm" /> {source.label}

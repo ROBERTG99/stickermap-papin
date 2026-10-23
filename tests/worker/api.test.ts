@@ -1,7 +1,6 @@
 import { env } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runGeocodeCron } from "../../worker/cron/geocode";
-import type { Env } from "../../worker/env";
 import { bucket, call, db, JPEG, mockTurnstile, resetState, spotForm, WEBP } from "./helpers";
 
 beforeEach(resetState);
@@ -163,7 +162,7 @@ describe("geocode cron", () => {
     // two spots sharing a cache key count as one request
     await seedSpot("01HZZZZZZZZZZZZZZZZZZZZZ99", { lat: 10, lng: 20.0001, place_name: null, country: null, country_code: null });
     const spy = nominatim();
-    const out = await runGeocodeCron(env as unknown as Env, Date.now());
+    const out = await runGeocodeCron(env, Date.now());
     expect(out.requests).toBe(4);
     expect(spy).toHaveBeenCalledTimes(4);
     const filled = await db().prepare("SELECT COUNT(*) AS n FROM spots WHERE place_name IS NOT NULL").first<{ n: number }>();
@@ -175,16 +174,16 @@ describe("geocode cron", () => {
     await seedSpot("01HZZZZZZZZZZZZZZZZZZZZZA0", { lat: 5, lng: 5, place_name: null, country: null, country_code: null });
     await db().prepare("INSERT INTO geocode_cache (key, place_name, city, country, country_code, fetched_at) VALUES ('5.000,5.000', 'Cacheado', 'Cacheado', 'Uruguay', 'uy', '2025-01-01')").run();
     const spy = nominatim();
-    expect((await runGeocodeCron(env as unknown as Env)).requests).toBe(0);
+    expect((await runGeocodeCron(env)).requests).toBe(0);
     expect(spy).not.toHaveBeenCalled();
     expect((await db().prepare("SELECT place_name FROM spots WHERE id = '01HZZZZZZZZZZZZZZZZZZZZZA0'").first<{ place_name: string }>())!.place_name).toBe("Cacheado");
 
     await seedSpot("01HZZZZZZZZZZZZZZZZZZZZZB0", { lat: 6, lng: 6, place_name: null, country: null, country_code: null });
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("slow down", { status: 429 }));
-    await runGeocodeCron(env as unknown as Env, 1_000);
+    await runGeocodeCron(env, 1_000);
     const again = vi.spyOn(globalThis, "fetch");
     again.mockClear();
-    expect((await runGeocodeCron(env as unknown as Env, 1_000 + 60_000)).requests).toBe(0);
+    expect((await runGeocodeCron(env, 1_000 + 60_000)).requests).toBe(0);
     expect(again).not.toHaveBeenCalled();
   }, 20_000);
 });

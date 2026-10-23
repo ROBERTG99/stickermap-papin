@@ -1,4 +1,5 @@
 import "maplibre-gl/dist/maplibre-gl.css";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import type { GeoJSONSource, LngLatBoundsLike, Map as MlMap, Marker as MlMarker } from "maplibre-gl";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { createClusterElement, createMarkerElement, setMarkerSelected } from "../../components/MapMarker";
@@ -17,6 +18,8 @@ const WORLD = { lng: 10, lat: 25, zoom: 1.4 };
 /** MapLibre and the retinted style load on demand (the bulk page is the only place besides the main map that needs them). */
 async function createMap(container: HTMLElement, opts: { center?: { lat: number; lng: number } | null; zoom?: number; cooperative?: boolean }): Promise<{ ml: MapLib; map: MlMap }> {
   const [ml, style] = await Promise.all([import("maplibre-gl"), loadStyle(config.value?.map_style_url || DEFAULT_STYLE_URL)]);
+  // Vite's dev pre-bundling does not copy the worker next to maplibre-gl.js, so point at it explicitly (dev and build).
+  if (ml.getWorkerUrl() !== workerUrl) ml.setWorkerUrl(workerUrl);
   const map = new ml.Map({
     container,
     style,
@@ -30,6 +33,8 @@ async function createMap(container: HTMLElement, opts: { center?: { lat: number;
       "CooperativeGesturesHandler.MobileHelpText": t("bulk.map.gestureTouch"),
     },
   });
+  // The compact attribution starts open and covers a small map: fold it (the "i" button still opens it).
+  map.once("load", () => container.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show"));
   const ro = new ResizeObserver(() => map.resize());
   ro.observe(container);
   map.once("remove", () => ro.disconnect());
@@ -115,7 +120,7 @@ export function BatchMap({ points, selectedId, onSelect, fitKey, label, class: c
   const fit = () => {
     const l = live.current;
     const b = boundsOf(latest.current.points);
-    if (l && b) l.map.fitBounds(b, { padding: 56, maxZoom: 16, duration: 0 });
+    if (l && b) l.map.fitBounds(b, { padding: { top: 84, bottom: 52, left: 64, right: 64 }, maxZoom: 16, duration: 0 });
   };
 
   useEffect(() => {
@@ -129,11 +134,13 @@ export function BatchMap({ points, selectedId, onSelect, fitKey, label, class: c
         live.current = state;
         const start = () => {
           map.addSource("batch", { type: "geojson", data: collection(latest.current.points), cluster: true, clusterMaxZoom: 5, clusterRadius: 50 });
+          // A source only loads tiles while a layer uses it: an invisible one lets `querySourceFeatures` see the points and clusters.
+          map.addLayer({ id: "batch-probe", type: "circle", source: "batch", paint: { "circle-radius": 1, "circle-opacity": 0 } });
           state.ready = true;
           if (latest.current.points.length > 0) { fit(); fitted.current = latest.current.fitKey; }
           map.on("render", syncMarkers);
         };
-        if (map.isStyleLoaded()) start(); else map.once("load", start);
+        if (map.isStyleLoaded()) start(); else map.once("style.load", start);
       })
       .catch(() => { if (!disposed) setFailed(true); });
     return () => {

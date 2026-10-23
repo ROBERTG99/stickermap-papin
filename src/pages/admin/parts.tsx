@@ -8,7 +8,7 @@ import { Combobox } from "../../components/Field";
 import { Icon } from "../../components/Icon";
 import { TypeSticker } from "../../components/map-parts";
 import { reasonMeta } from "../../admin/reasons";
-import type { AdminSpot, AdminType } from "../../admin/api";
+import type { AdminSpot } from "../../admin/api";
 import { adminPeople, adminTypes } from "../../admin/state";
 import { cx } from "../../lib/cx";
 import { t } from "../../lib/i18n";
@@ -98,7 +98,7 @@ export function PlacerCell({ spot }: { spot: Pick<AdminSpot, "placers"> }) {
     return (
       <span class="mp-admin-person">
         <Avatar name={null} size={28} />
-        {t("person.unknownPlacer")}
+        {t("common.person.unknownPlacer")}
       </span>
     );
   }
@@ -174,7 +174,7 @@ export function AssignPlacersDialog({ open, count, busy, onClose, onAssign }: {
             {busy ? t("admin.assign.busy") : t("admin.assign.confirm", { n: count })}
           </Button>
           <Button variant="secondary" onClick={onClose}>
-            {t("action.cancel")}
+            {t("common.action.cancel")}
           </Button>
         </>
       }
@@ -193,8 +193,3 @@ export function AssignPlacersDialog({ open, count, busy, onClose, onAssign }: {
     </Modal>
   );
 }
-
-/** Screen-reader-visible text that is not shown. */
-export const SrOnly = ({ children }: { children: ComponentChildren }) => <span class="mp-sr">{children}</span>;
-
-export type { AdminType };

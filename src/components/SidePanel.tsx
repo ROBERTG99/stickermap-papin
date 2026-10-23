@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 
 interface SidePanelProps {
@@ -50,9 +51,9 @@ export function SidePanel({ title, onClose, onPrev, onNext, children, floating =
       <div class="mp-panel__head">
         <span class="mp-badge mp-badge--brand">
           <Icon name="pin" />
-          Spot
+          {t("components.panel.spot")}
         </span>
-        <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label="Cerrar" onClick={onClose}>
+        <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label={t("common.action.close")} onClick={onClose}>
           <Icon name="x" />
         </button>
       </div>

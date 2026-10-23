@@ -1,4 +1,5 @@
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 
 /** Stable tilt token for a list position: index % 4 → --tilt-1..4 (never random). */
 export function tiltVar(index: number): string {
@@ -25,7 +26,7 @@ export function initialsOf(name: string): string {
   return first.toLocaleUpperCase("es") + second;
 }
 
-const UNKNOWN_NAMES = new Set(["", "¿?"]);
+const UNKNOWN_NAMES = new Set(["", "¿?", "?"]);
 
 interface AvatarProps {
   /** Person's name as typed; empty, null or "¿?" renders the unknown placer. */
@@ -58,9 +59,9 @@ export function Avatar({ name, index, size = 32, decorative = true, class: class
       style={style}
       aria-hidden={decorative ? "true" : undefined}
       role={decorative ? undefined : "img"}
-      aria-label={decorative ? undefined : unknown ? "Persona sin identificar" : clean}
+      aria-label={decorative ? undefined : unknown ? t("components.person.unidentified") : clean}
     >
-      {unknown ? "¿?" : initialsOf(clean)}
+      {unknown ? t("common.person.unknownPlacer") : initialsOf(clean)}
     </span>
   );
 }

@@ -3,6 +3,7 @@ import { useId, useRef, useState } from "preact/hooks";
 import { Icon } from "./Icon";
 import { sourceMeta } from "./LocationPicker";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import type { LocationSource } from "../shared/types";
 
 /* ── Shared helpers ───────────────────────────────────────────────────── */
@@ -133,12 +134,9 @@ function Meta({ parts }: { parts: ComponentChildren[] }) {
   );
 }
 
-const UPLOAD_STATE = {
-  queued: { label: "En cola", text: "en cola" },
-  busy: { label: "Subiendo", text: "subiendo" },
-  done: { label: "Subido", text: "subido" },
-  failed: { label: "Falló", text: "no se pudo subir" },
-} as const;
+function uploadState(state: "queued" | "busy" | "done" | "failed"): { label: string; text: string } {
+  return { label: t(`components.batch.${state}`), text: t(`components.batch.${state}Text`) };
+}
 
 /** `li.mp-bitem`: one photo of the bulk add, in any review or upload state. Render inside `BatchList`. */
 export function BatchItem(props: BatchItemProps) {
@@ -171,7 +169,7 @@ export function BatchItem(props: BatchItemProps) {
         </span>,
       ];
       act = (
-        <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label={`Editar foto ${n}`} onClick={onEdit}>
+        <button type="button" class="mp-btn mp-btn--quiet mp-btn--icon" aria-label={t("components.batch.editPhoto", { n })} onClick={onEdit}>
           <Icon name="more" />
         </button>
       );
@@ -179,17 +177,17 @@ export function BatchItem(props: BatchItemProps) {
     }
     case "noloc":
       modifier = "mp-bitem--noloc";
-      title = "Sin ubicación";
-      meta = [<MetaClock time={row.time} />, <span>sin GPS</span>];
+      title = t("components.batch.noLocation");
+      meta = [<MetaClock time={row.time} />, <span>{t("components.batch.noGps")}</span>];
       act = (
         <>
           <button type="button" class="mp-btn mp-btn--primary mp-btn--sm" onClick={onLocate}>
             <Icon name="pin" size="sm" />
-            Ubicar
+            {t("components.batch.locate")}
           </button>
           {onSkip && (
-            <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onSkip} aria-label={`Omitir foto ${n}`}>
-              Omitir
+            <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onSkip} aria-label={t("components.batch.skipPhoto", { n })}>
+              {t("components.batch.skip")}
             </button>
           )}
         </>
@@ -197,37 +195,37 @@ export function BatchItem(props: BatchItemProps) {
       break;
     case "exists":
       modifier = "mp-bitem--skip";
-      title = "Ya está en el mapa";
+      title = t("components.batch.exists");
       meta = [<MetaClock time={row.time} />, ...(row.place ? [<span>{row.place}</span>] : [])];
       act = onView && (
-        <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onView} aria-label={`Ver foto ${n} en el mapa`}>
+        <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onView} aria-label={t("components.batch.viewOnMap", { n })}>
           <Icon name="external" size="sm" />
-          Ver
+          {t("components.batch.view")}
         </button>
       );
       break;
     case "dup":
       modifier = "mp-bitem--skip";
-      title = "Repetida en este lote";
-      meta = [<MetaClock time={row.time} />, <span>igual a la foto {row.sameAs}</span>];
+      title = t("components.batch.dup");
+      meta = [<MetaClock time={row.time} />, <span>{t("components.batch.sameAs", { n: row.sameAs })}</span>];
       break;
     case "error":
       modifier = "mp-bitem--skip";
-      title = "No se pudo leer";
+      title = t("components.batch.unreadable");
       meta = [<MetaClock time={null} />, <span>{row.reason}</span>];
       break;
     case "skipped":
       modifier = "mp-bitem--skip";
-      title = "Omitida";
-      meta = [<MetaClock time={row.time} />, <span>no se agrega</span>];
+      title = t("components.batch.skipped");
+      meta = [<MetaClock time={row.time} />, <span>{t("components.batch.notAdded")}</span>];
       act = onRestore && (
-        <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onRestore} aria-label={`Incluir foto ${n}`}>
-          Incluir
+        <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onRestore} aria-label={t("components.batch.includePhoto", { n })}>
+          {t("components.batch.include")}
         </button>
       );
       break;
     case "upload": {
-      const info = UPLOAD_STATE[row.state];
+      const info = uploadState(row.state);
       title = row.place;
       const status =
         row.state === "busy" ? `${info.text} ${Math.round(row.progress ?? 0)}%`
@@ -255,7 +253,7 @@ export function BatchItem(props: BatchItemProps) {
           variant={variant}
           ratio="1/1"
           tiltNo={(index % 4) + 1}
-          label={`Foto ${n}`}
+          label={t("components.photo.of", { n })}
           thumb={props.thumb}
           typeSlug={typeSlug}
         />
@@ -269,7 +267,7 @@ export function BatchItem(props: BatchItemProps) {
         <span
           class="mp-bitem__prog"
           role="progressbar"
-          aria-label={`Subiendo foto ${n}`}
+          aria-label={t("components.batch.uploadingPhoto", { n })}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress)}
@@ -379,18 +377,18 @@ export function DropZone({ onFiles, variant = "desktop", max = 100, over }: Drop
     >
       <div class="mp-dropzone__art" aria-hidden="true">
         {art.map((a) => (
-          <PhotoTile key={a.tiltNo} variant={a.variant} ratio="3/4" tiltNo={a.tiltNo} label={`Foto: sticker ${typeLabel(a.slug)}`} typeSlug={a.slug} />
+          <PhotoTile key={a.tiltNo} variant={a.variant} ratio="3/4" tiltNo={a.tiltNo} label={t("components.photo.alt", { type: typeLabel(a.slug) })} typeSlug={a.slug} />
         ))}
       </div>
-      {!phone && <h2 class="mp-dropzone__title">Soltá acá tus fotos</h2>}
+      {!phone && <h2 class="mp-dropzone__title">{t("components.dropzone.title")}</h2>}
       {!phone && (
-        <span class="mp-dropzone__hint">Fotos o carpetas enteras, hasta {max}. Las que traen ubicación se agregan solas.</span>
+        <span class="mp-dropzone__hint">{t("components.dropzone.hintDesktop", { max })}</span>
       )}
       <button type="button" class={cx("mp-btn", phone ? "mp-btn--primary mp-btn--lg" : "mp-btn--secondary")} onClick={pickFiles}>
         <Icon name="image" />
-        {phone ? "Elegir fotos" : "O elegilas"}
+        {phone ? t("components.dropzone.pickPhone") : t("components.dropzone.pickDesktop")}
       </button>
-      {phone && <span class="mp-dropzone__hint">Hasta {max} por vez. Todavía no se sube nada.</span>}
+      {phone && <span class="mp-dropzone__hint">{t("components.dropzone.hintPhone", { max })}</span>}
       <input
         ref={input}
         type="file"
@@ -416,27 +414,35 @@ export function IphoneHint({ selectedCount = 12 }: { selectedCount?: number }) {
     <section class="mp-pickerhint" aria-labelledby={titleId}>
       <h3 class="mp-pickerhint__title" id={titleId}>
         <Icon name="info" />
-        En iPhone, antes de “Agregar”:
+        {t("components.iphone.title")}
       </h3>
       <ol class="mp-pickerhint__steps">
-        <li>Tocá <b>Opciones</b> arriba de las fotos.</li>
-        <li>Activá <b>Ubicación</b>.</li>
+        <li>
+          {t("components.iphone.step1Pre")}
+          <b>{t("components.iphone.step1Bold")}</b>
+          {t("components.iphone.step1Post")}
+        </li>
+        <li>
+          {t("components.iphone.step2Pre")}
+          <b>{t("components.iphone.step2Bold")}</b>
+          {t("components.iphone.step2Post")}
+        </li>
       </ol>
       <div class="mp-pickerhint__mock" aria-hidden="true">
         <div class="mp-pickerhint__bar">
-          <span>{selectedCount} seleccionadas</span>
+          <span>{t("components.iphone.selected", { n: selectedCount })}</span>
           <span class="mp-pickerhint__opts">
-            Opciones
+            {t("components.iphone.options")}
             <Icon name="chevron-down" size="sm" />
           </span>
         </div>
         <div class="mp-pickerhint__row">
-          <span>Ubicación</span>
+          <span>{t("components.iphone.location")}</span>
           <span class="mp-pickerhint__toggle" />
         </div>
       </div>
       <span class="mp-field__hint">
-        Sin esto, el iPhone saca la ubicación de las fotos y te van a quedar todas “Sin ubicación”.
+        {t("components.iphone.warning")}
       </span>
     </section>
   );
@@ -461,7 +467,7 @@ export function LocationSuggestion({ time, place, hint, onUse }: LocationSuggest
     <button type="button" class="mp-suggest" onClick={onUse}>
       <Icon name="clock" />
       <span>
-        ¿Cerca de la foto de las {time}?
+        {t("components.suggest.near", { time })}
         <small>{hint ? `${place} · ${hint}` : place}</small>
       </span>
       <Icon name="chevron-right" />
@@ -484,24 +490,24 @@ export interface SameStickerHintProps {
 
 /** `mp-same`: "¿Mismo sticker?". Nothing merges without a tap. */
 export function SameStickerHint({ a, b, meters, minutes, typeSlug = "papa", thumbs, onMerge, onKeepSeparate }: SameStickerHintProps) {
-  const label = `Foto: sticker ${typeLabel(typeSlug)}`;
+  const label = t("components.photo.alt", { type: typeLabel(typeSlug) });
   return (
-    <div class="mp-same" role="group" aria-label="Posible mismo sticker">
+    <div class="mp-same" role="group" aria-label={t("components.same.group")}>
       <div class="mp-same__thumbs">
         <PhotoTile variant="pole" ratio="1/1" tiltNo={1} label={label} thumb={thumbs?.[0]} typeSlug={typeSlug} />
         <PhotoTile variant="pole" ratio="1/1" tiltNo={3} label={label} thumb={thumbs?.[1]} typeSlug={typeSlug} />
       </div>
       <div class="mp-same__text">
-        <b>¿Mismo sticker?</b>
-        Fotos {a} y {b}: a {meters} m y {minutes} min.
+        <b>{t("components.same.title")}</b>
+        {t("components.same.text", { a, b, meters, minutes })}
       </div>
       <div class="mp-same__actions">
         <button type="button" class="mp-btn mp-btn--secondary mp-btn--sm" onClick={onMerge}>
           <Icon name="merge" size="sm" />
-          Juntar
+          {t("components.same.merge")}
         </button>
         <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" onClick={onKeepSeparate}>
-          No, son distintos
+          {t("components.same.keep")}
         </button>
       </div>
     </div>
@@ -516,18 +522,13 @@ export interface BatchSummaryProps {
   onFilterChange: (filter: BatchFilter) => void;
 }
 
-const FILTERS: { key: BatchFilter; label: string }[] = [
-  { key: "all", label: "Todas" },
-  { key: "ready", label: "Listas" },
-  { key: "noloc", label: "Sin ubicación" },
-  { key: "skipped", label: "Omitidas" },
-];
+const FILTER_KEYS: BatchFilter[] = ["all", "ready", "noloc", "skipped"];
 
 /** Filter chips above the list: Todas · Listas · Sin ubicación · Omitidas. One is pressed at a time. */
 export function BatchSummary({ filter, counts, onFilterChange }: BatchSummaryProps) {
   return (
-    <div class="mp-chips" role="group" aria-label="Filtrar fotos">
-      {FILTERS.map(({ key, label }) => {
+    <div class="mp-chips" role="group" aria-label={t("components.filter.group")}>
+      {FILTER_KEYS.map((key) => {
         const pressed = filter === key;
         const warn = key === "noloc" && counts.noloc > 0 && !pressed;
         return (
@@ -539,7 +540,7 @@ export function BatchSummary({ filter, counts, onFilterChange }: BatchSummaryPro
             style={warn ? { boxShadow: "inset 0 0 0 2px var(--alert)" } : undefined}
             onClick={() => onFilterChange(key)}
           >
-            {label}
+            {t(`components.filter.${key}`)}
             <span class="mp-chip__count">{counts[key]}</span>
             <span class="mp-chip__tick">
               <Icon name="check" />

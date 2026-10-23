@@ -1,5 +1,7 @@
-import { Map as MapLibreMap, Marker, type StyleSpecification } from "maplibre-gl";
+import { Map as MapLibreMap, Marker, setWorkerUrl, type StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// Vite's dependency pre-bundling does not copy MapLibre's worker file, so point MapLibre at it explicitly.
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Icon } from "../components/Icon";
 import { formatCoords } from "../lib/format";
@@ -22,9 +24,10 @@ export interface LocationMapProps {
   /** Small map: "Agrandar mapa" toggle. */
   expanded?: boolean;
   onToggleExpand?: () => void;
-  /** Interactive pin (edit page uses it too). Defaults to true. */
   class?: string;
 }
+
+setWorkerUrl(workerUrl);
 
 const blankStyle = (): StyleSpecification => ({ version: 8, sources: {}, layers: [{ id: "background", type: "background", paint: { "background-color": mapColors().land || "#F1F0E8" } }] });
 
@@ -67,7 +70,7 @@ export function LocationMap({ pin, fallback, focus, onPick, big, onLocate, expan
       style: blankStyle(),
       center: [start.lng, start.lat],
       zoom: pin ? 16 : fallback.zoom,
-      attributionControl: { compact: true },
+      attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false,
@@ -160,6 +163,11 @@ export function LocationMap({ pin, fallback, focus, onPick, big, onLocate, expan
     <div class={className ?? "add-map"}>
       <div ref={host} class="add-map__canvas" />
       {styleFailed && <span class="add-map__note mp-attrib">{t("add.location.noBasemap")}</span>}
+      <span class="mp-attrib add-map__attrib">
+        <a href="https://openfreemap.org" target="_blank" rel="noopener">© OpenFreeMap</a>{" "}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>
+        {satellite && <> · <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 s2maps.eu</a></>}
+      </span>
       {!big && onToggleExpand && (
         <button
           type="button"

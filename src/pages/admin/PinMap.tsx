@@ -1,5 +1,7 @@
-import { MapLibreMap, Marker, NavigationControl } from "maplibre-gl";
+import { MapLibreMap, Marker, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// Vite's dependency pre-bundling does not copy MapLibre's worker file, so point MapLibre at it explicitly (same as src/map/map.ts).
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Icon } from "../../components/Icon";
 import { createMarkerElement } from "../../components/MapMarker";
@@ -7,6 +9,8 @@ import { t } from "../../lib/i18n";
 import { config } from "../../lib/store";
 import { DEFAULT_STYLE_URL, SATELLITE_LAYER, loadStyle } from "../../map/style";
 import type { IconFit } from "../../shared/types";
+
+setWorkerUrl(workerUrl);
 
 interface PinMapProps {
   spotId: string;

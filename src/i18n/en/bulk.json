@@ -1,0 +1,180 @@
+{
+  "title": "Many photos",
+  "titleDesktop": "Add many photos",
+  "limit": "Pick up to 100 at a time",
+  "noLocation": "No location",
+  "allNoloc": "Your photos came without a location. Try from a computer: move the photos over and drag them here.",
+  "choose": {
+    "title": "Upload a bunch at once",
+    "lead": "Photos that carry a location go straight onto the map. The rest get flagged so you can place them yourself.",
+    "desktopTip": "Tip: move the iPhone photos to your computer with AirDrop or “Export Unmodified Original” and drag them in. That way they always keep their location."
+  },
+  "resume": {
+    "uploading": "You have an unfinished batch: {done} of {total} uploaded",
+    "review": "You have an unfinished batch: {n} photos to review",
+    "reviewOne": "You have an unfinished batch: 1 photo to review",
+    "unplaced": "You have {n} photos without a location",
+    "unplacedOne": "You have 1 photo without a location",
+    "continue": "Continue",
+    "locate": "Place them",
+    "discard": "Discard"
+  },
+  "discard": {
+    "title": "Discard this batch?",
+    "body": "The photos saved on this device are deleted. Anything already on the map stays.",
+    "confirm": "Discard the batch"
+  },
+  "replace": {
+    "title": "Start a new batch?",
+    "body": "You have an unfinished batch. If you continue, it is discarded and you start with these photos.",
+    "confirm": "Start over"
+  },
+  "reading": {
+    "label": "Reading photos… {done} of {total}",
+    "note": "We read them on your phone: location, date and size. Nothing has been uploaded yet.",
+    "noteDesktop": "We read them on your computer: location, date and size. Nothing has been uploaded yet.",
+    "listAria": "Photos read"
+  },
+  "review": {
+    "title": "Review {n} photos",
+    "titleOne": "Review 1 photo"
+  },
+  "map": {
+    "aria": "Map of the photos with a location",
+    "count": "{n} on the map",
+    "unavailable": "We could not load the map. The photos are added all the same.",
+    "gestureCtrl": "Use Ctrl + scroll to move the map",
+    "gestureCmd": "Use ⌘ + scroll to move the map",
+    "gestureTouch": "Use two fingers to move the map"
+  },
+  "noloc": {
+    "banner": "These {n} photos have no location. We will not add them until you place them.",
+    "bannerOne": "This photo has no location. We will not add it until you place it.",
+    "skipAll": "Skip all {n}"
+  },
+  "list": {
+    "aria": "Photos of the batch",
+    "empty": "No photos in this filter."
+  },
+  "defaults": {
+    "title": "For all photos",
+    "done": "Done",
+    "todo": "Type missing",
+    "type": "Which sticker?",
+    "typeHint": "(you can change it per photo)",
+    "typeAria": "Sticker type",
+    "typeError": "Pick at least one sticker type.",
+    "otherError": "Tell us what the “Other” is.",
+    "soy": "I am",
+    "soyPlaceholder": "Your name (optional)",
+    "more": "More options",
+    "approx": "Approximate location for all",
+    "approxHint": "Shown rounded (~100 m). Handy for homes.",
+    "originals": "Also upload the originals",
+    "originalsHint": "{size}. If you turn it off, only the lighter versions go up."
+  },
+  "same": {
+    "pickTitle": "Which one do we keep?",
+    "pickBody": "We keep the photo you pick and skip the others. Skipped photos can be included again.",
+    "photo": "Photo {n}",
+    "merge": "Merge",
+    "cancel": "Never mind"
+  },
+  "submit": {
+    "unplaced": "{n} without a location stay saved",
+    "unplacedOne": "1 without a location stays saved",
+    "ready": "All set",
+    "turnstile": "Protected by Turnstile"
+  },
+  "missing": {
+    "type": "Missing: sticker type",
+    "other": "Missing: tell us what the “Other” is",
+    "placer": "Missing: who stuck it",
+    "none": "No photos ready to send"
+  },
+  "sheet": {
+    "aria": "Photo of the batch"
+  },
+  "locate": {
+    "title": "Where is this sticker?",
+    "sub": "Photo {n} · taken at {time}",
+    "subNoTime": "Photo {n}",
+    "suggestHint": "tap to use it, then adjust the pin",
+    "tap": "Tap the map or drag the pin",
+    "confirm": "Confirm location",
+    "omit": "Skip this photo",
+    "placed": "Done, placed. It goes up with the rest.",
+    "searchFailed": "We could not search right now. Try again or paste a link.",
+    "parse": {
+      "invalid": "We could not read that. Try -34.9, -56.16 or a Google Maps link.",
+      "range": "That location does not exist. Check the numbers.",
+      "short": "That link is shortened and we cannot open it. Open it and paste the long link, or the coordinates."
+    }
+  },
+  "edit": {
+    "sub": "Photo {n} · {time}",
+    "subNoTime": "Photo {n}",
+    "movePin": "Move pin",
+    "type": "Which sticker?",
+    "note": "Note (optional)",
+    "done": "Done",
+    "omit": "Skip this photo",
+    "needSoy": "Fill in “I am” under “For all photos” to pick “Me”."
+  },
+  "upload": {
+    "title": "Uploading",
+    "keepOpen": "Do not close this screen until it finishes.",
+    "progress": "Uploading {done} of {total}",
+    "sending": "Uploading…",
+    "retry": "Retry failed ({n})",
+    "aria": "Photos being uploaded",
+    "exists": "Already on the map",
+    "error": {
+      "offline": "connection dropped",
+      "server": "the server did not answer",
+      "rate_limited": "you hit today's limit",
+      "too_large": "too large",
+      "rejected": "the photo could not be processed",
+      "batch_full": "the batch is full",
+      "token": "permission expired, retry",
+      "turnstile": "verification failed",
+      "missing": "the saved photo is missing",
+      "aborted": "cancelled",
+      "error": "something failed"
+    }
+  },
+  "done": {
+    "new": "new stickers",
+    "newOne": "new sticker",
+    "already": "{n} photos were already on the map",
+    "alreadyOne": "1 photo was already on the map",
+    "unplaced": "{n} photos without a location",
+    "unplacedOne": "1 photo without a location",
+    "locate": "Place them now",
+    "locateOne": "Place it now",
+    "view": "See on the map",
+    "more": "Add other photos",
+    "edit": "You can edit for {time}",
+    "delete": "Delete this batch",
+    "deleting": "Deleting…",
+    "deleteTitle": "Delete this batch?",
+    "deleteBody": "The {n} stickers you just sent come off the map. Photos without a location stay saved here.",
+    "deleted": "Done, the batch is deleted.",
+    "deleteFailed": "We could not delete the batch.",
+    "nothing": "No photos were added",
+    "nothingBody": "They were all on the map already."
+  },
+  "reason": {
+    "too-big": "Larger than 25 MB",
+    "not-image": "Not a photo",
+    "cant-open": "This format cannot be opened here. Try JPEG.",
+    "cant-read": "The file could not be read",
+    "no-space": "No space left on this device"
+  },
+  "back": "Back",
+  "retry": "Retry",
+  "send": "Send it",
+  "network": "The connection dropped. Your sticker is still here.",
+  "thanksTitle": "Full send!",
+  "thanksLine": "Your Papin contribution is recognised and appreciated"
+}

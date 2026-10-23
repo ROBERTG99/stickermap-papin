@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useId, useRef } from "preact/hooks";
 import { cx } from "../lib/cx";
+import { t } from "../lib/i18n";
 import type { StickerType } from "../shared/types";
 import { Icon } from "./Icon";
 
@@ -130,8 +131,8 @@ export function RemovablePersonChip({ name, onRemove, isSelf, index }: Removable
   return (
     <span class="mp-chip">
       <PersonAvatar name={name} index={index} />
-      {isSelf ? `${name} (vos)` : name}
-      <button type="button" class="mp-chip__x" aria-label={`Quitar ${name}`} onClick={() => onRemove(name)}>
+      {isSelf ? t("common.person.you", { name }) : name}
+      <button type="button" class="mp-chip__x" aria-label={t("components.chip.remove", { name })} onClick={() => onRemove(name)}>
         <Icon name="x" />
       </button>
     </span>
@@ -144,11 +145,11 @@ interface AddChipProps {
 }
 
 /** "+ agregar nombre": opens the name input. */
-export function AddChip({ onClick, label = "agregar nombre" }: AddChipProps) {
+export function AddChip({ onClick, label }: AddChipProps) {
   return (
     <button type="button" class="mp-chip mp-chip--add" onClick={onClick}>
       <Icon name="plus" size="sm" />
-      {label}
+      {label ?? t("components.chip.addName")}
     </button>
   );
 }
@@ -190,7 +191,7 @@ interface FilterButtonProps {
 
 /** Round "Filtros" icon button with the active-filter count. */
 export function FilterButton({ count, onClick }: FilterButtonProps) {
-  const label = count === 0 ? "Filtros" : count === 1 ? "Filtros, 1 activo" : `Filtros, ${count} activos`;
+  const label = count === 0 ? t("components.header.filters") : t(count === 1 ? "components.header.filtersOne" : "components.header.filtersMany", { count });
   return (
     <button type="button" class="mp-btn mp-btn--secondary mp-btn--icon mp-filterbtn" aria-label={label} onClick={onClick}>
       <Icon name="filter" />
@@ -238,7 +239,7 @@ interface TypeGridProps {
 }
 
 /** Multi-select grid of type tiles. Picking "Otro" reveals the "¿Cuál?" input right under the grid. */
-export function TypeGrid({ types, value, onChange, otherText, onOtherTextChange, otherError, label = "Tipo de sticker" }: TypeGridProps) {
+export function TypeGrid({ types, value, onChange, otherText, onOtherTextChange, otherError, label }: TypeGridProps) {
   const inputId = useId();
   const errorId = `${inputId}-error`;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -259,7 +260,7 @@ export function TypeGrid({ types, value, onChange, otherText, onOtherTextChange,
 
   return (
     <div class="mp-stack">
-      <div class="mp-typegrid" role="group" aria-label={label}>
+      <div class="mp-typegrid" role="group" aria-label={label ?? t("components.typegrid.label")}>
         {types.map((t, i) => (
           <TypeTile key={t.slug} type={t} index={i} selected={value.includes(t.slug)} onToggle={toggle} />
         ))}
@@ -267,14 +268,14 @@ export function TypeGrid({ types, value, onChange, otherText, onOtherTextChange,
       {showOther && (
         <div class={cx("mp-field", otherError && "is-invalid")}>
           <label class="mp-field__label" for={inputId}>
-            ¿Cuál?
+            {t("components.typegrid.which")}
           </label>
           <input
             ref={inputRef}
             id={inputId}
             class="mp-input"
             value={otherText}
-            placeholder="Ej: el de la vaca"
+            placeholder={t("components.typegrid.placeholder")}
             aria-invalid={otherError ? "true" : undefined}
             aria-describedby={otherError ? errorId : undefined}
             onInput={(e) => onOtherTextChange(e.currentTarget.value)}
