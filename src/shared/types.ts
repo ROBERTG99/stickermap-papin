@@ -80,5 +80,6 @@ export interface AppConfig {
   default_lang: Lang;
   moderation_mode: ModerationMode;
   turnstile_sitekey: string;
+  map_style_url: string;
   features: { video: boolean; instagram: boolean; sightings: boolean; globe_wrapped: boolean };
 }

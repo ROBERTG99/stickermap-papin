@@ -154,6 +154,12 @@ spots.post("/", async (c) => {
     if (!batch || batch.expires_at < new Date().toISOString()) return c.json({ error: "invalid_batch_token" }, 401);
     if (batch.created_count >= batch.max_spots) return c.json({ error: "batch_full" }, 409);
   }
+  /** The slot is reserved atomically right before writing (parallel uploads cannot overshoot max_spots) and released on failure. */
+  let slotReserved = false;
+  const releaseSlot = async () => {
+    if (slotReserved && auth.batchId) await db.prepare("UPDATE batches SET created_count = MAX(0, created_count - 1) WHERE id = ?1").bind(auth.batchId).run();
+    slotReserved = false;
+  };
 
   const typeError = await checkTypes(db, meta.types, meta.other_text);
   if (typeError) return c.json({ error: typeError }, 400);
@@ -169,8 +175,9 @@ spots.post("/", async (c) => {
   const t = thumb as CheckedFile | null;
   const o = original as CheckedFile | null;
   if (!!d !== !!t) return c.json({ error: "display_and_thumb_go_together" }, 400);
-  if (d && d.kind !== "webp") return c.json({ error: "bad_image" }, 415);
-  if (t && t.kind !== "webp") return c.json({ error: "bad_image" }, 415);
+  // Browsers that cannot encode WebP from a canvas (Safari) send JPEG instead; either way the pixels were re-encoded client-side, so no EXIF.
+  const derived = (f: CheckedFile | null) => f !== null && (f.kind === "webp" || f.kind === "jpeg");
+  if ((d && !derived(d)) || (t && !derived(t))) return c.json({ error: "bad_image" }, 415);
 
   const sha = o ? await sha256Hex(o.bytes) : (meta.photo_sha256 ?? null);
   if (sha) {
@@ -184,8 +191,10 @@ spots.post("/", async (c) => {
   const lat = meta.is_approximate ? round3(meta.lat) : meta.lat;
   const lng = meta.is_approximate ? round3(meta.lng) : meta.lng;
   const objects: PutObject[] = [];
-  if (d && t) {
-    objects.push({ key: `display/${id}.webp`, body: d.bytes, contentType: "image/webp" }, { key: `thumb/${id}.webp`, body: t.bytes, contentType: "image/webp" });
+  const displayKey = d ? `display/${id}.${EXTENSION[d.kind]}` : null;
+  const thumbKey = t ? `thumb/${id}.${EXTENSION[t.kind]}` : null;
+  if (d && t && displayKey && thumbKey) {
+    objects.push({ key: displayKey, body: d.bytes, contentType: CONTENT_TYPE[d.kind] }, { key: thumbKey, body: t.bytes, contentType: CONTENT_TYPE[t.kind] });
   }
   if (o) objects.push({ key: `orig/${id}.${EXTENSION[o.kind]}`, body: o.bytes, contentType: CONTENT_TYPE[o.kind] });
 
@@ -195,9 +204,16 @@ spots.post("/", async (c) => {
   const editHash = editToken ? await hashToken(editToken) : null;
   const bytes = objects.reduce((n, x) => n + x.body.byteLength, 0);
 
+  if (auth.batchId) {
+    const res = await db.prepare("UPDATE batches SET created_count = created_count + 1 WHERE id = ?1 AND created_count < max_spots AND expires_at > ?2")
+      .bind(auth.batchId, new Date().toISOString()).run();
+    if (res.meta.changes !== 1) return c.json({ error: "batch_full" }, 409);
+    slotReserved = true;
+  }
   try {
     await putAll(c.env, objects);
   } catch {
+    await releaseSlot();
     return c.json({ error: "storage_failed" }, 502);
   }
   const insertSpot = db
@@ -209,7 +225,7 @@ spots.post("/", async (c) => {
     .bind(
       id, lat, lng, meta.location_source, meta.location_accuracy_m ?? null, meta.is_approximate ? 1 : 0, reporterId, meta.reporter ?? null, meta.placer_status,
       meta.placer_note ?? null, meta.note ?? null, meta.other_text ?? null,
-      d ? `display/${id}.webp` : null, t ? `thumb/${id}.webp` : null, o ? `orig/${id}.${EXTENSION[o.kind]}` : null, sha, meta.taken_at ?? null, now,
+      displayKey, thumbKey, o ? `orig/${id}.${EXTENSION[o.kind]}` : null, sha, meta.taken_at ?? null, now,
       settings.moderation_mode === "approval" ? "pending" : "published", editHash, auth.batchId, meta.client_ref ?? null, ipH,
     );
   const statements: D1PreparedStatement[] = [
@@ -219,11 +235,11 @@ spots.post("/", async (c) => {
     db.prepare("INSERT INTO audit_log (actor, action, entity, entity_id) VALUES ('submitter', 'create', 'spot', ?1)").bind(id),
   ];
   if (bytes > 0) statements.push(meterStatement(db, bytes));
-  if (auth.batchId) statements.push(db.prepare("UPDATE batches SET created_count = created_count + 1 WHERE id = ?1").bind(auth.batchId));
   try {
     await db.batch(statements);
   } catch (error) {
     await c.env.PHOTOS.delete(objects.map((x) => x.key));
+    await releaseSlot();
     // a concurrent retry of the same batch photo / same file: report the winner instead of an error
     const winner = auth.batchId && meta.client_ref
       ? await db.prepare("SELECT id FROM spots WHERE batch_id = ?1 AND client_ref = ?2").bind(auth.batchId, meta.client_ref).first<{ id: string }>()
@@ -314,6 +330,8 @@ spots.patch("/:id", async (c) => {
     set("location_source", "pin");
   }
   if (p.is_approximate !== undefined) set("is_approximate", p.is_approximate ? 1 : 0);
+  // marking a spot approximate must also coarsen the stored point, not just flag it
+  if (p.is_approximate === true && p.lat === undefined) sets.push("lat = ROUND(lat, 3)", "lng = ROUND(lng, 3)");
   if (p.note !== undefined) set("note", p.note ?? null);
   if (p.other_text !== undefined) set("other_text", p.other_text ?? null);
   if (p.placer_note !== undefined) set("placer_note", p.placer_note ?? null);

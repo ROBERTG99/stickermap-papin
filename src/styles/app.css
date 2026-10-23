@@ -16,3 +16,8 @@ body { margin: 0; min-height: 100dvh; overscroll-behavior-y: none; }
 .ks section { display: grid; gap: var(--space-4); padding-bottom: var(--space-6); border-bottom: 1px solid var(--line); }
 .ks-nav { position: sticky; top: 0; z-index: var(--z-header); display: flex; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--surface); box-shadow: var(--shadow-lift); }
 .ks-nav a { color: var(--brand-ink); font: 600 14px/20px var(--font-sans); }
+
+/* Shell: desktop top nav + content, or content + tab bar on mobile */
+.shell { display: flex; flex-direction: column; height: 100dvh; background: var(--bg); }
+.shell__main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.shell__fab { position: absolute; right: var(--space-4); bottom: var(--space-4); z-index: var(--z-fab); }

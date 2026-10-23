@@ -19,7 +19,7 @@ const mutable = (res: Response) => new Response(res.body, res);
 app.use("*", secureHeaders({
   contentSecurityPolicy: {
     defaultSrc: ["'self'"],
-    imgSrc: ["'self'", "data:", "blob:", "https://tiles.openfreemap.org", "https://*.s2maps.eu"],
+    imgSrc: ["'self'", "data:", "blob:", "https://tiles.openfreemap.org", "https://tiles.maps.eox.at"],
     connectSrc: ["'self'", "https://tiles.openfreemap.org", "https://photon.komoot.io", "https://nominatim.openstreetmap.org", "https://challenges.cloudflare.com"],
     scriptSrc: ["'self'", "https://challenges.cloudflare.com"],
     frameSrc: ["https://challenges.cloudflare.com"],

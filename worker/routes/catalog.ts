@@ -76,6 +76,7 @@ catalog.get("/config", async (c) => {
     default_lang: (s.default_lang ?? "es") as Lang,
     moderation_mode: (s.moderation_mode ?? "open") as ModerationMode,
     turnstile_sitekey: c.env.PUBLIC_TURNSTILE_SITEKEY,
+    map_style_url: s.map_style_url ?? "https://tiles.openfreemap.org/styles/liberty",
     features: { video: flag(s.feature_video), instagram: flag(s.feature_instagram), sightings: flag(s.feature_sightings), globe_wrapped: flag(s.feature_globe_wrapped) },
   };
   // depends on who asks (admin-only flags), so never shared

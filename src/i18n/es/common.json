@@ -1,0 +1,13 @@
+{
+  "app": { "name": "Mapa Papin", "tagline": "Mapa global de los stickers papines" },
+  "nav": { "map": "Mapa", "gallery": "Galería", "stats": "Stats", "add": "Agregar sticker" },
+  "action": {
+    "submit": "Mandale Mecha", "retry": "Reintentar", "undo": "Deshacer", "cancel": "Cancelar", "close": "Cerrar", "back": "Volver",
+    "save": "Guardar", "delete": "Borrar", "edit": "Editar", "share": "Compartir", "report": "Reportar", "clear": "Limpiar filtros"
+  },
+  "thanks": { "title": "¡Mandaste mecha!", "line": "Tu aporte Papin es reconocido y apreciado" },
+  "empty": { "filter": "Nadie pegó nada acá… todavía", "notFound": "Este sticker se despegó" },
+  "error": { "network": "Se cortó la conexión. Tu sticker sigue acá." },
+  "person": { "unknownPlacer": "¿?", "anonymous": "Anónimo", "you": "{name} (vos)" },
+  "menu": { "language": "Idioma", "theme": "Tema", "light": "Claro", "dark": "Oscuro", "system": "Automático" }
+}

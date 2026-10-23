@@ -102,7 +102,7 @@ async function adminSpots(db: D1Database, q: URLSearchParams, unlimited: boolean
       id: r.id, lat: r.lat, lng: r.lng, status: r.status, needs_review: r.needs_review === 1,
       review_reasons: r.review_reason ? r.review_reason.split(",") : [], types: t.get(r.id) ?? [], placers: p.get(r.id) ?? [], placer_status: r.placer_status,
       placer_note: r.placer_note, reporter: r.reporter, place_name: r.place_name || null, country: r.country, country_code: r.country_code, created_at: r.created_at,
-      updated_at: r.updated_at, taken_at: r.taken_at, thumb: r.thumb_key ? `/img/${r.thumb_key}` : null, photo: r.photo_key ? `/img/${r.photo_key}` : null,
+      updated_at: r.updated_at, taken_at: r.taken_at, thumb: r.thumb_key ? `/api/admin/img/${r.thumb_key}` : null, photo: r.photo_key ? `/api/admin/img/${r.photo_key}` : null,
       has_original: !!r.orig_key, batch_id: r.batch_id, legacy_objectids: r.legacy_objectids ? (JSON.parse(r.legacy_objectids) as number[]) : [],
       legacy_filename: r.legacy_filename, location_source: r.location_source, is_approximate: r.is_approximate === 1, note: r.note, other_text: r.other_text,
     })),
@@ -194,6 +194,7 @@ admin.patch("/spots/:id", async (c) => {
     if (p.place_name === undefined) { set("place_name", null); set("city", null); set("country", null); set("country_code", null); }
   }
   if (p.is_approximate !== undefined) set("is_approximate", p.is_approximate ? 1 : 0);
+  if (p.is_approximate === true && p.lat === undefined) sets.push("lat = ROUND(lat, 3)", "lng = ROUND(lng, 3)");
   let reporterId = spot.rid;
   if (p.reporter !== undefined) {
     reporterId = p.reporter ? await findOrCreatePerson(db, p.reporter) : null;
@@ -291,6 +292,18 @@ admin.post("/spots/bulk", async (c) => {
   await db.batch(stmts);
   c.executionCtx.waitUntil(bustSpotsCache(c));
   return c.json({ ok: true, count: ids.length });
+});
+
+/** Photos of spots that are not public (pending/hidden) are only visible here, behind Access. */
+admin.get("/img/*", async (c) => {
+  const key = decodeURIComponent(new URL(c.req.url).pathname.replace(/^\/api\/admin\/img\//, ""));
+  if (key.includes("..") || !/^(display|thumb)\//.test(key)) return c.json({ error: "not_found" }, 404);
+  const object = await c.env.PHOTOS.get(key);
+  if (!object) return c.json({ error: "not_found" }, 404);
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("Cache-Control", "private, max-age=300");
+  return new Response(object.body, { headers });
 });
 
 admin.get("/spots/:id/original", async (c) => {
