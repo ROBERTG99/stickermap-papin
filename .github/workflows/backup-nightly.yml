@@ -58,10 +58,11 @@ jobs:
           rclone delete r2:stickermap-photos/backups/d1 --min-age 30d
           rclone copyto "d1-${DATE}.sql.gz" "gdrive:Stickermap/backups/d1/d1-${DATE}.sql.gz"
           rclone delete gdrive:Stickermap/backups/d1 --min-age 30d
-      - name: Commit the plain dump to the `backups` branch (diffable history)
+      - name: Commit the dump to the `backups` branch (diffable history; this repository MUST stay private)
         run: |
           set -euo pipefail
-          gunzip -c "d1-${DATE}.sql.gz" > backup.sql
+          # operational tables (rate limiting, audit trail) are not part of the diffable history
+          gunzip -c "d1-${DATE}.sql.gz" | grep -v -E '^INSERT INTO "?(submissions_rl|audit_log)"?' > backup.sql
           git config user.name "backup-bot" && git config user.email "backup-bot@users.noreply.github.com"
           if git ls-remote --exit-code --heads origin backups >/dev/null 2>&1; then git fetch origin backups && git checkout -B backups origin/backups; else git checkout --orphan backups && git rm -rf . >/dev/null 2>&1 || true; fi
           mv backup.sql stickermap.sql
