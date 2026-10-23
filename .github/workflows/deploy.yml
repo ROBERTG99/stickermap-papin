@@ -1,5 +1,5 @@
 name: Deploy
-# Runs after CI is green on main (no second test run: Actions minutes are limited, BUILD.md §4.1).
+# Runs after CI is green on main (no second test run: Actions minutes are limited).
 on:
   workflow_run:
     workflows: [CI]
@@ -25,7 +25,18 @@ jobs:
            github.event.workflow_run.head_branch == 'main' &&
            github.event.workflow_run.head_repository.full_name == github.repository) }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    # Account-specific values live in repository variables/secrets, never in the code (see scripts/deploy.ts).
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+      TURNSTILE_SITEKEY: ${{ vars.TURNSTILE_SITEKEY }}
+      CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+      ADMIN_ORIGIN: ${{ vars.ADMIN_ORIGIN }}
+      ACCESS_TEAM_DOMAIN: ${{ vars.ACCESS_TEAM_DOMAIN }}
+      ACCESS_AUD: ${{ vars.ACCESS_AUD }}
+      CI: "true"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,21 +49,10 @@ jobs:
       - run: npm run build
       - name: Apply D1 migrations
         run: npx tsx scripts/deploy.ts migrate
-        env: &deployenv
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
-          TURNSTILE_SITEKEY: ${{ vars.TURNSTILE_SITEKEY }}
-          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
-          ADMIN_ORIGIN: ${{ vars.ADMIN_ORIGIN }}
-          ACCESS_TEAM_DOMAIN: ${{ vars.ACCESS_TEAM_DOMAIN }}
-          ACCESS_AUD: ${{ vars.ACCESS_AUD }}
       - name: Deploy the public Worker (site + API)
         run: npx tsx scripts/deploy.ts public
-        env: *deployenv
       - name: Deploy the Access-protected admin Worker
         run: npx tsx scripts/deploy.ts admin
-        env: *deployenv
       - name: Smoke test the live site (production CSS order, map fills the screen, spots draw)
         run: |
           npx playwright install --with-deps chromium
