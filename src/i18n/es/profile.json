@@ -1,0 +1,9 @@
+{
+  "placed": "pegados",
+  "reported": "cargados",
+  "countries": "países",
+  "since": "Pegando desde {date}",
+  "rank": "#{n} en cargados",
+  "notFound": "No encontramos a esa persona",
+  "back": "Volver"
+}

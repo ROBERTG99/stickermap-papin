@@ -46,7 +46,7 @@ export function postForm<T>(path: string, form: FormData, opts: { headers?: Reco
 export interface CreatedSpot { id: string; editToken?: string; existing?: boolean }
 export interface CreatedBatch { batchId: string; batchToken: string; editToken: string }
 export interface StatsPayload {
-  total_spots: number; total_countries: number;
+  total_spots: number; total_countries: number; unknown_placers: number;
   types: { slug: string; label: string; count: number }[];
   placers: { name: string; count: number; countries: number }[];
   reporters: { name: string; count: number }[];

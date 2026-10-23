@@ -1,0 +1,19 @@
+{
+  "title": "Stats",
+  "spots": "spots",
+  "stickers": "stickers",
+  "countries": "países",
+  "people": "personas",
+  "byType": "Por tipo",
+  "rankings": "Rankings",
+  "mostPlaced": "Más pegados",
+  "mostReported": "Más cargados",
+  "countriesTitle": "Países",
+  "timeline": "Línea de tiempo",
+  "orphans": "{n} stickers sin dueño todavía (“¿?”).",
+  "countriesPerPlacer": "{n} países",
+  "empty": "Todavía no hay stats",
+  "loadError": "No pudimos cargar las stats.",
+  "noPlacers": "Todavía nadie figura como quien pegó. ¿Sabés quién fue? Tocá “¿Sabés quién fue?” en el mapa.",
+  "noReporters": "Todavía nadie cargó stickers con su nombre."
+}

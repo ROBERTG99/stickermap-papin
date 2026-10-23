@@ -1,0 +1,9 @@
+{
+  "placed": "stuck",
+  "reported": "uploaded",
+  "countries": "countries",
+  "since": "Sticking since {date}",
+  "rank": "#{n} in uploads",
+  "notFound": "We could not find that person",
+  "back": "Back"
+}

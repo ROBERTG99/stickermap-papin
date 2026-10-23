@@ -39,7 +39,7 @@ catalog.get("/stats", (c) =>
   cachedJson(c, async () => {
     const db = c.env.DB;
     const [totals, types, placers, reporters, countries, months, countriesPerPlacer] = await db.batch([
-      db.prepare("SELECT COUNT(*) AS spots, COUNT(DISTINCT country_code) AS countries, MAX(updated_at) AS updated FROM spots WHERE status = 'published'"),
+      db.prepare("SELECT COUNT(*) AS spots, COUNT(DISTINCT country_code) AS countries, MAX(updated_at) AS updated, SUM(placer_status = 'unknown') AS unknown_placers FROM spots WHERE status = 'published'"),
       db.prepare(`SELECT t.slug, t.label, COUNT(s.id) AS count FROM sticker_types t
                     LEFT JOIN spot_types st ON st.type_slug = t.slug LEFT JOIN spots s ON s.id = st.spot_id AND s.status = 'published'
                    WHERE t.is_active = 1 GROUP BY t.slug ORDER BY t.sort_order`),
@@ -53,10 +53,10 @@ catalog.get("/stats", (c) =>
       db.prepare(`SELECT p.display_name AS name, COUNT(DISTINCT s.country_code) AS countries FROM spot_placers sp JOIN people p ON p.id = sp.person_id
                     JOIN spots s ON s.id = sp.spot_id AND s.status = 'published' AND s.country_code IS NOT NULL GROUP BY p.id`),
     ]);
-    const t = (totals?.results[0] ?? { spots: 0, countries: 0, updated: "" }) as { spots: number; countries: number; updated: string | null };
+    const t = (totals?.results[0] ?? { spots: 0, countries: 0, updated: "", unknown_placers: 0 }) as { spots: number; countries: number; updated: string | null; unknown_placers: number | null };
     const perPlacer = new Map(((countriesPerPlacer?.results ?? []) as { name: string; countries: number }[]).map((r) => [r.name, r.countries]));
     const body = {
-      total_spots: t.spots, total_countries: t.countries, types: types?.results ?? [],
+      total_spots: t.spots, total_countries: t.countries, unknown_placers: t.unknown_placers ?? 0, types: types?.results ?? [],
       placers: ((placers?.results ?? []) as { name: string; count: number }[]).map((p) => ({ ...p, countries: perPlacer.get(p.name) ?? 0 })),
       reporters: reporters?.results ?? [], countries: countries?.results ?? [], months: months?.results ?? [],
     };

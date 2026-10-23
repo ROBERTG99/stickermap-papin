@@ -32,7 +32,7 @@ export function Shell({ active, children, search, filterCount, onFilters, menu, 
         {children}
         {!desktop && fab && (
           <a class="mp-fab shell__fab" href="/nuevo">
-            <span aria-hidden="true">+</span> {t("nav.add")}
+            <span aria-hidden="true">+</span> {t("common.nav.add")}
           </a>
         )}
       </main>

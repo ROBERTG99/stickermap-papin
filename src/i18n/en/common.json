@@ -1,13 +1,50 @@
 {
-  "app": { "name": "Mapa Papin", "tagline": "Global map of the papin stickers" },
-  "nav": { "map": "Map", "gallery": "Gallery", "stats": "Stats", "add": "Add sticker" },
-  "action": {
-    "submit": "Mandale Mecha", "retry": "Retry", "undo": "Undo", "cancel": "Cancel", "close": "Close", "back": "Back",
-    "save": "Save", "delete": "Delete", "edit": "Edit", "share": "Share", "report": "Report", "clear": "Clear filters"
+  "app": {
+    "name": "Mapa Papin",
+    "tagline": "Global map of the papin stickers"
   },
-  "thanks": { "title": "You sent it!", "line": "Your Papin contribution is recognised and appreciated" },
-  "empty": { "filter": "Nobody stuck anything here… yet", "notFound": "This sticker peeled off" },
-  "error": { "network": "The connection dropped. Your sticker is still here." },
-  "person": { "unknownPlacer": "?", "anonymous": "Anonymous", "you": "{name} (you)" },
-  "menu": { "language": "Language", "theme": "Theme", "light": "Light", "dark": "Dark", "system": "Automatic" }
+  "nav": {
+    "map": "Map",
+    "gallery": "Gallery",
+    "stats": "Stats",
+    "add": "Add sticker"
+  },
+  "action": {
+    "submit": "Mandale Mecha",
+    "retry": "Retry",
+    "undo": "Undo",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share",
+    "report": "Report",
+    "clear": "Clear filters"
+  },
+  "thanks": {
+    "title": "You sent it!",
+    "line": "Your Papin contribution is recognised and appreciated"
+  },
+  "empty": {
+    "filter": "Nobody stuck anything here… yet",
+    "notFound": "This sticker peeled off"
+  },
+  "error": {
+    "network": "The connection dropped. Your sticker is still here."
+  },
+  "person": {
+    "unknownPlacer": "?",
+    "anonymous": "Anonymous",
+    "you": "{name} (you)"
+  },
+  "menu": {
+    "title": "Menu",
+    "language": "Language",
+    "theme": "Theme",
+    "system": "Auto",
+    "light": "Light",
+    "dark": "Dark"
+  }
 }

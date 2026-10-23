@@ -1,0 +1,19 @@
+{
+  "title": "Stats",
+  "spots": "spots",
+  "stickers": "stickers",
+  "countries": "countries",
+  "people": "people",
+  "byType": "By type",
+  "rankings": "Rankings",
+  "mostPlaced": "Most stuck",
+  "mostReported": "Most uploaded",
+  "countriesTitle": "Countries",
+  "timeline": "Timeline",
+  "orphans": "{n} stickers have no owner yet (“?”).",
+  "countriesPerPlacer": "{n} countries",
+  "empty": "No stats yet",
+  "loadError": "We could not load the stats.",
+  "noPlacers": "Nobody is credited as the sticker yet. Do you know who did it? Tap “Do you know who?” on the map.",
+  "noReporters": "Nobody has uploaded stickers with their name yet."
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Gallery",
+  "count": "{n} stickers",
+  "newest": "newest first",
+  "more": "Loading more stickers…",
+  "empty": "Nobody stuck anything here… yet",
+  "filters": "Gallery filters",
+  "placedBy": "Stuck by {name}"
+}

@@ -12,7 +12,7 @@ import { dirname } from "node:path";
 
 const [pathArg = "/", out = "build/shots/shot.png", ...rest] = process.argv.slice(2);
 const flag = (name: string) => rest.includes(name);
-const value = (name: string) => rest[rest.indexOf(name) + 1];
+const value = (name: string) => (rest.includes(name) ? rest[rest.indexOf(name) + 1] : undefined);
 const desktop = flag("--desktop");
 
 const browser = await chromium.launch();

@@ -21,3 +21,24 @@ body { margin: 0; min-height: 100dvh; overscroll-behavior-y: none; }
 .shell { display: flex; flex-direction: column; height: 100dvh; background: var(--bg); }
 .shell__main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .shell__fab { position: absolute; right: var(--space-4); bottom: var(--space-4); z-index: var(--z-fab); }
+
+/* Header menu popover */
+.menu { position: relative; }
+.menu__pop { position: absolute; right: 0; top: calc(100% + var(--space-2)); z-index: var(--z-modal); display: grid; gap: var(--space-2); width: 260px; padding: var(--space-4); background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lift); }
+
+/* Gallery: masonry with CSS columns, polaroids tilted by index */
+.gal { columns: 2 160px; column-gap: var(--space-4); padding: var(--space-4) var(--space-4) calc(var(--tabbar-h) + var(--space-12)); }
+.gal > * { break-inside: avoid; margin-bottom: var(--space-5); display: block; }
+@media (min-width: 900px) { .gal { columns: 4 200px; column-gap: var(--space-5); padding-bottom: var(--space-8); } }
+.page { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.page__head { display: grid; gap: var(--space-2); padding: var(--space-4) var(--space-4) 0; max-width: 1100px; margin: 0 auto; width: 100%; }
+.hero-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+@media (min-width: 900px) { .hero-grid { grid-template-columns: repeat(4, 1fr); } }
+.page__body { display: grid; gap: var(--space-8); padding: var(--space-4) var(--space-4) calc(var(--tabbar-h) + var(--space-12)); max-width: 1100px; margin: 0 auto; }
+@media (min-width: 900px) { .page__body { padding-bottom: var(--space-8); grid-template-columns: repeat(2, 1fr); align-items: start; } .page__body > .wide { grid-column: 1 / -1; } }
+.profile { display: grid; gap: var(--space-6); justify-items: center; padding: var(--space-5) var(--space-4) calc(var(--tabbar-h) + var(--space-12)); max-width: 640px; margin: 0 auto; }
+.profile__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; }
+.profile__map { width: 100%; height: 190px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 0 0 1px var(--line); position: relative; }
+.profile__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.profile__grid a { display: block; border-radius: 10px; overflow: hidden; }
+.profile__grid img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
