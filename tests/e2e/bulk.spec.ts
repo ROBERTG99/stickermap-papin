@@ -111,7 +111,7 @@ test.describe("bulk add", () => {
     expect(features.some((f) => f.id === placed[0]!.id)).toBe(true);
   });
 
-  test("a dropped connection mid-upload ends with no duplicate spots after 'Reintentar fallidas'", async ({ page, request }) => {
+  test("a dropped connection mid-upload ends with no duplicate spots after 'Reintentar fallidas'", async ({ page }) => {
     test.setTimeout(180_000);
     const files = extraRange(1, 6);
     let online = true;

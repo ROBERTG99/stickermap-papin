@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  DRIVE_BACKUP_PATH: ${{ vars.DRIVE_BACKUP_PATH }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
@@ -47,9 +48,9 @@ jobs:
         run: |
           set -euo pipefail
           export RCLONE_CONFIG_R2_ENDPOINT="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          rclone copy r2:stickermap-photos gdrive:BACKUP_ROOT/backups/photos --immutable --exclude "backups/**" --transfers 4
+          rclone copy r2:stickermap-photos gdrive:${DRIVE_BACKUP_PATH}/photos --immutable --exclude "backups/**" --transfers 4
           R2=$(rclone size r2:stickermap-photos --exclude "backups/**" --json | python3 -c "import sys,json;print(json.load(sys.stdin)['count'])")
-          DRIVE=$(rclone size gdrive:BACKUP_ROOT/backups/photos --json | python3 -c "import sys,json;print(json.load(sys.stdin)['count'])")
+          DRIVE=$(rclone size gdrive:${DRIVE_BACKUP_PATH}/photos --json | python3 -c "import sys,json;print(json.load(sys.stdin)['count'])")
           echo "objects: R2=${R2} Drive=${DRIVE}"
           test "${DRIVE}" -ge "${R2}"
       - name: GIS export (GeoJSON, CSV, GeoPackage)
@@ -70,7 +71,7 @@ jobs:
           set -euo pipefail
           export RCLONE_CONFIG_R2_ENDPOINT="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
           F="build/export/stickermap-${DATE}.gpkg"
-          rclone copyto "$F" "gdrive:BACKUP_ROOT/backups/gpkg/stickermap-${DATE}.gpkg"
-          rclone delete gdrive:BACKUP_ROOT/backups/gpkg --min-age 85d
+          rclone copyto "$F" "gdrive:${DRIVE_BACKUP_PATH}/gpkg/stickermap-${DATE}.gpkg"
+          rclone delete gdrive:${DRIVE_BACKUP_PATH}/gpkg --min-age 85d
           rclone copyto "$F" "r2:stickermap-photos/backups/weekly/stickermap-${DATE}.gpkg"
           rclone delete r2:stickermap-photos/backups/weekly --min-age 85d

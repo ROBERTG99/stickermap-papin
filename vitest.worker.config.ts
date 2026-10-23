@@ -17,6 +17,8 @@ export default defineConfig(async () => {
             IP_HASH_SECRET: "test-ip-secret",
             ACCESS_TEAM_DOMAIN: "",
             ACCESS_AUD: "",
+            ADMIN_ORIGIN: "https://admin.example.test",
+            CONTACT_EMAIL: "test@example.com",
           },
         },
       }),

@@ -1,13 +1,14 @@
 /**
  * Post-deploy smoke test of the production build in a clean browser (no service worker, no dev server quirks):
  * the map fills the screen and draws, spots load, no uncaught errors.
- *   npx tsx scripts/smoke-live.ts [https://site.example.test]
+ *   npx tsx scripts/smoke-live.ts <site origin>   (or SITE_ORIGIN in the environment)
  * It exists because the dev server and the production build order their CSS differently (a lazy MapLibre stylesheet once
  * collapsed the map container to 300 px only in production).
  */
 import { chromium } from "@playwright/test";
 
-const origin = process.argv[2] ?? "https://site.example.test";
+const origin = process.argv[2] ?? process.env.SITE_ORIGIN;
+if (!origin) throw new Error("pass the site origin as an argument or set SITE_ORIGIN");
 const browser = await chromium.launch();
 const failures: string[] = [];
 for (const [name, viewport] of [["mobile", { width: 390, height: 844 }], ["desktop", { width: 1440, height: 900 }]] as const) {

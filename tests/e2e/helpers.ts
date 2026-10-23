@@ -173,7 +173,7 @@ export async function submitSpot(page: Page): Promise<string> {
 }
 
 /** Type a name into a people combobox and confirm it with Enter. */
-export async function addName(page: Page, comboboxName: string, name: string): Promise<void> {
+export async function addName(page: Page | Locator, comboboxName: string, name: string): Promise<void> {
   const box = page.getByRole("combobox", { name: comboboxName, exact: true });
   await box.fill(name);
   await box.press("Enter");

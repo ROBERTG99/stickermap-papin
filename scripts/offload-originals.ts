@@ -2,7 +2,7 @@
  * Free R2 space when the storage meter gets tight (BUILD.md §4.1): move `orig/` to the Google Drive mirror and delete it
  * from R2. Originals are never served publicly, so nothing in the app changes (the admin "descargar original" then reads 404).
  *
- *   npx tsx scripts/offload-originals.ts --drive "gdrive:BACKUP_ROOT/backups/photos" [--yes]
+ *   npx tsx scripts/offload-originals.ts --drive "gdrive:<backup folder>/photos" [--yes]
  *
  * Needs rclone with an `r2:` remote (S3 endpoint of the account) and the Drive remote. Dry run unless --yes: it first copies
  * add-only, then verifies with `rclone check`, and only then deletes from R2 and lowers the meter.

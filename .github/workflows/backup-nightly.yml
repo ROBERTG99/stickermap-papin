@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  DRIVE_BACKUP_PATH: ${{ vars.DRIVE_BACKUP_PATH }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
@@ -51,5 +52,5 @@ jobs:
           export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
           rclone copyto "d1-${DATE}.sql.gz" "r2:stickermap-photos/backups/d1/d1-${DATE}.sql.gz"
           rclone delete r2:stickermap-photos/backups/d1 --min-age 30d
-          rclone copyto "d1-${DATE}.sql.gz" "gdrive:BACKUP_ROOT/backups/d1/d1-${DATE}.sql.gz"
-          rclone delete gdrive:BACKUP_ROOT/backups/d1 --min-age 30d
+          rclone copyto "d1-${DATE}.sql.gz" "gdrive:${DRIVE_BACKUP_PATH}/d1/d1-${DATE}.sql.gz"
+          rclone delete gdrive:${DRIVE_BACKUP_PATH}/d1 --min-age 30d

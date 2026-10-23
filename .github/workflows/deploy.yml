@@ -37,24 +37,21 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Apply D1 migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: 4.152.0
-          command: d1 migrations apply stickermap --remote
-      - name: Deploy Worker + static assets
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: 4.152.0
-          command: deploy -c dist/stickermap/wrangler.json
-      - name: Deploy the Access-protected admin Worker
-        run: npx tsx scripts/deploy-admin.ts
-        env:
+        run: npx tsx scripts/deploy.ts migrate
+        env: &deployenv
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          ADMIN_ORIGIN: ${{ vars.ADMIN_ORIGIN }}
+          ACCESS_TEAM_DOMAIN: ${{ vars.ACCESS_TEAM_DOMAIN }}
+          ACCESS_AUD: ${{ vars.ACCESS_AUD }}
+      - name: Deploy the public Worker (site + API)
+        run: npx tsx scripts/deploy.ts public
+        env: *deployenv
+      - name: Deploy the Access-protected admin Worker
+        run: npx tsx scripts/deploy.ts admin
+        env: *deployenv
       - name: Smoke test the live site (production CSS order, map fills the screen, spots draw)
         run: |
           npx playwright install --with-deps chromium

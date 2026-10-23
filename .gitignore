@@ -46,3 +46,17 @@ tests/e2e/fixtures/generated/
 /legacy/
 /assets/stickers/
 /.claude/commands/
+
+# design system: only what the build reads is published (tokens, component CSS, icon sprite); the rest stays local
+/design/*
+!/design/tokens.json
+!/design/components/
+/design/components/*
+!/design/components/bundle.css
+!/design/components/bundle.js
+# documentation and notes stay on the author's machine
+/docs/
+/CLAUDE.md
+
+# deploy-time values (account ids, emails, Access settings)
+/.deploy.env

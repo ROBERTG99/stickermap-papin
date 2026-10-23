@@ -46,12 +46,12 @@ test.describe("add a sticker: who stuck it", () => {
     // "Pegado por" filter on Caro keeps this spot on the map
     await openMap(page);
     const features = await apiSpots(request);
-    const gabi = features.filter((f) => f.properties.placer_status !== "unknown" && f.properties.placers.includes("Caro"));
-    expect(gabi.map((f) => f.id)).toContain(id);
+    const caro = features.filter((f) => f.properties.placer_status !== "unknown" && f.properties.placers.includes("Caro"));
+    expect(caro.map((f) => f.id)).toContain(id);
     await page.getByRole("button", { name: "Filtros", exact: true }).click();
     const filters = page.getByRole("dialog", { name: "Filtros" });
     await filters.locator(".mp-field").filter({ has: page.getByText("Pegado por", { exact: true }) }).getByRole("button", { name: /Caro\s*\d+\s*$/ }).click();
-    await expect(filters.getByRole("button", { name: gabi.length === 1 ? "Ver 1 sticker" : `Ver ${gabi.length} stickers` })).toBeVisible();
+    await expect(filters.getByRole("button", { name: caro.length === 1 ? "Ver 1 sticker" : `Ver ${caro.length} stickers` })).toBeVisible();
     await filters.getByRole("button", { name: /^Ver / }).click();
     await jumpTo(page, [spot.lng, spot.lat], 15);
     await expect(page.locator(`.mp-marker[data-spot-id="${id}"]`)).toBeVisible();

@@ -19,7 +19,6 @@ async function tapSpot(page: Page, spot: SpotFeature): Promise<void> {
   await expect(page).toHaveURL(new RegExp(`/s/${spot.id}$`));
 }
 
-const sheet = (page: Page) => page.locator(".map-sheet:not(.map-sheet--filters)");
 
 /** Sum of what the map draws: every cluster bubble counts its number, every lone marker counts 1. */
 async function drawnTotal(page: Page): Promise<number> {
@@ -170,14 +169,14 @@ test.describe("legend and filters", () => {
     }
 
     // adding a placer narrows the result again
-    const gabi = withPapa.filter((f) => placedBy(f, names[0]!));
+    const caro = withPapa.filter((f) => placedBy(f, names[0]!));
     await section.getByRole("button", { name: new RegExp(`${names[0]}\\s*\\d+\\s*$`) }).first().click();
-    await expect(filters.getByRole("button", { name: gabi.length === 1 ? "Ver 1 sticker" : `Ver ${gabi.length} stickers` })).toBeVisible();
+    await expect(filters.getByRole("button", { name: caro.length === 1 ? "Ver 1 sticker" : `Ver ${caro.length} stickers` })).toBeVisible();
 
     // applying closes the sheet and the map shows exactly those spots
     await filters.getByRole("button", { name: /^Ver (\d+ stickers|1 sticker)$/ }).click();
     await expect(filters).toBeHidden();
-    await expect.poll(() => drawnTotal(page), { timeout: 20_000 }).toBe(gabi.length);
+    await expect.poll(() => drawnTotal(page), { timeout: 20_000 }).toBe(caro.length);
   });
 
   test("a filter combination without stickers shows 'Nadie pegó nada acá… todavía'", async ({ page, request }) => {

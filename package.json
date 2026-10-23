@@ -57,6 +57,6 @@
     "test:unit": "vitest run",
     "test:worker": "vitest run -c vitest.worker.config.ts",
     "check:emoji": "tsx scripts/check-no-emoji.ts",
-    "deploy": "npm run build && wrangler deploy -c dist/stickermap/wrangler.json"
+    "deploy": "npm run build && tsx scripts/deploy.ts migrate && tsx scripts/deploy.ts public && tsx scripts/deploy.ts admin"
   }
 }
