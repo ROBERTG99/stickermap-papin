@@ -1,6 +1,6 @@
 /* Mapa Papin service worker: offline shell, runtime caches and the Android share target.
    Plain JS on purpose (no build step): everything is cached as it is used, so there is no precache manifest to keep in sync. */
-const VERSION = "mp-v2";
+const VERSION = "mp-v3";
 const SHELL = `${VERSION}-shell`; // hashed JS/CSS/fonts/flags/icons + index.html
 const IMAGES = `${VERSION}-img`; // /img/thumb|display|icons (immutable)
 const DATA = `${VERSION}-data`; // GET /api/*
@@ -97,7 +97,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   if (url.pathname.startsWith("/img/")) { event.respondWith(cacheFirst(IMAGES)(request)); return; }
-  if (/^\/(assets|flags|icons)\//.test(url.pathname) || url.pathname === "/favicon.svg" || url.pathname === "/manifest.webmanifest") {
+  if (/^\/(assets|flags|icons)\//.test(url.pathname) || url.pathname === "/manifest.webmanifest") {
     event.respondWith(cacheFirst(SHELL)(request)); return;
   }
   if (url.pathname === "/api/spots") { event.respondWith(networkFirst(DATA, 4000)(request)); return; }

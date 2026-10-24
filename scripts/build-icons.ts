@@ -1,6 +1,6 @@
 /**
  * PWA / app icons (design system, Page13System 10e): brand-green tile, the Papa sticker with its white die edge and tilt-1.
- *   npx tsx scripts/build-icons.ts   -> src/public/icons/{icon-192,icon-512,maskable-512,apple-touch-icon}.png and favicon.svg tweaks
+ *   npx tsx scripts/build-icons.ts   -> src/public/icons/{icon-192,icon-512,maskable-512,apple-touch-icon}.png. Tab favicons (favicon-32/64.png) are the bare potato on transparent, made by hand
  */
 import { mkdir } from "node:fs/promises";
 import sharp from "sharp";
@@ -29,7 +29,6 @@ const jobs: [string, number, { radius: number; sticker: number }][] = [
   // maskable: full-bleed, sticker inside the 80% circular safe zone
   ["maskable-512.png", 512, { radius: 0, sticker: 0.5 }],
   ["apple-touch-icon.png", 180, { radius: 0, sticker: 0.62 }],
-  ["favicon-32.png", 32, { radius: 0.22, sticker: 0.66 }],
 ];
 for (const [name, size, o] of jobs) {
   await sharp(await tile(size, o)).toFile(`src/public/icons/${name}`);
