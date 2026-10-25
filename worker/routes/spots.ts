@@ -139,7 +139,7 @@ export async function loadSpotDetail(db: D1Database, id: string): Promise<SpotDe
     city: (s.city as string | null) ?? null, note: (s.note as string | null) ?? null, other_text: (s.other_text as string | null) ?? null,
     placer_note: (s.placer_note as string | null) ?? null, photo_w: (s.photo_w as number | null) ?? null, photo_h: (s.photo_h as number | null) ?? null,
     ...(Object.keys(ig).length ? { ig } : {}), ...(typeof s.instagram_post_url === "string" ? { ig_post: s.instagram_post_url } : {}),
-    ...(typeof s.video_key === "string"
+    ...(typeof s.video_key === "string" && s.video_needs_transcode === 0
       ? { v: (s.video_key.endsWith(".mov") ? "mov" : "mp4") as "mp4" | "mov", video: { src: `/media/${s.video_key}`, poster: key(s.video_poster_key), duration_ms: (s.video_duration_ms as number | null) ?? null, w: (s.video_w as number | null) ?? null, h: (s.video_h as number | null) ?? null } }
       : {}),
   };

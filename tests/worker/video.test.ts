@@ -62,6 +62,11 @@ describe("F1 video upload", () => {
     const { body } = await create({ meta: { video_needs_transcode: true }, video: MP4(512, "qt  ") });
     const row = await db().prepare("SELECT video_key, video_needs_transcode AS n, needs_review, review_reason FROM spots WHERE id = ?1").bind(body.id).first();
     expect(row).toEqual({ video_key: `video/${body.id}.mov`, n: 1, needs_review: 1, review_reason: "video_needs_transcode" });
+    // the untranscoded original may carry the phone's location: it is not served or listed until ffmpeg has cleaned it
+    expect((await call(`/media/video/${body.id}.mov`)).status).toBe(404);
+    const detail = (await (await call(`/api/spots/${body.id}`)).json()) as { v?: string; video?: unknown };
+    expect(detail.v).toBeUndefined();
+    expect(detail.video).toBeUndefined();
   });
 });
 

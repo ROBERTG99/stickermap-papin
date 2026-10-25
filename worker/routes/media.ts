@@ -30,10 +30,11 @@ media.on(["GET", "HEAD"], "/video/:file", async (c) => {
   const m = /^([0-9A-Z]{26})\.(mp4|mov)$/.exec(c.req.param("file"));
   if (!m) return new Response("Not found", { status: 404 });
   const [, id, ext] = m;
-  // Videos of spots that are hidden, deleted or awaiting approval are not public.
-  const row = await c.env.DB.prepare("SELECT status, video_key FROM spots WHERE id = ?1").bind(id).first<{ status: string; video_key: string | null }>();
+  // Videos of spots that are hidden, deleted or awaiting approval are not public. Neither is an original the browser could not convert:
+  // it may still carry the phone's location, so it waits for scripts/transcode-pending.ts (ffmpeg strips the metadata).
+  const row = await c.env.DB.prepare("SELECT status, video_key, video_needs_transcode AS raw FROM spots WHERE id = ?1").bind(id).first<{ status: string; video_key: string | null; raw: number }>();
   const key = `video/${id}.${ext}`;
-  if (!row || row.status !== "published" || row.video_key !== key) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+  if (!row || row.status !== "published" || row.video_key !== key || row.raw === 1) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
 
   const head = await c.env.PHOTOS.head(key);
   if (!head) return new Response("Not found", { status: 404 });
