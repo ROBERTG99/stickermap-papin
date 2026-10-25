@@ -42,6 +42,7 @@ export async function resetState(): Promise<void> {
     db().prepare("DELETE FROM submissions_rl"), db().prepare("DELETE FROM audit_log"), db().prepare("DELETE FROM geocode_cache"),
     db().prepare("UPDATE settings SET value = '0' WHERE key = 'r2_bytes'"),
     db().prepare("UPDATE settings SET value = 'open' WHERE key = 'moderation_mode'"),
+    db().prepare("UPDATE settings SET value = 'off' WHERE key LIKE 'feature_%'"),
     db().prepare("DELETE FROM settings WHERE key = 'geocode_backoff_until'"),
   ]);
   let cursor: string | undefined;

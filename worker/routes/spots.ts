@@ -239,8 +239,9 @@ spots.post("/", async (c) => {
     ...placerIds.map((pid) => db.prepare("INSERT INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, pid)),
     db.prepare("INSERT INTO audit_log (actor, action, entity, entity_id) VALUES ('submitter', 'create', 'spot', ?1)").bind(id),
   ];
-  // anti-hijack: the public form can only fill an empty handle (and never one that already belongs to someone else); changing it is admin-only
-  if (reporterId && igHandle) {
+  // anti-hijack: the public form can only fill an empty handle (and never one that already belongs to someone else); changing it is admin-only.
+  // Not while the feature is off, and not while spots wait for approval: an unreviewed submission must not edit a public person (the admin can set it in People).
+  if (reporterId && igHandle && settings.feature_instagram !== "off" && settings.moderation_mode !== "approval") {
     statements.push(
       db.prepare("UPDATE people SET instagram_handle = ?2 WHERE id = ?1 AND instagram_handle IS NULL AND NOT EXISTS (SELECT 1 FROM people WHERE instagram_handle = ?2)").bind(reporterId, igHandle),
     );

@@ -164,6 +164,8 @@ describe("add a type to an existing spot", () => {
 });
 
 describe("Instagram (F2)", () => {
+  beforeEach(async () => { await db().prepare("UPDATE settings SET value = 'on' WHERE key = 'feature_instagram'").run(); });
+
   it("stores the handle once, lowercase and without @, plus the normalized post link", async () => {
     mockTurnstile(true);
     const { res, body } = await create({ meta: { reporter: "Chimbo", reporter_instagram: " @Chimbo.Papin ", instagram_post_url: "instagram.com/reel/C8xQ2p?igsh=abc" } });
@@ -184,6 +186,18 @@ describe("Instagram (F2)", () => {
     await create({ meta: { reporter: "Coco", reporter_instagram: "chimbo.papin" } });
     const rows = await db().prepare("SELECT display_name AS n, instagram_handle AS h FROM people ORDER BY display_name").all<{ n: string; h: string | null }>();
     expect(rows.results).toEqual([{ n: "Chimbo", h: "chimbo.papin" }, { n: "Coco", h: null }]);
+  });
+
+  it("ignores the handle while the feature is off or spots wait for approval", async () => {
+    mockTurnstile(true);
+    await db().prepare("UPDATE settings SET value = 'off' WHERE key = 'feature_instagram'").run();
+    await create({ meta: { reporter: "Ana", reporter_instagram: "ana.papa" } });
+    await db().prepare("UPDATE settings SET value = 'on' WHERE key = 'feature_instagram'").run();
+    await db().prepare("UPDATE settings SET value = 'approval' WHERE key = 'moderation_mode'").run();
+    await create({ meta: { reporter: "Beto", reporter_instagram: "beto.papa" } });
+    const rows = await db().prepare("SELECT display_name AS n, instagram_handle AS h FROM people ORDER BY display_name").all<{ n: string; h: string | null }>();
+    expect(rows.results).toEqual([{ n: "Ana", h: null }, { n: "Beto", h: null }]);
+    await db().prepare("UPDATE settings SET value = 'off' WHERE key = 'feature_instagram'").run();
   });
 
   it("rejects an invalid handle or post link", async () => {
