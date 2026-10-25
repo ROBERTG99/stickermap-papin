@@ -53,6 +53,8 @@ export interface SpotProps {
   ig_post?: string;
   /** F4: only when the spot is not alive: "unknown" (no news for 12 months) or "dead" (covered or removed). */
   life?: "unknown" | "dead";
+  /** F4/F5: when it was counted gone (ISO), only for `life: "dead"`. */
+  died?: string;
   /** F1: extension of the spot's video (`/media/video/<id>.<v>`); marker play badge and gallery autoplay. */
   v?: "mp4" | "mov";
 }

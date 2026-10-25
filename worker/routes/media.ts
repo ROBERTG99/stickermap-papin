@@ -30,7 +30,7 @@ async function sightingVideoIsPublic(db: D1Database, id: string, key: string): P
     .prepare("SELECT s.status AS spot_status, x.status_review AS review, x.video_key AS video_key FROM sightings x JOIN spots s ON s.id = x.spot_id WHERE x.id = ?1")
     .bind(id)
     .first<{ spot_status: string; review: string; video_key: string | null }>();
-  return !!row && row.spot_status === "published" && row.review !== "rejected" && row.video_key === key;
+  return !!row && row.spot_status === "published" && (row.review === "auto" || row.review === "approved") && row.video_key === key;
 }
 
 // iOS Safari will not play a video without HTTP Range support, so this streams from R2 with 206 Partial Content.

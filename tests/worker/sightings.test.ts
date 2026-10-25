@@ -28,9 +28,10 @@ function sightingForm(meta: Record<string, unknown>, files: { display?: Uint8Arr
   return form;
 }
 
-async function sight(spotId: string, meta: Record<string, unknown>, files?: Parameters<typeof sightingForm>[1]) {
+/** `ip` stands for who is sending: two reports only corroborate each other when they come from different addresses. */
+async function sight(spotId: string, meta: Record<string, unknown>, files?: Parameters<typeof sightingForm>[1], ip = "203.0.113.7") {
   mockTurnstile(true);
-  const res = await call(`/api/spots/${spotId}/sightings`, { method: "POST", body: sightingForm(meta, files) });
+  const res = await call(`/api/spots/${spotId}/sightings`, { method: "POST", body: sightingForm(meta, files), headers: { "CF-Connecting-IP": ip } });
   return { res, body: (await res.json()) as Record<string, unknown> };
 }
 
@@ -45,12 +46,23 @@ describe("POST /api/spots/:id/sightings", () => {
     expect(body.error).toBe("feature_off");
   });
 
-  it("a verified sighting (within 300 m) updates the life status at once", async () => {
+  it("a standing report from within 300 m counts at once", async () => {
     const id = await newSpot();
-    const { res, body } = await sight(id, { status: "removed", lat: SPOT.lat + 0.0005, lng: SPOT.lng, reporter: "Beto" });
+    const { res, body } = await sight(id, { status: "damaged", lat: SPOT.lat + 0.0005, lng: SPOT.lng, reporter: "Beto" });
     expect(res.status).toBe(201);
-    expect(body).toMatchObject({ verified: true, pending: false, life: "dead" });
-    expect((await detail(id)).life_info).toMatchObject({ status: "dead", count: 1 });
+    expect(body).toMatchObject({ verified: true, pending: false, life: "alive" });
+    expect((await detail(id)).life_info).toMatchObject({ status: "alive", count: 1 });
+  });
+
+  it("a report that it is gone needs both proofs (nearby and a fresh photo) to count at once", async () => {
+    const id = await newSpot();
+    const near = { lat: SPOT.lat + 0.0005, lng: SPOT.lng };
+    const nearOnly = await sight(id, { status: "removed", ...near });
+    expect(nearOnly.body).toMatchObject({ verified: true, pending: true, life: "alive" });
+    const fresh = new Date(Date.now() - 600_000).toISOString().slice(0, 19);
+    const both = await sight(id, { status: "removed", ...near, taken_at: fresh }, { display: WEBP(), thumb: WEBP() }, "198.51.100.9");
+    expect(both.body).toMatchObject({ verified: true, pending: false, life: "dead" });
+    expect((await detail(id)).life_info).toMatchObject({ status: "dead", count: 2 });
     const list = (await (await call("/api/spots")).json()) as { features: { id: string; properties: { life?: string } }[] };
     expect(list.features.find((f) => f.id === id)?.properties.life).toBe("dead");
   });
@@ -65,11 +77,23 @@ describe("POST /api/spots/:id/sightings", () => {
     expect((await detail(id)).life_info.status).toBe("alive");
   });
 
-  it("a second sighting that agrees makes it count", async () => {
+  it("a second report from someone else that agrees makes it count; the same sender does not", async () => {
     const id = await newSpot();
     await sight(id, { status: "covered" });
-    const second = await sight(id, { status: "removed" });
-    expect(second.body.life).toBe("dead");
+    expect((await sight(id, { status: "removed" })).body.life).toBe("alive"); // same address: still one voice
+    const other = await sight(id, { status: "removed" }, undefined, "198.51.100.77");
+    expect(other.body.life).toBe("dead");
+  });
+
+  it("pictures of a pending report are not public until it counts", async () => {
+    const id = await newSpot();
+    const { body } = await sight(id, { status: "alive", taken_at: "2020-01-01T10:00:00" }, { display: WEBP(), thumb: WEBP() });
+    expect(body.pending).toBe(true);
+    const rows = (await (await call(`/api/spots/${id}/sightings`)).json()) as { thumb: string | null; pending: boolean }[];
+    expect(rows[0]).toMatchObject({ pending: true, thumb: null });
+    expect((await call(`/img/thumb/${body.id as string}.webp`)).status).toBe(404);
+    await db().prepare("UPDATE sightings SET status_review = 'approved' WHERE id = ?1").bind(body.id).run();
+    expect((await call(`/img/thumb/${body.id as string}.webp`)).status).toBe(200);
   });
 
   it("a fresh photo verifies a sighting made from far away", async () => {
@@ -114,7 +138,8 @@ describe("POST /api/spots/:id/sightings", () => {
 
   it("a rejected sighting is hidden with its photo and no longer counts", async () => {
     const id = await newSpot();
-    const { body } = await sight(id, { status: "removed", lat: SPOT.lat, lng: SPOT.lng }, { display: WEBP(), thumb: WEBP() });
+    const fresh = new Date(Date.now() - 600_000).toISOString().slice(0, 19);
+    const { body } = await sight(id, { status: "removed", lat: SPOT.lat, lng: SPOT.lng, taken_at: fresh }, { display: WEBP(), thumb: WEBP() });
     const sid = body.id as string;
     expect((await detail(id)).life_info.status).toBe("dead");
     await db().prepare("UPDATE sightings SET status_review = 'rejected' WHERE id = ?1").bind(sid).run();
@@ -164,7 +189,8 @@ describe("GET /api/stats/longevity", () => {
   it("summarises life, the cemetery and curves", async () => {
     const a = await newSpot({ taken_at: "2025-01-10T10:00:00" });
     await newSpot();
-    await sight(a, { status: "removed", lat: SPOT.lat, lng: SPOT.lng });
+    await db().prepare("INSERT INTO sightings (id, spot_id, status, created_at, status_review, verified) VALUES ('01HZZZZZZZZZZZZZZZZZZZZZZZ', ?1, 'removed', ?2, 'approved', 1)").bind(a, new Date().toISOString()).run();
+    await refreshLife(db(), a);
     const body = (await (await call("/api/stats/longevity")).json()) as { totals: Record<string, number>; cemetery: { id: string; days: number }[]; oldest_living: unknown[]; curves: { key: string; points: { day: number; alive: number }[] }[]; by_type: { key: string; avg_days: number }[] };
     expect(body.totals.dead).toBe(1);
     expect(body.cemetery[0]).toMatchObject({ id: a });

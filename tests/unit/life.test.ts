@@ -3,7 +3,7 @@ import { ageDays, computeLife, countedSightings, placedAtOf, survivalDays, type 
 
 const NOW = Date.parse("2026-10-25T12:00:00Z");
 const day = (n: number) => new Date(NOW - n * 86_400_000).toISOString();
-const sighting = (status: SightingLite["status"], daysAgo: number, review: SightingLite["review"] = "auto"): SightingLite => ({ status, created_at: day(daysAgo), review });
+const sighting = (status: SightingLite["status"], daysAgo: number, review: SightingLite["review"] = "auto", by: string | null = null): SightingLite => ({ status, created_at: day(daysAgo), review, by });
 
 describe("computeLife: no sightings", () => {
   it("is alive for its first 12 months", () => {
@@ -47,10 +47,19 @@ describe("unverified sightings", () => {
   it("count once an admin approves them", () => {
     expect(computeLife(day(100), [sighting("removed", 10, "approved")], NOW).status).toBe("dead");
   });
-  it("count when a second sighting agrees", () => {
-    const life = computeLife(day(100), [sighting("covered", 10, "pending"), sighting("removed", 4, "pending")], NOW);
+  it("count when a second sighting from someone else agrees", () => {
+    const life = computeLife(day(100), [sighting("covered", 10, "pending", "ip-a"), sighting("removed", 4, "pending", "ip-b")], NOW);
     expect(life.status).toBe("dead");
-    expect(countedSightings([sighting("covered", 10, "pending"), sighting("alive", 4, "pending")])).toEqual([]);
+    expect(countedSightings([sighting("covered", 10, "pending", "ip-a"), sighting("alive", 4, "pending", "ip-b")])).toEqual([]);
+  });
+  it("do not corroborate themselves: the same sender twice is still one voice", () => {
+    expect(computeLife(day(100), [sighting("covered", 10, "pending", "ip-a"), sighting("removed", 4, "pending", "ip-a")], NOW).status).toBe("alive");
+    expect(computeLife(day(100), [sighting("covered", 10, "pending"), sighting("removed", 4, "pending")], NOW).status).toBe("alive");
+  });
+  it("never count by agreement while spots wait for approval", () => {
+    const two = [sighting("covered", 10, "pending", "ip-a"), sighting("removed", 4, "pending", "ip-b")];
+    expect(computeLife(day(100), two, NOW, true).status).toBe("alive");
+    expect(computeLife(day(100), [...two.map((s) => ({ ...s, review: "approved" as const }))], NOW, true).status).toBe("dead");
   });
   it("never count when rejected, and are not in the total", () => {
     const life = computeLife(day(100), [sighting("removed", 10, "rejected"), sighting("alive", 5)], NOW);

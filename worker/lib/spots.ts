@@ -4,7 +4,7 @@ interface SpotRow {
   id: string; lat: number; lng: number; placer_status: "self" | "other" | "unknown";
   place_name: string | null; country: string | null; country_code: string | null;
   taken_at: string | null; created_at: string; updated_at: string;
-  photo_key: string | null; thumb_key: string | null; reporter: string | null; instagram_post_url: string | null; video_key: string | null; video_needs_transcode: number; life_status: "alive" | "unknown" | "dead";
+  photo_key: string | null; thumb_key: string | null; reporter: string | null; instagram_post_url: string | null; video_key: string | null; video_needs_transcode: number; life_status: "alive" | "unknown" | "dead"; died_at: string | null;
 }
 
 const img = (key: string | null) => (key ? `/img/${key}` : null);
@@ -16,7 +16,7 @@ export async function publishedCollection(db: D1Database): Promise<{ collection:
   const [spots, types, placers] = await db.batch([
     db.prepare(
       `SELECT s.id, s.lat, s.lng, s.placer_status, s.place_name, s.country, s.country_code, s.taken_at, s.created_at, s.updated_at,
-              s.photo_key, s.thumb_key, s.instagram_post_url, s.video_key, s.video_needs_transcode, s.life_status, p.display_name AS reporter
+              s.photo_key, s.thumb_key, s.instagram_post_url, s.video_key, s.video_needs_transcode, s.life_status, s.died_at, p.display_name AS reporter
          FROM spots s LEFT JOIN people p ON p.id = s.reporter_person_id
         WHERE s.status = 'published' ORDER BY s.created_at, s.id`,
     ),
@@ -55,7 +55,7 @@ export async function publishedCollection(db: D1Database): Promise<{ collection:
         id: r.id, types: t, placers: placerMap.get(r.id) ?? [], placer_status: r.placer_status, reporter: r.reporter,
         place_name: orNull(r.place_name), country: r.country, country_code: r.country_code, taken_at: r.taken_at,
         created_at: r.created_at, thumb: img(r.thumb_key), photo: img(r.photo_key), n: t.length,
-        ...(igMap.has(r.id) ? { ig: igMap.get(r.id) } : {}), ...(r.instagram_post_url ? { ig_post: r.instagram_post_url } : {}), ...(r.life_status !== "alive" ? { life: r.life_status } : {}), ...(r.video_key && r.video_needs_transcode === 0 ? { v: (r.video_key.endsWith(".mov") ? "mov" : "mp4") as "mp4" | "mov" } : {}),
+        ...(igMap.has(r.id) ? { ig: igMap.get(r.id) } : {}), ...(r.instagram_post_url ? { ig_post: r.instagram_post_url } : {}), ...(r.life_status !== "alive" ? { life: r.life_status } : {}), ...(r.life_status === "dead" && r.died_at ? { died: r.died_at } : {}), ...(r.video_key && r.video_needs_transcode === 0 ? { v: (r.video_key.endsWith(".mov") ? "mov" : "mp4") as "mp4" | "mov" } : {}),
       },
     };
   });

@@ -20,6 +20,7 @@ import { readImage, readVideo, type CheckedFile } from "../lib/uploads";
 export const sightings = new Hono<AppEnv>();
 
 const img = (key: string | null) => (key ? `/img/${key}` : null);
+const shown = (r: Record<string, unknown>): boolean => r.review === "auto" || r.review === "approved";
 
 sightings.get("/", async (c) => {
   const id = c.req.param("id") ?? "";
@@ -42,9 +43,10 @@ sightings.get("/", async (c) => {
     pending: r.review === "pending",
     reporter: (r.reporter as string | null) ?? null,
     note: (r.note as string | null) ?? null,
-    photo: img(r.photo_key as string | null),
-    thumb: img(r.thumb_key as string | null),
-    video: typeof r.video_key === "string"
+    // pictures of a report nobody has verified are not public until an admin approves it
+    photo: shown(r) ? img(r.photo_key as string | null) : null,
+    thumb: shown(r) ? img(r.thumb_key as string | null) : null,
+    video: shown(r) && typeof r.video_key === "string"
       ? { src: `/media/${r.video_key}`, poster: img((r.video_poster_key as string | null) ?? null), duration_ms: (r.video_duration_ms as number | null) ?? null, w: (r.video_w as number | null) ?? null, h: (r.video_h as number | null) ?? null }
       : null,
   }));
@@ -101,8 +103,12 @@ sightings.post("/", async (c) => {
   const taken = meta.taken_at ? Date.parse(`${meta.taken_at}Z`) : null;
   // a naive local time has no zone: allow a day of slack either side
   const freshPhoto = !!d && taken !== null && Math.abs(Date.now() - taken) <= FRESH_PHOTO_MS + 86_400_000;
-  const verified = (distance !== null && distance <= VERIFY_RADIUS_M) || freshPhoto;
-  const review = settings.moderation_mode === "approval" ? "pending" : verified ? "auto" : "pending";
+  const near = distance !== null && distance <= VERIFY_RADIUS_M;
+  const verified = near || freshPhoto;
+  // Position and photo date are client-reported. A report that a sticker is gone hides it from the map, so it counts at once only
+  // with both kinds of evidence; otherwise it waits for an admin or for a second, independent report (the same goes for approval mode).
+  const gone = meta.status === "covered" || meta.status === "removed";
+  const review = settings.moderation_mode === "approval" ? "pending" : gone ? (near && freshPhoto ? "auto" : "pending") : verified ? "auto" : "pending";
 
   const objects: PutObject[] = [];
   const photoKey = d ? `display/${id}.${EXTENSION[d.kind]}` : null;

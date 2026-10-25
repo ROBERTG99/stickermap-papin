@@ -9,6 +9,8 @@ export interface SightingLite {
   /** ISO timestamp. */
   created_at: string;
   review: SightingReview;
+  /** Who sent it (hashed address, else the name): two sightings only corroborate each other when this differs. */
+  by?: string | null;
 }
 
 export interface Life {
@@ -32,13 +34,15 @@ const ms = (iso: string): number => Date.parse(iso);
 
 /**
  * A sighting changes the life status when it is verified (`auto`) or approved by an admin, or when a second, independent
- * sighting says the same thing (standing vs gone). Rejected ones never count; pending ones wait.
+ * sighting (another sender) says the same thing (standing vs gone). Rejected ones never count; pending ones wait.
+ * While spots wait for approval (`requireApproval`), only `auto` and `approved` ones count: nobody corroborates their way around the admin.
  */
-export function countedSightings(all: readonly SightingLite[]): SightingLite[] {
+export function countedSightings(all: readonly SightingLite[], requireApproval = false): SightingLite[] {
   const live = all.filter((s) => s.review !== "rejected");
   return live.filter((s) => {
     if (s.review === "auto" || s.review === "approved") return true;
-    return live.some((o) => o !== s && standing(o.status) === standing(s.status));
+    if (requireApproval) return false;
+    return live.some((o) => o !== s && o.by !== s.by && standing(o.status) === standing(s.status));
   });
 }
 
@@ -46,9 +50,9 @@ export function countedSightings(all: readonly SightingLite[]): SightingLite[] {
  * - the last counted sighting decides: gone -> dead, standing -> alive;
  * - alive with no news for 12 months -> unknown; with no sighting at all, a spot is alive for its first 12 months, then unknown.
  */
-export function computeLife(placedAt: string, sightings: readonly SightingLite[], now: number = Date.now()): Life {
+export function computeLife(placedAt: string, sightings: readonly SightingLite[], now: number = Date.now(), requireApproval = false): Life {
   const live = sightings.filter((s) => s.review !== "rejected");
-  const counted = countedSightings(sightings).sort((a, b) => ms(a.created_at) - ms(b.created_at));
+  const counted = countedSightings(sightings, requireApproval).sort((a, b) => ms(a.created_at) - ms(b.created_at));
   const last = counted.at(-1);
   const seen = counted.filter((s) => standing(s.status) && s.status !== "moved").at(-1);
   const lastSeenAt = seen?.created_at ?? null;
