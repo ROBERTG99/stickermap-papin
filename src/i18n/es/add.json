@@ -85,8 +85,7 @@
   "missing": {
     "photo_busy": "terminar de leer la foto",
     "no_location": "ubicación",
-    "no_type": "tipo de sticker",
-    "no_placers": "quién lo pegó"
+    "no_type": "tipo de sticker"
   },
   "submit": {
     "missing": "Falta: {what}",

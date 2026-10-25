@@ -10,7 +10,6 @@ import { Icon } from "../components/Icon";
 import { LocationBadge } from "../components/LocationPicker";
 import { StickerCard } from "../components/StickerCard";
 import { Skeleton } from "../components/Skeleton";
-import { loadRecentPlacers, validateWhoPlaced, WhoPlaced, type WhoPlacedValue } from "../components/WhoPlaced";
 import { LocationMap } from "../add/LocationMap";
 import { buildPatch, NOTE_MAX, OTHER_TEXT_MAX, type EditSnapshot } from "../add/logic";
 import { AddStyles } from "../add/styles";
@@ -20,20 +19,13 @@ import { t } from "../lib/i18n";
 import { editGrants } from "../lib/local";
 import { isDesktop } from "../lib/media";
 import { navigate } from "../lib/router";
-import { loadSpots, people, types as typeList } from "../lib/store";
+import { loadSpots, types as typeList } from "../lib/store";
 import { toast } from "../lib/toast";
 import type { SpotDetail } from "../shared/types";
-
-function initialWho(spot: SpotDetail): WhoPlacedValue {
-  if (spot.placer_status === "self") return { status: "self", placers: spot.reporter ? [spot.reporter] : [] };
-  if (spot.placer_status === "other") return { status: "other", placers: spot.placers };
-  return { status: "unknown", placers: [], note: spot.placer_note ?? undefined };
-}
 
 function snapshotOf(spot: SpotDetail): EditSnapshot {
   return {
     lat: spot.lat, lng: spot.lng, approximate: spot.is_approximate, types: spot.types, otherText: spot.other_text ?? "", note: spot.note ?? "",
-    placerStatus: spot.placer_status, placers: spot.placer_status === "other" ? spot.placers : [], placerNote: spot.placer_note ?? "",
   };
 }
 
@@ -51,7 +43,6 @@ function EditForm({ spot, token }: { spot: SpotDetail; token: string }) {
   const before = useMemo(() => snapshotOf(spot), [spot]);
   const [types, setTypes] = useState<string[]>(spot.types);
   const [otherText, setOtherText] = useState(spot.other_text ?? "");
-  const [who, setWho] = useState<WhoPlacedValue>(() => initialWho(spot));
   const [note, setNote] = useState(spot.note ?? "");
   const [approximate, setApproximate] = useState(spot.is_approximate);
   const [pin, setPin] = useState({ lat: spot.lat, lng: spot.lng });
@@ -74,13 +65,11 @@ function EditForm({ spot, token }: { spot: SpotDetail; token: string }) {
   }, []);
 
   const textSelected = types.some((slug) => typeList.value.find((x) => x.slug === slug)?.allows_text);
-  const whoError = attempted ? validateWhoPlaced(who) : null;
   const typesError = attempted && types.length === 0;
-  const blocked = types.length === 0 || !!validateWhoPlaced(who);
+  const blocked = types.length === 0;
 
   const after: EditSnapshot = {
-    lat: pin.lat, lng: pin.lng, approximate, types, otherText, note, placerStatus: who.status,
-    placers: who.status === "other" ? who.placers : [], placerNote: who.note ?? "",
+    lat: pin.lat, lng: pin.lng, approximate, types, otherText, note,
   };
 
   async function save() {
@@ -194,9 +183,6 @@ function EditForm({ spot, token }: { spot: SpotDetail; token: string }) {
           label={t("add.what.group")}
         />
         <div class="add-what">
-          <div class="add-flat">
-            <WhoPlaced value={who} onChange={setWho} soy={spot.reporter ?? ""} people={people.value} recent={loadRecentPlacers()} error={whoError} />
-          </div>
           <TextAreaField
             label={t("add.what.note")}
             value={note}

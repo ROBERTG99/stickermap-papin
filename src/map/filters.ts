@@ -12,21 +12,18 @@ export const DATE_PRESETS: readonly DatePreset[] = ["all", "month", "halfYear", 
 export interface Filters {
   /** Sticker type slugs (a spot matches when it carries ANY of them). */
   types: string[];
-  /** Placer names; `UNKNOWN_PLACER` matches the spots whose placer is not known ("¿?"). */
+  /** Person names (whoever uploaded and stuck the sticker); `UNKNOWN_PLACER` matches the spots without one ("¿?"). */
   placers: string[];
-  /** Reporter names; `ANONYMOUS_REPORTER` matches the spots without a reporter. */
-  reporters: string[];
   /** Lowercase ISO country codes. */
   countries: string[];
   date: DatePreset;
 }
 
 export const UNKNOWN_PLACER = "__unknown__";
-export const ANONYMOUS_REPORTER = "__anonymous__";
 
-export const EMPTY_FILTERS: Filters = { types: [], placers: [], reporters: [], countries: [], date: "all" };
+export const EMPTY_FILTERS: Filters = { types: [], placers: [], countries: [], date: "all" };
 
-export type Facet = "types" | "placers" | "reporters" | "countries" | "date";
+export type Facet = "types" | "placers" | "countries" | "date";
 
 const DAY_MS = 86_400_000;
 const PRESET_DAYS: Record<Exclude<DatePreset, "all">, number> = { month: 30, halfYear: 183, year: 365 };
@@ -43,9 +40,7 @@ export function dateCutoff(preset: DatePreset, now: number): number | null {
 }
 
 export const placerKeys = (f: SpotFeature): string[] =>
-  f.properties.placer_status === "unknown" || f.properties.placers.length === 0 ? [UNKNOWN_PLACER] : f.properties.placers;
-
-export const reporterKey = (f: SpotFeature): string => f.properties.reporter?.trim() || ANONYMOUS_REPORTER;
+  f.properties.placers.length === 0 ? [UNKNOWN_PLACER] : f.properties.placers;
 
 export const countryKey = (f: SpotFeature): string | null => f.properties.country_code?.toLowerCase() || null;
 
@@ -53,7 +48,6 @@ export function activeFilterCount(filters: Filters): number {
   return (
     (filters.types.length > 0 ? 1 : 0) +
     (filters.placers.length > 0 ? 1 : 0) +
-    (filters.reporters.length > 0 ? 1 : 0) +
     (filters.countries.length > 0 ? 1 : 0) +
     (filters.date !== "all" ? 1 : 0)
   );
@@ -69,7 +63,6 @@ export function toggleValue(list: readonly string[], value: string): string[] {
 interface Pass {
   types: boolean;
   placers: boolean;
-  reporters: boolean;
   countries: boolean;
   date: boolean;
 }
@@ -80,13 +73,12 @@ function passes(f: SpotFeature, filters: Filters, cutoff: number | null): Pass {
   return {
     types: filters.types.length === 0 || p.types.some((s) => filters.types.includes(s)),
     placers: filters.placers.length === 0 || placerKeys(f).some((k) => filters.placers.includes(k)),
-    reporters: filters.reporters.length === 0 || filters.reporters.includes(reporterKey(f)),
     countries: filters.countries.length === 0 || (country !== null && filters.countries.includes(country)),
     date: cutoff === null || spotTime(f) >= cutoff,
   };
 }
 
-const FACETS: readonly Facet[] = ["types", "placers", "reporters", "countries", "date"];
+const FACETS: readonly Facet[] = ["types", "placers", "countries", "date"];
 const allExcept = (pass: Pass, skip: Facet): boolean => FACETS.every((d) => d === skip || pass[d]);
 
 export function applyFilters(features: readonly SpotFeature[], filters: Filters, now = Date.now()): SpotFeature[] {
@@ -94,7 +86,7 @@ export function applyFilters(features: readonly SpotFeature[], filters: Filters,
   const cutoff = dateCutoff(filters.date, now);
   return features.filter((f) => {
     const pass = passes(f, filters, cutoff);
-    return pass.types && pass.placers && pass.reporters && pass.countries && pass.date;
+    return pass.types && pass.placers && pass.countries && pass.date;
   });
 }
 
@@ -103,7 +95,6 @@ export interface FacetCounts {
   total: number;
   types: Map<string, number>;
   placers: Map<string, number>;
-  reporters: Map<string, number>;
   countries: Map<string, number>;
   date: Record<DatePreset, number>;
 }
@@ -117,7 +108,6 @@ export function facetCounts(features: readonly SpotFeature[], filters: Filters, 
     total: 0,
     types: new Map(),
     placers: new Map(),
-    reporters: new Map(),
     countries: new Map(),
     date: { all: 0, month: 0, halfYear: 0, year: 0 },
   };
@@ -128,7 +118,6 @@ export function facetCounts(features: readonly SpotFeature[], filters: Filters, 
     if (FACETS.every((d) => pass[d])) out.total++;
     if (allExcept(pass, "types")) for (const s of new Set(f.properties.types)) bump(out.types, s);
     if (allExcept(pass, "placers")) for (const k of new Set(placerKeys(f))) bump(out.placers, k);
-    if (allExcept(pass, "reporters")) bump(out.reporters, reporterKey(f));
     if (allExcept(pass, "countries")) {
       const c = countryKey(f);
       if (c) bump(out.countries, c);

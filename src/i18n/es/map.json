@@ -33,20 +33,13 @@
     "confirm": "Reportar",
     "cancel": "Mejor no",
     "done": "Gracias. Lo vamos a revisar.",
-    "failed": "No pudimos enviar el reporte.",
-    "knowTitle": "Sé quién lo pegó",
-    "knowBody": "Decinos el nombre y un admin lo asigna.",
-    "knowLabel": "¿Quién fue?",
-    "knowPlaceholder": "Nombre",
-    "send": "Enviar",
-    "knowDone": "Gracias. Un admin lo va a asignar."
+    "failed": "No pudimos enviar el reporte."
   },
   "filters": {
     "title": "Filtros",
     "close": "Cerrar filtros",
     "types": "Tipo de sticker",
     "placers": "Pegado por",
-    "reporters": "Cargado por",
     "countries": "País",
     "date": "Fecha",
     "searchPerson": "Buscar persona",

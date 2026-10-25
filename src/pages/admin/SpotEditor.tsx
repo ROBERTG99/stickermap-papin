@@ -79,7 +79,7 @@ function Photo({ spot }: { spot: AdminSpot }) {
   );
 }
 
-/** Detail of the selected spot: photo and map side by side, reasons, editable types and placers, and the moderation buttons. */
+/** Detail of the selected spot: photo and map side by side, reasons, editable types and person, and the moderation buttons. */
 export function SpotEditor(props: SpotEditorProps) {
   const { spot, gpsBusy, onPatch, onMove, onApprove, onHide, onDelete, onGps, onShowBatch, onHideBatch } = props;
   const types = adminTypes.value;
@@ -147,14 +147,8 @@ export function SpotEditor(props: SpotEditorProps) {
         );
       })}
 
-      {(spot.placer_note || spot.note || spot.other_text) && (
+      {(spot.note || spot.other_text) && (
         <dl class="mp-review__notes">
-          {spot.placer_note && (
-            <>
-              <dt>{t("admin.review.placerNote")}</dt>
-              <dd>{spot.placer_note}</dd>
-            </>
-          )}
           {spot.note && (
             <>
               <dt>{t("admin.review.note")}</dt>
@@ -204,12 +198,12 @@ export function SpotEditor(props: SpotEditorProps) {
         <Combobox
           label={t("admin.review.placers")}
           options={adminPeople.value.map((p) => ({ name: p.name, count: p.placed }))}
-          value={spot.placers}
-          onChange={(names) => onPatch({ placer_status: names.length ? "other" : "unknown", placers: names })}
+          value={spot.reporter ? [spot.reporter] : []}
+          onChange={(names) => onPatch({ reporter: names[0] ?? null })}
+          multiple={false}
           allowCreate
-          maxItems={10}
           placeholder={t("admin.review.placersPlaceholder")}
-          hint={spot.placers.length === 0 ? t("admin.review.placersUnknown") : undefined}
+          hint={!spot.reporter ? t("admin.review.placersUnknown") : undefined}
         />
       </div>
 

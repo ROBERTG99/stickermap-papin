@@ -159,26 +159,12 @@
     "viewPhoto": "View photo",
     "viewFull": "View photo full screen",
     "placedBy": "PLACED BY",
-    "knowWho": "Know who it was?",
-    "uploadedBy": "Uploaded by:",
     "maps": "View on Google Maps",
     "editWindow": "you can edit for {h} h"
   },
   "date": {
     "hoursAgo": "{n} h ago",
     "minutesAgo": "{n} min ago"
-  },
-  "who": {
-    "error": "Add at least one name, or choose “Don't know”.",
-    "me": "Me",
-    "others": "Others",
-    "unknown": "Don't know",
-    "question": "Who placed it?",
-    "addName": "Add name",
-    "recent": "Recent",
-    "note": "Any details? (optional)",
-    "notePlaceholder": "E.g. JM's brother saw it",
-    "unknownHint": "Stays as “Placed by: ?” until someone knows."
   },
   "loc": {
     "exif": "Photo location",

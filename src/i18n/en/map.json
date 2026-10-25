@@ -33,20 +33,13 @@
     "confirm": "Report",
     "cancel": "Never mind",
     "done": "Thanks. We will review it.",
-    "failed": "We could not send the report.",
-    "knowTitle": "I know who stuck it",
-    "knowBody": "Tell us the name and an admin will assign it.",
-    "knowLabel": "Who was it?",
-    "knowPlaceholder": "Name",
-    "send": "Send",
-    "knowDone": "Thanks. An admin will assign it."
+    "failed": "We could not send the report."
   },
   "filters": {
     "title": "Filters",
     "close": "Close filters",
     "types": "Sticker type",
     "placers": "Stuck by",
-    "reporters": "Uploaded by",
     "countries": "Country",
     "date": "Date",
     "searchPerson": "Search person",

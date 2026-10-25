@@ -19,7 +19,7 @@ import { loadBase } from "../../lib/store";
 import { toast } from "../../lib/toast";
 import { haversineMeters } from "../../shared/geo";
 import { formatInt } from "../../components/StatSticker";
-import { AssignPlacersDialog, PageHead, PlaceCell, ReasonBadges, SearchBox, SpotThumb, StatusBadge, useDebounced } from "./parts";
+import { AssignPersonDialog, PageHead, PlaceCell, ReasonBadges, SearchBox, SpotThumb, StatusBadge, useDebounced } from "./parts";
 import { KeysLegend, SpotEditor } from "./SpotEditor";
 
 /** A pin fix under this distance keeps the geocoded place name; a bigger move lets the server clear it so the cron looks it up again. */
@@ -54,7 +54,7 @@ function CheckBox({ checked, label, onToggle }: { checked: boolean | "mixed"; la
 /** Review queue (Page10Admin 9b): the list on the left, photo + map + editor on the right, driven from the keyboard. */
 export default function ReviewPage() {
   const [reason, setReason] = useState("");
-  const [placerUnknown, setPlacerUnknown] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const [batch, setBatch] = useState("");
   const [q, setQ] = useState("");
   const dq = useDebounced(q);
@@ -74,7 +74,7 @@ export default function ReviewPage() {
   const load = useCallback(async () => {
     setState((s) => (s === "ready" ? s : "loading"));
     try {
-      const params = filterParams({ status: "queue", placerUnknown, batch, q: dq, sort: "created_at", dir: "desc" });
+      const params = filterParams({ status: "queue", anonymous, batch, q: dq, sort: "created_at", dir: "desc" });
       params.set("limit", "1000");
       const page = await adminApi.spots(params);
       setRows(page.rows);
@@ -83,7 +83,7 @@ export default function ReviewPage() {
       setState("error");
       toastError(e);
     }
-  }, [placerUnknown, batch, dq]);
+  }, [anonymous, batch, dq]);
 
   useEffect(() => {
     void load();
@@ -176,7 +176,7 @@ export default function ReviewPage() {
     const ok = await attempt(() => adminApi.patchSpot(spot.id, body));
     if (!ok) return false;
     await reloadOne(spot.id);
-    if (body.placers) void loadAdminPeople();
+    if (body.reporter !== undefined) void loadAdminPeople();
     if (message) toast.show({ kind: "success", message });
     return true;
   };
@@ -247,15 +247,15 @@ export default function ReviewPage() {
     toast.show({ kind: "success", message: t(`admin.toast.bulk_${action}`, { n: ids.length }) });
   };
 
-  const assign = async (names: string[]) => {
+  const assign = async (name: string) => {
     const ids = [...checked];
     setBusy(true);
-    const done = await attempt(() => adminApi.bulk(ids, "assign_placers", { placers: names }));
+    const done = await attempt(() => adminApi.bulk(ids, "assign_person", { person: name }));
     setBusy(false);
     if (!done) return;
     setDialog(null);
     setChecked(new Set());
-    toast.show({ kind: "success", message: t("admin.toast.assigned", { n: ids.length, names: names.join(", ") }) });
+    toast.show({ kind: "success", message: t("admin.toast.assigned", { n: ids.length, names: name }) });
     await load();
     void loadAdminPeople();
     void loadBase();
@@ -298,7 +298,7 @@ export default function ReviewPage() {
 
   const showList = desktop || !mobileDetail;
   const showDetail = desktop || mobileDetail;
-  const filtersOn = Boolean(reason || placerUnknown || batch || dq);
+  const filtersOn = Boolean(reason || anonymous || batch || dq);
 
   return (
     <>
@@ -319,7 +319,7 @@ export default function ReviewPage() {
               {chipReasons.map((code) => (
                 <FilterChip key={code} label={reasonMeta(code).label ? t(`admin.reason.${code}.chip`) : code} count={reasonCounts.get(code)} selected={reason === code} onToggle={() => setReason(reason === code ? "" : code)} />
               ))}
-              <FilterChip label={t("admin.filter.placerUnknown")} selected={placerUnknown} onToggle={() => setPlacerUnknown((v) => !v)} />
+              <FilterChip label={t("admin.filter.anonymous")} selected={anonymous} onToggle={() => setAnonymous((v) => !v)} />
               <FilterChip label={t("admin.filter.batch")} selected={batch !== ""} onToggle={() => setBatch(batch ? "" : "any")} />
             </div>
 
@@ -372,7 +372,7 @@ export default function ReviewPage() {
                 icon="/img/icons/papa.png"
                 title={filtersOn ? t("admin.review.emptyFiltered") : t("admin.review.empty")}
                 body={filtersOn ? t("admin.review.emptyFilteredBody") : t("admin.review.emptyBody")}
-                action={filtersOn ? { label: t("common.action.clear"), onClick: () => { setReason(""); setPlacerUnknown(false); setBatch(""); setQ(""); } } : undefined}
+                action={filtersOn ? { label: t("common.action.clear"), onClick: () => { setReason(""); setAnonymous(false); setBatch(""); setQ(""); } } : undefined}
               />
             )}
 
@@ -461,7 +461,7 @@ export default function ReviewPage() {
         onConfirm={() => batchTarget && void hideBatch(batchTarget)}
         onCancel={() => setDialog(null)}
       />
-      <AssignPlacersDialog open={dialog === "assign"} count={checked.size} busy={busy} onClose={() => setDialog(null)} onAssign={(names) => void assign(names)} />
+      <AssignPersonDialog open={dialog === "assign"} count={checked.size} busy={busy} onClose={() => setDialog(null)} onAssign={(name) => void assign(name)} />
       <Dialog
         open={dialog === "help"}
         title={t("admin.keys.title")}

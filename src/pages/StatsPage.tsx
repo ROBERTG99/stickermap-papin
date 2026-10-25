@@ -3,7 +3,6 @@ import { AppMenu } from "../components/AppMenu";
 import { Banner } from "../components/Banner";
 import { Flag } from "../components/Flag";
 import { Leaderboard } from "../components/Leaderboard";
-import { Segmented } from "../components/Segmented";
 import { Shell } from "../components/Shell";
 import { TypeCount } from "../components/StatSticker";
 import { Skeleton } from "../components/Skeleton";
@@ -13,19 +12,16 @@ import { t } from "../lib/i18n";
 import { lastPerson } from "../lib/local";
 import { people, typeBySlug } from "../lib/store";
 
-type Board = "placed" | "reported";
-
-/** /stats: hero numbers as stickers, per-type counts, the two leaderboards, countries and the monthly timeline (Page07/08). */
+/** /stats: hero numbers as stickers, per-type counts, the leaderboard, countries and the monthly timeline (Page07/08). */
 export default function StatsPage() {
   const [stats, setStats] = useState<StatsPayload | null>(null);
   const [failed, setFailed] = useState(false);
-  const [board, setBoard] = useState<Board>("placed");
   useEffect(() => { api.stats().then(setStats).catch(() => setFailed(true)); }, []);
 
   const me = lastPerson.get();
   const stickers = stats?.types.reduce((n, ty) => n + ty.count, 0) ?? 0;
   const max = Math.max(1, ...(stats?.types.map((ty) => ty.count) ?? [0]));
-  const rows = (board === "placed" ? stats?.placers : stats?.reporters)?.map((r) => ({ name: r.name, count: r.count, isYou: !!me && r.name.toLowerCase() === me.toLowerCase() })) ?? [];
+  const rows = stats?.placers.map((r) => ({ name: r.name, count: r.count, isYou: !!me && r.name.toLowerCase() === me.toLowerCase() })) ?? [];
   const peak = Math.max(1, ...(stats?.months.map((m) => m.count) ?? [0]));
 
   return (
@@ -59,11 +55,9 @@ export default function StatsPage() {
               </div>
             </section>
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 class="t-heading">{t("stats.rankings")}</h2>
-              <Segmented<Board> ariaLabel={t("stats.rankings")} value={board} onChange={setBoard}
-                options={[{ value: "placed", label: t("stats.mostPlaced") }, { value: "reported", label: t("stats.mostReported") }]} />
-              {rows.length === 0 && <p class="mp-field__hint">{t(board === "placed" ? "stats.noPlacers" : "stats.noReporters")}</p>}
-              <Leaderboard rows={rows} limit={8} footnote={board === "placed" && stats.unknown_placers > 0 ? t("stats.orphans", { n: formatNumber(stats.unknown_placers) }) : undefined} />
+              <h2 class="t-heading">{t("stats.mostPlaced")}</h2>
+              {rows.length === 0 && <p class="mp-field__hint">{t("stats.noPlacers")}</p>}
+              <Leaderboard rows={rows} limit={8} footnote={stats.unknown_placers > 0 ? t("stats.orphans", { n: formatNumber(stats.unknown_placers) }) : undefined} />
             </section>
             <section style={{ display: "grid", gap: 12 }}>
               <h2 class="t-heading">{t("stats.countriesTitle")}</h2>

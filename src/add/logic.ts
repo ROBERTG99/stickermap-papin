@@ -5,7 +5,7 @@
  */
 import type { CreateSpotMeta } from "../shared/schema";
 import { haversineMeters, round3 } from "../shared/geo";
-import type { LocationSource, PlacerStatus } from "../shared/types";
+import type { LocationSource } from "../shared/types";
 
 export const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
 /** EXIF and device positions further apart than this ask the user which one is right. */
@@ -13,7 +13,6 @@ export const CONFLICT_KM = 50;
 /** A "Sacar foto" picture is fresh when its EXIF date is this close to now. */
 export const FRESH_PHOTO_MS = 10 * 60_000;
 export const NOTE_MAX = 280;
-export const PLACER_NOTE_MAX = 140;
 export const OTHER_TEXT_MAX = 40;
 
 // ── photo files ───────────────────────────────────────────────────────────
@@ -90,7 +89,7 @@ export interface LocationChoice extends LatLng {
 
 // ── validation ────────────────────────────────────────────────────────────
 
-export type IssueCode = "photo_busy" | "no_location" | "no_type" | "no_placers";
+export type IssueCode = "photo_busy" | "no_location" | "no_type";
 export interface Issue { card: 1 | 2 | 3; code: IssueCode }
 
 export interface ValidationInput {
@@ -99,8 +98,6 @@ export interface ValidationInput {
   /** Location card still waiting for the device. */
   locationBusy: boolean;
   types: readonly string[];
-  placerStatus: PlacerStatus;
-  placers: readonly string[];
 }
 
 /** Everything that blocks "Mandale Mecha", in card order. */
@@ -109,7 +106,6 @@ export function validateAdd(input: ValidationInput): Issue[] {
   if (input.photoBusy) issues.push({ card: 1, code: "photo_busy" });
   if (!input.location || input.locationBusy) issues.push({ card: 2, code: "no_location" });
   if (input.types.length === 0) issues.push({ card: 3, code: "no_type" });
-  if (input.placerStatus === "other" && input.placers.length === 0) issues.push({ card: 3, code: "no_placers" });
   return issues;
 }
 
@@ -124,9 +120,6 @@ export interface MetaInput {
   /** Free text of the type that allows it; ignored when blank. */
   otherText: string;
   soy: string;
-  placerStatus: PlacerStatus;
-  placers: readonly string[];
-  placerNote: string;
   note: string;
   takenAt: string | null;
   photoSha256: string | null;
@@ -155,9 +148,7 @@ export function buildMeta(input: MetaInput): CreateSpotMeta {
   const { location } = input;
   const round = input.approximate ? round3 : (n: number) => n;
   const reporter = clean(input.soy) || null;
-  const placers = input.placerStatus === "other" ? uniqueNames(input.placers).slice(0, 10) : [];
   const otherText = clean(input.otherText).slice(0, OTHER_TEXT_MAX);
-  const placerNote = input.placerStatus === "unknown" ? clean(input.placerNote).slice(0, PLACER_NOTE_MAX) : "";
   const note = input.note.trim().slice(0, NOTE_MAX);
   return {
     lat: round(location.lat),
@@ -168,9 +159,6 @@ export function buildMeta(input: MetaInput): CreateSpotMeta {
     types: [...new Set(input.types)],
     other_text: otherText || null,
     reporter,
-    placer_status: input.placerStatus,
-    placers,
-    placer_note: placerNote || null,
     note: note || null,
     taken_at: input.takenAt,
     photo_sha256: input.photoSha256,
@@ -206,9 +194,6 @@ export interface EditSnapshot {
   types: readonly string[];
   otherText: string;
   note: string;
-  placerStatus: PlacerStatus;
-  placers: readonly string[];
-  placerNote: string;
 }
 
 /** Only the fields that changed (the endpoint is strict about unknown keys and rewrites what it receives). */
@@ -227,12 +212,5 @@ export function buildPatch(before: EditSnapshot, after: EditSnapshot, textSlugSe
   if (typesChanged) patch.types = [...new Set(after.types)];
   if (typesChanged || otherTextChanged) patch.other_text = textSlugSelected ? clean(after.otherText).slice(0, OTHER_TEXT_MAX) || null : null;
   if (after.note.trim() !== before.note.trim()) patch.note = after.note.trim().slice(0, NOTE_MAX) || null;
-  const placersChanged = after.placerStatus !== before.placerStatus || (after.placerStatus === "other" && !sameSet(uniqueNames(before.placers), uniqueNames(after.placers)));
-  const placerNoteChanged = clean(after.placerNote) !== clean(before.placerNote);
-  if (placersChanged) {
-    patch.placer_status = after.placerStatus;
-    patch.placers = after.placerStatus === "other" ? uniqueNames(after.placers).slice(0, 10) : [];
-  }
-  if (placersChanged || placerNoteChanged) patch.placer_note = after.placerStatus === "unknown" ? clean(after.placerNote).slice(0, PLACER_NOTE_MAX) || null : null;
   return patch;
 }

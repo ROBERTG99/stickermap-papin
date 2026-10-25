@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { LocationSuggestion } from "../../components/BatchItem";
 import { BottomSheet } from "../../components/BottomSheet";
 import { TypeGrid } from "../../components/Chip";
 import { TextAreaField } from "../../components/Field";
 import { Icon } from "../../components/Icon";
 import { LocationBadge, LocationPicker, type LocationState, type SearchResult } from "../../components/LocationPicker";
-import { loadRecentPlacers, WhoPlaced, validateWhoPlaced, type WhoPlacedValue } from "../../components/WhoPlaced";
 import { t } from "../../lib/i18n";
 import { formatCoords } from "../../lib/format";
 import { parseLocationText, type ParseFailure } from "../../lib/geo-parse";
-import { people, types } from "../../lib/store";
+import { types } from "../../lib/store";
 import { toast } from "../../lib/toast";
 import { effectiveCoords } from "./classify";
-import { clockOf, effectiveOtherText, effectivePlacer, effectiveTypes } from "./effective";
+import { clockOf, effectiveOtherText, effectiveTypes } from "./effective";
 import { defaults, omitPhoto, placePhoto, readyRows, rows, setOverride, type Row } from "./bulk";
 import { PinMap } from "./map";
 import { searchPlaces, reverseName, cachedName, type PlaceHit } from "./places";
@@ -167,25 +166,21 @@ function LocateStep({ row, onConfirm, onOmit, onBack, start, startSource }: Loca
 
 const sameSet = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((x) => b.includes(x));
 
-/** Tap a photo: change its type(s), who stuck it, its pin, add a note, or leave it out. The rest keeps "Para todas". */
+/** Tap a photo: change its type(s), its pin, add a note, or leave it out. The rest keeps "Para todas". */
 function EditStep({ row, onDone, onMovePin }: { row: Row; onDone: () => void; onMovePin: () => void }) {
   const photo = row.photo;
   const d = defaults.value!;
   const [slugs, setSlugs] = useState(effectiveTypes(photo, d));
   const [otherText, setOtherText] = useState(effectiveOtherText(photo, d));
-  const [placer, setPlacer] = useState<WhoPlacedValue>(effectivePlacer(photo, d));
   const [note, setNote] = useState(photo.override.note ?? "");
-  const onPlacer = useCallback((p: WhoPlacedValue) => setPlacer(p), []);
   const time = clockOf(photo.takenAt);
-  const placerError = validateWhoPlaced(placer);
-  const canSave = slugs.length > 0 && !placerError;
+  const canSave = slugs.length > 0;
   const where = whereLabel(photo);
 
   const save = () => {
     if (!canSave) return;
     const next: PhotoOverride = {};
     if (!sameSet(slugs, d.types) || otherText !== d.otherText) { next.types = slugs; next.otherText = otherText; }
-    if (JSON.stringify(placer) !== JSON.stringify(d.placer)) next.placer = placer;
     if (note.trim()) next.note = note.trim();
     setOverride(photo.id, next);
     onDone();
@@ -213,16 +208,6 @@ function EditStep({ row, onDone, onMovePin }: { row: Row; onDone: () => void; on
         <span class="bulk-defaults__label">{t("bulk.edit.type")}</span>
         <TypeGrid types={types.value} value={slugs} onChange={setSlugs} otherText={otherText} onOtherTextChange={setOtherText} label={t("bulk.defaults.typeAria")} />
       </div>
-
-      <WhoPlaced
-        value={placer}
-        onChange={onPlacer}
-        soy={d.soy}
-        people={people.value}
-        recent={loadRecentPlacers()}
-        error={placerError}
-        onRequestSoy={() => toast.show({ message: t("bulk.edit.needSoy") })}
-      />
 
       <TextAreaField label={t("bulk.edit.note")} value={note} maxLength={280} onInput={(e) => setNote(e.currentTarget.value)} />
 

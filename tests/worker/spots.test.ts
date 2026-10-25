@@ -10,10 +10,10 @@ async function create(input: Parameters<typeof spotForm>[0], headers: Record<str
 }
 
 describe("POST /api/spots", () => {
-  it("creates a spot with photo, types, reporter and placers", async () => {
+  it("creates a spot with photo, types and reporter (who is also the placer)", async () => {
     mockTurnstile(true);
     const { res, body } = await create({
-      meta: { types: ["papa", "sexo-punto"], reporter: "Ana", placer_status: "other", placers: ["Beto", "Caro"], note: "hola" },
+      meta: { types: ["papa", "sexo-punto"], reporter: "Ana", note: "hola" },
       original: JPEG(200),
     });
     expect(res.status).toBe(201);
@@ -23,7 +23,8 @@ describe("POST /api/spots", () => {
     const list = (await (await call("/api/spots")).json()) as { features: { id: string; properties: Record<string, unknown> }[] };
     const spot = list.features.find((f) => f.id === body.id)!;
     expect(spot.properties.types).toEqual(["papa", "sexo-punto"]);
-    expect(spot.properties.placers).toEqual(["Beto", "Caro"]);
+    expect(spot.properties.placers).toEqual(["Ana"]);
+    expect(spot.properties.placer_status).toBe("self");
     expect(spot.properties.reporter).toBe("Ana");
     expect(spot.properties.thumb).toBe(`/img/thumb/${body.id}.webp`);
     // display, thumb and the private original are in R2
@@ -34,9 +35,9 @@ describe("POST /api/spots", () => {
     expect(Number(meter!.value)).toBeGreaterThan(0);
   });
 
-  it("'Yo' stores the reporter as the placer", async () => {
+  it("stores the reporter as the placer, and ignores placer fields a stale client still sends", async () => {
     mockTurnstile(true);
-    const { body } = await create({ meta: { reporter: "Ana", placer_status: "self" } });
+    const { body } = await create({ meta: { reporter: "Ana", placer_status: "other", placers: ["Beto"] } });
     const { results } = await db().prepare("SELECT p.display_name AS n FROM spot_placers sp JOIN people p ON p.id = sp.person_id WHERE sp.spot_id = ?1").bind(body.id).all<{ n: string }>();
     expect(results.map((r) => r.n)).toEqual(["Ana"]);
   });
@@ -60,12 +61,18 @@ describe("POST /api/spots", () => {
     expect((await create({ meta: {}, display: svg, thumb: svg })).res.status).toBe(415);
   });
 
-  it("validates the payload (types, ranges, who stuck it)", async () => {
+  it("an anonymous spot has no placers", async () => {
+    mockTurnstile(true);
+    const { body } = await create({ meta: {} });
+    const row = await db().prepare("SELECT placer_status FROM spots WHERE id = ?1").bind(body.id).first<{ placer_status: string }>();
+    expect(row!.placer_status).toBe("unknown");
+    expect((await db().prepare("SELECT COUNT(*) AS n FROM spot_placers WHERE spot_id = ?1").bind(body.id).first<{ n: number }>())!.n).toBe(0);
+  });
+
+  it("validates the payload (types, ranges)", async () => {
     mockTurnstile(true);
     expect((await create({ meta: { types: ["nope"] } })).res.status).toBe(400);
     expect((await create({ meta: { lat: 120 } })).res.status).toBe(400);
-    expect((await create({ meta: { placer_status: "other", placers: [] } })).res.status).toBe(400);
-    expect((await create({ meta: { placer_status: "self" } })).res.status).toBe(400);
   });
 
   it("refuses the same photo twice with 409 and points to the existing spot", async () => {
@@ -93,7 +100,7 @@ describe("POST /api/spots", () => {
 describe("edit token", () => {
   async function made() {
     mockTurnstile(true);
-    const { body } = await create({ meta: { reporter: "Ana", placer_status: "self" } });
+    const { body } = await create({ meta: { reporter: "Ana" } });
     return { id: body.id as string, token: body.editToken as string };
   }
   const patch = (id: string, token: string | null, data: unknown) =>
@@ -134,20 +141,20 @@ describe("report", () => {
   it("flags the spot for review with the reason", async () => {
     mockTurnstile(true);
     const { body } = await create({ meta: {} });
-    const res = await call(`/api/spots/${body.id}/report`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: "know_placer", turnstile_token: "t" }) });
+    const res = await call(`/api/spots/${body.id}/report`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turnstile_token: "t" }) });
     expect(res.status).toBe(200);
     const row = await db().prepare("SELECT needs_review, review_reason FROM spots WHERE id = ?1").bind(body.id).first<{ needs_review: number; review_reason: string }>();
-    expect(row).toEqual({ needs_review: 1, review_reason: "know_placer" });
+    expect(row).toEqual({ needs_review: 1, review_reason: "reported" });
   });
 });
 
 describe("add a type to an existing spot", () => {
-  it("unions types and placers", async () => {
+  it("unions types and credits the person who adds one", async () => {
     mockTurnstile(true);
-    const { body } = await create({ meta: { reporter: "Ana", placer_status: "self" } });
+    const { body } = await create({ meta: { reporter: "Ana" } });
     const res = await call(`/api/spots/${body.id}/types`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ types: ["sexo-punto"], placer_status: "other", placers: ["Caro"], turnstile_token: "t" }),
+      body: JSON.stringify({ types: ["sexo-punto"], reporter: "Caro", turnstile_token: "t" }),
     });
     expect(res.status).toBe(200);
     const detail = (await (await call(`/api/spots/${body.id}`)).json()) as { types: string[]; placers: string[] };

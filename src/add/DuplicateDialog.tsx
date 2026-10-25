@@ -23,7 +23,7 @@ export function DuplicateDialog({ form }: { form: AddForm }) {
   const close = () => actions.dismissDuplicate(false);
 
   if (stage === "add") {
-    const blocked = s.types.length === 0 || (s.who.status === "other" && s.who.placers.length === 0);
+    const blocked = s.types.length === 0;
     return (
       <Dialog
         open

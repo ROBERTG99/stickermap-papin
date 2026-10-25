@@ -6,9 +6,9 @@ import { formatBytes, groupCounts, parseCoords, slugify } from "../../src/admin/
 describe("filterParams", () => {
   it("emits only the active filters so the list and the exports agree", () => {
     expect(filterParams(EMPTY_FILTERS).toString()).toBe("sort=created_at&dir=desc");
-    const p = filterParams({ ...EMPTY_FILTERS, status: "queue", placerUnknown: true, batch: "any", q: "  madrid ", type: "papa" });
+    const p = filterParams({ ...EMPTY_FILTERS, status: "queue", anonymous: true, batch: "any", q: "  madrid ", type: "papa" });
     expect(p.get("status")).toBe("queue");
-    expect(p.get("placer")).toBe("unknown");
+    expect(p.get("anonymous")).toBe("1");
     expect(p.get("batch")).toBe("any");
     expect(p.get("q")).toBe("madrid");
     expect(p.get("type")).toBe("papa");
@@ -18,7 +18,7 @@ describe("filterParams", () => {
   it("knows when something narrows the list", () => {
     expect(hasActiveFilters(EMPTY_FILTERS)).toBe(false);
     expect(hasActiveFilters({ ...EMPTY_FILTERS, sort: "place", dir: "asc" })).toBe(false);
-    expect(hasActiveFilters({ ...EMPTY_FILTERS, placerUnknown: true })).toBe(true);
+    expect(hasActiveFilters({ ...EMPTY_FILTERS, anonymous: true })).toBe(true);
   });
 });
 

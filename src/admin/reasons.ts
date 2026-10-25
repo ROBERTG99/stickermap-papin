@@ -16,13 +16,11 @@ const REASONS: Record<string, ReasonMeta> = {
   exif_gps_mismatch: { icon: "pin", variant: "alert", label: "admin.reason.exif_gps_mismatch.label", help: "admin.reason.exif_gps_mismatch.help" },
   reported: { icon: "flag", variant: "solid", label: "admin.reason.reported.label", help: "admin.reason.reported.help" },
   legacy_other_no_data: { icon: "image", variant: "neutral", label: "admin.reason.legacy_other_no_data.label", help: "admin.reason.legacy_other_no_data.help" },
-  know_placer: { icon: "user", variant: "brand", label: "admin.reason.know_placer.label", help: "admin.reason.know_placer.help" },
-  placer_note_in_soy: { icon: "note", variant: "neutral", label: "admin.reason.placer_note_in_soy.label", help: "admin.reason.placer_note_in_soy.help" },
   deleted: { icon: "trash", variant: "inverse", label: "admin.reason.deleted.label", help: "admin.reason.deleted.help" },
 };
 
 /** Quick-filter chips of the queue, in this order (only the ones that have spots are shown). */
-export const QUEUE_REASONS = ["duplicate_photo_far_apart", "exif_gps_mismatch", "reported", "know_placer", "legacy_other_no_data", "placer_note_in_soy"] as const;
+export const QUEUE_REASONS = ["duplicate_photo_far_apart", "exif_gps_mismatch", "reported", "legacy_other_no_data"] as const;
 
 const FALLBACK: ReasonMeta = { icon: "info", variant: "neutral", label: "", help: "admin.reason.other.help" };
 

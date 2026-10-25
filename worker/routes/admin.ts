@@ -6,7 +6,7 @@ import { adminFromRequest } from "../lib/access";
 import { bustSpotsCache } from "../lib/cache";
 import { sha256Hex } from "../lib/crypto";
 import { CONTENT_TYPE, sniffImage } from "../lib/images";
-import { findOrCreatePeople, findOrCreatePerson } from "../lib/people";
+import { findOrCreatePerson, placerStatusFor, syncPlacerStatements } from "../lib/people";
 import { meterStatement } from "../lib/r2";
 
 /** Everything under /api/admin/*: Cloudflare Access JWT required (BUILD.md §7.4, §8). */
@@ -46,7 +46,7 @@ function listParams(q: URLSearchParams): ListParams {
   else if (status === "published" || status === "pending") where.push(`s.status = ${bind(status)}`);
   const reason = q.get("reason");
   if (reason) where.push(`(',' || COALESCE(s.review_reason, '') || ',') LIKE ${bind(`%,${reason},%`)}`);
-  if (q.get("placer") === "unknown") where.push("s.placer_status = 'unknown'");
+  if (q.get("anonymous") === "1") where.push("s.reporter_person_id IS NULL");
   const type = q.get("type");
   if (type) where.push(`EXISTS (SELECT 1 FROM spot_types st WHERE st.spot_id = s.id AND st.type_slug = ${bind(type)})`);
   const country = q.get("country");
@@ -64,7 +64,7 @@ function listParams(q: URLSearchParams): ListParams {
 }
 
 interface AdminSpotRow {
-  id: string; lat: number; lng: number; status: string; needs_review: number; review_reason: string | null; placer_status: string; placer_note: string | null;
+  id: string; lat: number; lng: number; status: string; needs_review: number; review_reason: string | null; placer_status: string;
   place_name: string | null; country: string | null; country_code: string | null; created_at: string; updated_at: string; taken_at: string | null;
   photo_key: string | null; thumb_key: string | null; orig_key: string | null; batch_id: string | null; legacy_objectids: string | null; legacy_filename: string | null;
   location_source: string; is_approximate: number; note: string | null; other_text: string | null; reporter: string | null; photo_sha256: string | null;
@@ -77,7 +77,7 @@ async function adminSpots(db: D1Database, q: URLSearchParams, unlimited: boolean
   const from = `FROM spots s LEFT JOIN people rp ON rp.id = s.reporter_person_id ${where}`;
   const [rows, count] = await db.batch([
     db.prepare(
-      `SELECT s.id, s.lat, s.lng, s.status, s.needs_review, s.review_reason, s.placer_status, s.placer_note, s.place_name, s.country, s.country_code, s.created_at, s.updated_at,
+      `SELECT s.id, s.lat, s.lng, s.status, s.needs_review, s.review_reason, s.placer_status, s.place_name, s.country, s.country_code, s.created_at, s.updated_at,
               s.taken_at, s.photo_key, s.thumb_key, s.orig_key, s.batch_id, s.legacy_objectids, s.legacy_filename, s.location_source, s.is_approximate, s.note, s.other_text,
               s.photo_sha256, rp.display_name AS reporter ${from} ${order} LIMIT ${limit} OFFSET ${offset}`,
     ).bind(...binds),
@@ -101,7 +101,7 @@ async function adminSpots(db: D1Database, q: URLSearchParams, unlimited: boolean
     rows: list.map((r) => ({
       id: r.id, lat: r.lat, lng: r.lng, status: r.status, needs_review: r.needs_review === 1,
       review_reasons: r.review_reason ? r.review_reason.split(",") : [], types: t.get(r.id) ?? [], placers: p.get(r.id) ?? [], placer_status: r.placer_status,
-      placer_note: r.placer_note, reporter: r.reporter, place_name: r.place_name || null, country: r.country, country_code: r.country_code, created_at: r.created_at,
+      reporter: r.reporter, place_name: r.place_name || null, country: r.country, country_code: r.country_code, created_at: r.created_at,
       updated_at: r.updated_at, taken_at: r.taken_at, thumb: r.thumb_key ? `/api/admin/img/${r.thumb_key}` : null, photo: r.photo_key ? `/api/admin/img/${r.photo_key}` : null,
       has_original: !!r.orig_key, batch_id: r.batch_id, legacy_objectids: r.legacy_objectids ? (JSON.parse(r.legacy_objectids) as number[]) : [],
       legacy_filename: r.legacy_filename, location_source: r.location_source, is_approximate: r.is_approximate === 1, note: r.note, other_text: r.other_text,
@@ -151,9 +151,6 @@ const adminPatch = z.object({
   lng: z.number().min(-180).max(180).optional(),
   types: z.array(slug).min(1).max(12).optional(),
   reporter: name.nullish(),
-  placer_status: z.enum(["self", "other", "unknown"]).optional(),
-  placers: z.array(name).max(10).optional(),
-  placer_note: z.string().trim().max(140).nullish(),
   note: z.string().trim().max(280).nullish(),
   other_text: z.string().trim().max(40).nullish(),
   place_name: z.string().trim().max(200).nullish(),
@@ -200,25 +197,17 @@ admin.patch("/spots/:id", async (c) => {
     reporterId = p.reporter ? await findOrCreatePerson(db, p.reporter) : null;
     set("reporter_person_id", reporterId);
     set("reporter_raw", p.reporter ?? null);
+    // the uploader is the placer: the two always change together
+    set("placer_status", placerStatusFor(reporterId));
+    extra.push(...syncPlacerStatements(db, id, reporterId));
   }
-  for (const [k, col] of [["placer_note", "placer_note"], ["note", "note"], ["other_text", "other_text"], ["place_name", "place_name"], ["review_reason", "review_reason"]] as const) {
+  for (const [k, col] of [["note", "note"], ["other_text", "other_text"], ["place_name", "place_name"], ["review_reason", "review_reason"]] as const) {
     if (p[k] !== undefined) set(col, p[k] ?? null);
   }
   if (p.status) set("status", p.status);
   if (p.needs_review !== undefined) {
     set("needs_review", p.needs_review ? 1 : 0);
     if (!p.needs_review && p.review_reason === undefined) set("review_reason", null);
-  }
-  if (p.placer_status !== undefined) {
-    set("placer_status", p.placer_status);
-    extra.push(db.prepare("DELETE FROM spot_placers WHERE spot_id = ?1").bind(id));
-    if (p.placer_status === "other") {
-      if (!p.placers?.length) return c.json({ error: "other_requires_names" }, 400);
-      for (const pid of await findOrCreatePeople(db, p.placers)) extra.push(db.prepare("INSERT INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, pid));
-    } else if (p.placer_status === "self") {
-      if (!reporterId) return c.json({ error: "self_requires_reporter" }, 400);
-      extra.push(db.prepare("INSERT INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, reporterId));
-    }
   }
   if (p.types) {
     const have = await db.prepare(`SELECT COUNT(*) AS n FROM sticker_types WHERE slug IN (SELECT value FROM json_each(?1))`).bind(JSON.stringify(p.types)).first<{ n: number }>();
@@ -233,15 +222,15 @@ admin.patch("/spots/:id", async (c) => {
 
 const bulkBody = z.object({
   ids: z.array(z.string().min(1).max(40)).min(1).max(500),
-  action: z.enum(["approve", "hide", "delete", "restore", "clear_review", "assign_placers", "set_types", "fuzz"]),
-  placers: z.array(name).max(10).optional(),
+  action: z.enum(["approve", "hide", "delete", "restore", "clear_review", "assign_person", "set_types", "fuzz"]),
+  person: name.optional(),
   types: z.array(slug).min(1).max(12).optional(),
 });
 
 admin.post("/spots/bulk", async (c) => {
   const parsed = bulkBody.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: "invalid" }, 400);
-  const { ids, action, placers, types } = parsed.data;
+  const { ids, action, person, types } = parsed.data;
   const db = c.env.DB;
   const json = JSON.stringify(ids);
   const t = now();
@@ -266,18 +255,15 @@ admin.post("/spots/bulk", async (c) => {
     case "fuzz":
       stmts.push(db.prepare(`UPDATE spots SET lat = ROUND(lat, 3), lng = ROUND(lng, 3), is_approximate = 1, updated_at = ?2 ${where}`).bind(json, t));
       break;
-    case "assign_placers": {
-      if (!placers?.length) return c.json({ error: "placers_required" }, 400);
-      const pids = await findOrCreatePeople(db, placers);
-      stmts.push(db.prepare(`DELETE FROM spot_placers WHERE spot_id IN (SELECT value FROM json_each(?1))`).bind(json));
-      for (const pid of pids) {
-        stmts.push(db.prepare(`INSERT OR IGNORE INTO spot_placers (spot_id, person_id) SELECT id, ?2 FROM spots ${where}`).bind(json, pid));
-      }
-      stmts.push(db.prepare(
-        `UPDATE spots SET placer_status = 'other', updated_at = ?2,
-                review_reason = NULLIF(REPLACE(REPLACE(',' || COALESCE(review_reason, '') || ',', ',know_placer,', ','), ',,', ','), ','),
-                needs_review = CASE WHEN review_reason = 'know_placer' THEN 0 ELSE needs_review END ${where}`,
-      ).bind(json, t));
+    case "assign_person": {
+      // the person is both the reporter and the placer
+      if (!person) return c.json({ error: "person_required" }, 400);
+      const pid = await findOrCreatePerson(db, person);
+      stmts.push(
+        db.prepare(`UPDATE spots SET reporter_person_id = ?2, reporter_raw = ?3, placer_status = 'self', updated_at = ?4 ${where}`).bind(json, pid, person, t),
+        db.prepare(`DELETE FROM spot_placers WHERE spot_id IN (SELECT value FROM json_each(?1))`).bind(json),
+        db.prepare(`INSERT OR IGNORE INTO spot_placers (spot_id, person_id) SELECT id, ?2 FROM spots ${where}`).bind(json, pid),
+      );
       break;
     }
     case "set_types": {
@@ -288,7 +274,7 @@ admin.post("/spots/bulk", async (c) => {
       break;
     }
   }
-  stmts.push(audit(db, c.get("email"), `bulk_${action}`, "spot", ids.length === 1 ? ids[0]! : `${ids.length} spots`, { ids: ids.slice(0, 50), placers, types }));
+  stmts.push(audit(db, c.get("email"), `bulk_${action}`, "spot", ids.length === 1 ? ids[0]! : `${ids.length} spots`, { ids: ids.slice(0, 50), person, types }));
   await db.batch(stmts);
   c.executionCtx.waitUntil(bustSpotsCache(c));
   return c.json({ ok: true, count: ids.length });

@@ -70,16 +70,9 @@ describe("format (design voice)", () => {
 });
 
 describe("createSpotMeta", () => {
-  const base = { lat: -34.9, lng: -56.16, location_source: "pin", types: ["papa"], placer_status: "unknown" } as const;
+  const base = { lat: -34.9, lng: -56.16, location_source: "pin", types: ["papa"] } as const;
   it("accepts a minimal valid spot", () => {
     expect(createSpotMeta.safeParse(base).success).toBe(true);
-  });
-  it("requires a reporter for 'Yo' and names for 'Otro/s'", () => {
-    expect(createSpotMeta.safeParse({ ...base, placer_status: "self" }).success).toBe(false);
-    expect(createSpotMeta.safeParse({ ...base, placer_status: "self", reporter: "Ana" }).success).toBe(true);
-    expect(createSpotMeta.safeParse({ ...base, placer_status: "other" }).success).toBe(false);
-    expect(createSpotMeta.safeParse({ ...base, placer_status: "other", placers: ["Caro", "Beto"] }).success).toBe(true);
-    expect(createSpotMeta.safeParse({ ...base, placers: ["Caro"] }).success).toBe(false);
   });
   it("rejects out-of-range coordinates, empty types and long texts", () => {
     expect(createSpotMeta.safeParse({ ...base, lat: 91 }).success).toBe(false);

@@ -60,16 +60,6 @@
       "chip": "Sin foto",
       "help": "Viene de la encuesta vieja, es un “Otro” sin foto ni dato. Si no se puede saber qué es, ocultalo."
     },
-    "know_placer": {
-      "label": "Sé quién lo pegó",
-      "chip": "Sé quién lo pegó",
-      "help": "Alguien dice saber quién pegó este sticker. Asignale la persona en “Pegado por” y aprobalo."
-    },
-    "placer_note_in_soy": {
-      "label": "Nota en el nombre",
-      "chip": "Notas en el nombre",
-      "help": "En la encuesta vieja alguien escribió una nota donde iba el nombre. Está abajo: pasala al nombre correcto si se puede."
-    },
     "deleted": {
       "label": "Borrado",
       "chip": "Borrados",
@@ -80,9 +70,9 @@
     }
   },
   "filter": {
-    "placerUnknown": "Pegado por: ¿?",
     "noPhoto": "Sin foto",
-    "batch": "Lote"
+    "batch": "Lote",
+    "anonymous": "Sin persona"
   },
   "photo": {
     "of": "Foto: sticker",
@@ -125,7 +115,6 @@
     "placers": "Pegado por",
     "placersPlaceholder": "Agregar",
     "placersUnknown": "Nadie asignado todavía: figura como ¿?.",
-    "placerNote": "Dijeron en “Pegado por”",
     "note": "Nota",
     "otherText": "“Otro”, texto libre",
     "needOneType": "Elegí al menos un tipo de sticker.",
@@ -154,9 +143,9 @@
     "restore": "Restaurar"
   },
   "assign": {
-    "title": "Asignar “pegado por”",
-    "body": "Elegí quién pegó {n} stickers. Reemplaza a quien estuviera asignado.",
-    "label": "Pegado por",
+    "title": "Asignar persona",
+    "body": "Elegí quién cargó y pegó {n} stickers. Reemplaza a quien estuviera asignado.",
+    "label": "Persona",
     "placeholder": "Buscar o agregar persona",
     "hint": "Si el nombre no existe, se crea la persona.",
     "confirm": "Asignar a {n} stickers",

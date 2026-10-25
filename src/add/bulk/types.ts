@@ -1,5 +1,3 @@
-import type { WhoPlacedValue } from "../../components/WhoPlaced";
-
 /** Where a hand-placed pin came from (`LocationSource` values the Worker accepts for non-EXIF locations). */
 export type PlacedSource = "pin" | "search" | "paste";
 
@@ -12,7 +10,6 @@ export type ReadErrorCode = "too-big" | "not-image" | "cant-open" | "cant-read" 
 export interface PhotoOverride {
   types?: string[];
   otherText?: string;
-  placer?: WhoPlacedValue;
   note?: string;
 }
 
@@ -56,7 +53,6 @@ export interface PhotoMeta {
 export interface BulkDefaults {
   types: string[];
   otherText: string;
-  placer: WhoPlacedValue;
   soy: string;
   approximate: boolean;
   originals: boolean;

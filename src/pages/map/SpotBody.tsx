@@ -14,7 +14,6 @@ interface Props {
   variant: "peek" | "full";
   onOpenPhoto: () => void;
   onReport: () => void;
-  onKnowPlacer: () => void;
 }
 
 /** Time left to edit, ticking every 30 s. 0 when the visitor did not upload this spot (or the 24 h are over). */
@@ -30,7 +29,7 @@ function useEditRemaining(id: string): number {
 }
 
 /** The shared `mp-spot` block (SpotContent) plus what it does not render: note, "Otro" text and the edit countdown. */
-export function SpotBody({ detail, variant, onOpenPhoto, onReport, onKnowPlacer }: Props) {
+export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
   const all = types.value;
   const order = new Map(all.map((tp) => [tp.slug, tp.sort_order]));
   const sorted = { ...detail, types: [...detail.types].sort((a, b) => (order.get(a) ?? 999) - (order.get(b) ?? 999)) };
@@ -48,7 +47,6 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport, onKnowPlacer 
         onOpenPhoto={hasPhoto ? onOpenPhoto : undefined}
         onShare={() => void shareSpot(detail.id, view.place)}
         onReport={onReport}
-        onKnowPlacer={onKnowPlacer}
       />
       {variant === "full" && detail.other_text && (
         <div class="mp-spot__meta">

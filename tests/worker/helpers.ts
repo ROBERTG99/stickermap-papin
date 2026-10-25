@@ -24,7 +24,7 @@ export interface SpotInput { meta: Record<string, unknown>; display?: Uint8Array
 
 export function spotForm({ meta, display = WEBP(), thumb = WEBP(), original }: SpotInput): FormData {
   const form = new FormData();
-  form.set("meta", JSON.stringify({ lat: -34.9, lng: -56.16, location_source: "pin", types: ["papa"], placer_status: "unknown", turnstile_token: "tok", ...meta }));
+  form.set("meta", JSON.stringify({ lat: -34.9, lng: -56.16, location_source: "pin", types: ["papa"], turnstile_token: "tok", ...meta }));
   if (display) form.set("display", new File([display.slice().buffer], "d.webp", { type: "image/webp" }));
   if (thumb) form.set("thumb", new File([thumb.slice().buffer], "t.webp", { type: "image/webp" }));
   if (original) form.set("original", new File([original.slice().buffer], "o.jpg", { type: "image/jpeg" }));

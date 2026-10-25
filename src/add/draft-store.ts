@@ -5,7 +5,6 @@
  */
 import { openDB, type DBSchema } from "idb";
 import type { Derivative, PhotoExif } from "../lib/photo";
-import type { WhoPlacedValue } from "../components/WhoPlaced";
 import type { Candidate } from "./state";
 import type { LocationChoice } from "./logic";
 
@@ -29,8 +28,6 @@ export interface AddDraft {
   types: string[];
   otherText: string;
   soy: string;
-  who: WhoPlacedValue;
-  whoTouched: boolean;
   note: string;
 }
 

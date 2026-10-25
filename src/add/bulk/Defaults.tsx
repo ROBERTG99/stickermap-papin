@@ -1,8 +1,7 @@
-import { useCallback, useRef, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { TypeGrid } from "../../components/Chip";
 import { Combobox, SwitchRow } from "../../components/Field";
 import { Icon } from "../../components/Icon";
-import { loadRecentPlacers, validateWhoPlaced, WhoPlaced, type WhoPlacedValue } from "../../components/WhoPlaced";
 import { cx } from "../../lib/cx";
 import { t } from "../../lib/i18n";
 import { people, types } from "../../lib/store";
@@ -11,13 +10,11 @@ import type { BulkProblem } from "./effective";
 import { approxSize } from "./ui";
 import type { BulkDefaults } from "./types";
 
-/** "Para todas las fotos": type (required), ¿Quién lo pegó?, Soy, and the collapsed "Más opciones". */
+/** "Para todas las fotos": type (required), Soy, and the collapsed "Más opciones". */
 export function DefaultsCard({ d, problem, showProblem }: { d: BulkDefaults; problem: BulkProblem | null; showProblem: boolean }) {
   const [more, setMore] = useState(false);
-  const soyInput = useRef<HTMLInputElement>(null);
-  const onPlacer = useCallback((placer: WhoPlacedValue) => setDefaults({ placer }), []);
   const done = d.types.length > 0;
-  const invalid = showProblem && (problem === "type" || problem === "other" || problem === "placer");
+  const invalid = showProblem && (problem === "type" || problem === "other");
 
   return (
     <section class={cx("mp-card bulk-defaults", invalid && "is-invalid")} id="bulk-defaults" aria-labelledby="bulk-defaults-title">
@@ -48,16 +45,6 @@ export function DefaultsCard({ d, problem, showProblem }: { d: BulkDefaults; pro
         )}
       </div>
 
-      <WhoPlaced
-        value={d.placer}
-        onChange={onPlacer}
-        soy={d.soy}
-        people={people.value}
-        recent={loadRecentPlacers()}
-        error={showProblem ? validateWhoPlaced(d.placer) : null}
-        onRequestSoy={() => soyInput.current?.focus()}
-      />
-
       <Combobox
         label={t("bulk.defaults.soy")}
         options={people.value.map((p) => ({ name: p.name, count: p.placed }))}
@@ -66,7 +53,6 @@ export function DefaultsCard({ d, problem, showProblem }: { d: BulkDefaults; pro
         multiple={false}
         allowCreate
         placeholder={t("bulk.defaults.soyPlaceholder")}
-        inputRef={soyInput}
       />
 
       <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm bulk-defaults__more" aria-expanded={more} aria-controls="bulk-more" onClick={() => setMore(!more)}>

@@ -5,7 +5,7 @@ import { t } from "../lib/i18n";
 import type { StickerType } from "../shared/types";
 import { Icon } from "./Icon";
 
-/* ── Shared helpers (also used by Field and WhoPlaced) ───────────────────── */
+/* ── Shared helpers (also used by Field) ───────────────────── */
 
 /** Stable tilt for things (type icons, avatars, markers): `--tilt-1..4` by index % 4. Never random. */
 export function tiltStyle(index: number): string {

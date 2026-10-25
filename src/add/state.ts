@@ -1,4 +1,3 @@
-import type { WhoPlacedValue } from "../components/WhoPlaced";
 import type { ProcessedPhoto } from "../lib/photo";
 import type { SpotDetail } from "../shared/types";
 import type { DeviceFix } from "./device";
@@ -61,9 +60,6 @@ export interface AddState {
   types: string[];
   otherText: string;
   soy: string;
-  who: WhoPlacedValue;
-  /** The user picked a "¿Quién lo pegó?" option by hand, so "Soy:" no longer changes the default. */
-  whoTouched: boolean;
   note: string;
   noteOpen: boolean;
 

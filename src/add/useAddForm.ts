@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { recordStickerAdded } from "../lib/pwa";
-import { defaultWhoPlaced, rememberPlacers, type WhoPlacedValue } from "../components/WhoPlaced";
 import { toast } from "../lib/toast";
 import { ApiError, api } from "../lib/api";
 import { parseLocationText } from "../lib/geo-parse";
@@ -39,7 +38,7 @@ function initialState(): AddState {
     photo: null, photoError: null,
     choice: null, revert: null, exif: null, device: null, resolving: false, denied: false, conflict: null,
     results: [], paste: null, pasteError: null, focus: null, approximate: false,
-    types: [], otherText: "", soy, who: defaultWhoPlaced(soy), whoTouched: false, note: "", noteOpen: false,
+    types: [], otherText: "", soy, note: "", noteOpen: false,
     attempted: false, phase: "idle", progress: 0, error: null,
     duplicate: null, duplicateStage: "closed", addingHere: false, restored: false,
   };
@@ -274,18 +273,10 @@ export function useAddForm() {
     patch((cur) => ({ duplicateStage: "closed", photo: cur.photo && keepAnyway ? { ...cur.photo, keepAnyway: true } : cur.photo }));
   }, [patch]);
 
-  // ── what / who ────────────────────────────────────────────────────────
+  // ── what / who (the person who uploads is the one who stuck it) ───────
 
   const setSoy = useCallback((soy: string) => {
-    patch((cur) => ({ soy, ...(cur.whoTouched ? {} : { who: defaultWhoPlaced(soy) }) }));
-  }, [patch]);
-
-  const setWho = useCallback((who: WhoPlacedValue) => {
-    patch((cur) => {
-      // The component also changes "Yo" -> "No sé" by itself when "Soy:" is emptied: that is not a choice.
-      const automatic = cur.who.status === "self" && !cur.soy.trim() && who.status === "unknown";
-      return { who, whoTouched: cur.whoTouched || (who.status !== cur.who.status && !automatic) };
-    });
+    patch({ soy });
   }, [patch]);
 
   // ── derived ───────────────────────────────────────────────────────────
@@ -298,8 +289,6 @@ export function useAddForm() {
     location: s.choice,
     locationBusy: false,
     types: s.types,
-    placerStatus: s.who.status,
-    placers: s.who.placers,
   });
 
   // ── draft ─────────────────────────────────────────────────────────────
@@ -311,7 +300,7 @@ export function useAddForm() {
           display: cur.photo.processed.display, thumb: cur.photo.processed.thumb, decoded: cur.photo.processed.decoded }
       : null,
     choice: cur.choice, exif: cur.exif, approximate: cur.approximate, types: cur.types, otherText: cur.otherText,
-    soy: cur.soy, who: cur.who, whoTouched: cur.whoTouched, note: cur.note,
+    soy: cur.soy, note: cur.note,
   }), []);
 
   // Restore an unsent sticker (a failed upload from an earlier visit).
@@ -329,7 +318,7 @@ export function useAddForm() {
         : null;
       patch((cur) => ({
         photo, choice: draft.choice, exif: draft.exif, approximate: draft.approximate, types: draft.types, otherText: draft.otherText,
-        soy: draft.soy || cur.soy, who: draft.who, whoTouched: draft.whoTouched, note: draft.note, noteOpen: !!draft.note, restored: true,
+        soy: draft.soy || cur.soy, note: draft.note, noteOpen: !!draft.note, restored: true,
         focus: draft.choice ? focusOf(cur, draft.choice.lat, draft.choice.lng, 17) : null,
       }));
     });
@@ -341,14 +330,14 @@ export function useAddForm() {
     if (!draftActive.current) return;
     const id = window.setTimeout(() => { void saveDraft(snapshot(ref.current)); }, 700);
     return () => window.clearTimeout(id);
-  }, [s.photo?.processed, s.choice, s.approximate, s.types, s.otherText, s.soy, s.who, s.note, snapshot]);
+  }, [s.photo?.processed, s.choice, s.approximate, s.types, s.otherText, s.soy, s.note, snapshot]);
 
   const discardDraft = useCallback(() => {
     draftActive.current = false;
     void clearDraft();
     photoToken.current++;
     revoke(ref.current.photo);
-    patch({ ...initialState(), soy: ref.current.soy, who: ref.current.who });
+    patch({ ...initialState(), soy: ref.current.soy });
   }, [patch]);
 
   useEffect(() => () => revoke(ref.current.photo), []);
@@ -379,14 +368,14 @@ export function useAddForm() {
 
   const submit = useCallback(async () => {
     const cur = ref.current;
-    if (cur.phase === "uploading" || !cur.choice || validateAdd({ photoBusy: cur.photo?.status === "processing", location: cur.choice, locationBusy: false, types: cur.types, placerStatus: cur.who.status, placers: cur.who.placers }).length) return;
+    if (cur.phase === "uploading" || !cur.choice || validateAdd({ photoBusy: cur.photo?.status === "processing", location: cur.choice, locationBusy: false, types: cur.types }).length) return;
     patch({ phase: "uploading", progress: 0, error: null });
     try {
       const token = await turnstile();
       const meta = buildMeta({
         location: cur.choice, approximate: cur.approximate, types: cur.types,
         otherText: cur.types.some((slug) => textSlugs.has(slug)) ? cur.otherText : "",
-        soy: cur.soy, placerStatus: cur.who.status, placers: cur.who.placers, placerNote: cur.who.note ?? "", note: cur.note,
+        soy: cur.soy, note: cur.note,
         takenAt: cur.photo?.processed?.exif.takenAt ?? null,
         photoSha256: cur.photo && !cur.photo.keepAnyway ? (cur.photo.processed?.sha256 ?? null) : null,
         turnstileToken: token,
@@ -404,8 +393,6 @@ export function useAddForm() {
       const created = await api.createSpot(form, { onProgress: (f) => patch({ progress: Math.min(99, Math.round(f * 100)) }) });
       if (created.editToken) editGrants.save(`spot:${created.id}`, created.editToken);
       if (cur.soy.trim()) lastPerson.set(cur.soy);
-      const named = cur.who.status === "other" ? cur.who.placers : [];
-      if (named.length) rememberPlacers(named);
       storage.set("lastLocation", { lat: cur.choice.lat, lng: cur.choice.lng });
       lastCreated.value = {
         id: created.id, types: cur.types, lat: meta.lat, lng: meta.lng,
@@ -423,11 +410,11 @@ export function useAddForm() {
     }
   }, [patch, turnstile, textSlugs, fail]);
 
-  /** "Agregar sticker a ese lugar": the types and "¿Quién lo pegó?" of this form go to the spot that already has the photo. */
+  /** "Agregar sticker a ese lugar": the types of this form go to the spot that already has the photo. */
   const addToExisting = useCallback(async () => {
     const cur = ref.current;
     const target = cur.duplicate;
-    if (!target || cur.addingHere || cur.types.length === 0 || (cur.who.status === "other" && cur.who.placers.length === 0)) return;
+    if (!target || cur.addingHere || cur.types.length === 0) return;
     patch({ addingHere: true });
     try {
       const token = await turnstile();
@@ -435,12 +422,9 @@ export function useAddForm() {
         types: cur.types,
         other_text: cur.types.some((slug) => textSlugs.has(slug)) ? cur.otherText.trim() || null : null,
         reporter: cur.soy.trim() || null,
-        placer_status: cur.who.status,
-        placers: cur.who.status === "other" ? cur.who.placers : [],
         turnstile_token: token,
       });
       if (cur.soy.trim()) lastPerson.set(cur.soy);
-      if (cur.who.status === "other") rememberPlacers(cur.who.placers);
       toast.show({ message: t("add.dup.added"), kind: "success" });
       void loadSpots();
       patch({ addingHere: false, duplicateStage: "closed" });
@@ -459,7 +443,7 @@ export function useAddForm() {
     actions: {
       requestDevice, setPin, revertPin, search, pickResult, pasteText, pickConflict,
       pickFiles, removePhoto, rotate, dismissDuplicate,
-      setSoy, setWho, submit, addToExisting, discardDraft,
+      setSoy, submit, addToExisting, discardDraft,
     },
   };
 }

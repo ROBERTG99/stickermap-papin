@@ -1,21 +1,17 @@
-import { useRef } from "preact/hooks";
 import { TypeGrid } from "../components/Chip";
 import { Combobox } from "../components/Field";
 import { StickerCard } from "../components/StickerCard";
 import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { TextAreaField } from "../components/Field";
-import { loadRecentPlacers, validateWhoPlaced, WhoPlaced } from "../components/WhoPlaced";
 import { t } from "../lib/i18n";
 import { people, types as typeList } from "../lib/store";
 import { NOTE_MAX, OTHER_TEXT_MAX } from "./logic";
 import type { AddForm } from "./useAddForm";
 
-/** Type tiles + "Soy:" + "¿Quién lo pegó?". Shared by card 3 and the "Agregar sticker a ese lugar" sheet. */
+/** Type tiles + "Soy:" (the person who uploads is the one who stuck it). Shared by card 3 and the "Agregar sticker a ese lugar" sheet. */
 export function WhatFields({ form, showErrors }: { form: AddForm; showErrors: boolean }) {
   const { s, actions } = form;
-  const soyInput = useRef<HTMLInputElement>(null);
-  const whoError = showErrors ? validateWhoPlaced(s.who) : null;
 
   return (
     <>
@@ -41,19 +37,7 @@ export function WhatFields({ form, showErrors }: { form: AddForm; showErrors: bo
           onChange={(names) => actions.setSoy(names[0] ?? "")}
           multiple={false}
           allowCreate
-          inputRef={soyInput}
         />
-        <div class="add-flat">
-          <WhoPlaced
-            value={s.who}
-            onChange={actions.setWho}
-            soy={s.soy}
-            people={people.value}
-            recent={loadRecentPlacers()}
-            error={whoError}
-            onRequestSoy={() => soyInput.current?.focus()}
-          />
-        </div>
       </div>
     </>
   );

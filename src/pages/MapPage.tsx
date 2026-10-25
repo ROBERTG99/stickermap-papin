@@ -291,8 +291,7 @@ export default function MapPage({ spotId }: { spotId?: string }) {
         detail={shown}
         variant={variant}
         onOpenPhoto={() => setPhotoFor(shown.id)}
-        onReport={() => setReport({ id: shown.id, reason: "reported" })}
-        onKnowPlacer={() => setReport({ id: shown.id, reason: "know_placer" })}
+        onReport={() => setReport({ id: shown.id })}
       />
     ) : (
       <SpotSkeleton />

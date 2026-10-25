@@ -159,26 +159,12 @@
     "viewPhoto": "Ver foto",
     "viewFull": "Ver foto en pantalla completa",
     "placedBy": "PEGADO POR",
-    "knowWho": "¿Sabés quién fue?",
-    "uploadedBy": "Cargado por:",
     "maps": "Ver en Google Maps",
     "editWindow": "podés editar por {h} h"
   },
   "date": {
     "hoursAgo": "hace {n} h",
     "minutesAgo": "hace {n} min"
-  },
-  "who": {
-    "error": "Poné al menos un nombre, o elegí “No sé”.",
-    "me": "Yo",
-    "others": "Otro/s",
-    "unknown": "No sé",
-    "question": "¿Quién lo pegó?",
-    "addName": "Agregar nombre",
-    "recent": "Recientes",
-    "note": "¿Algún dato? (opcional)",
-    "notePlaceholder": "Ej: lo vio el hermano de JM",
-    "unknownHint": "Queda como “Pegado por: ¿?” hasta que alguien sepa."
   },
   "loc": {
     "exif": "Ubicación de la foto",

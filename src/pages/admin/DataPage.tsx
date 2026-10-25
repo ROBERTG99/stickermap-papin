@@ -15,7 +15,7 @@ import { formatDate } from "../../lib/format";
 import { t } from "../../lib/i18n";
 import { loadBase } from "../../lib/store";
 import { toast } from "../../lib/toast";
-import { AssignPlacersDialog, PageHead, PlaceCell, PlacerCell, SearchBox, SpotThumb, StatusBadge, TypeStickers, isTrashed, useDebounced } from "./parts";
+import { AssignPersonDialog, PageHead, PlaceCell, PlacerCell, SearchBox, SpotThumb, StatusBadge, TypeStickers, isTrashed, useDebounced } from "./parts";
 
 const PAGE_SIZE = 25;
 const STATUSES: readonly { value: StatusFilter; label: string }[] = [
@@ -155,7 +155,7 @@ export default function DataPage() {
     return true;
   };
 
-  const runBulk = async (action: BulkAction, message: string, extra: { placers?: string[] } = {}) => {
+  const runBulk = async (action: BulkAction, message: string, extra: { person?: string } = {}) => {
     const ids = [...selected];
     if (ids.length === 0 || busy) return;
     setBusy(true);
@@ -167,7 +167,7 @@ export default function DataPage() {
     toast.show({ kind: "success", message });
     await load();
     void refreshCounts();
-    if (action === "assign_placers") {
+    if (action === "assign_person") {
       void loadAdminPeople();
       void loadBase();
     }
@@ -243,7 +243,7 @@ export default function DataPage() {
         </div>
       </div>
       <div class="mp-chips" role="group" aria-label={t("admin.table.moreFilters")}>
-        <FilterChip label={t("admin.filter.placerUnknown")} selected={filters.placerUnknown} onToggle={() => change({ placerUnknown: !filters.placerUnknown })} />
+        <FilterChip label={t("admin.filter.anonymous")} selected={filters.anonymous} onToggle={() => change({ anonymous: !filters.anonymous })} />
         <FilterChip label={t("admin.filter.noPhoto")} selected={filters.reason === "legacy_other_no_data"} onToggle={() => change({ reason: filters.reason ? "" : "legacy_other_no_data" })} />
         <FilterChip label={t("admin.filter.batch")} selected={filters.batch !== ""} onToggle={() => change({ batch: filters.batch ? "" : "any" })} />
         {adminTypes.value
@@ -322,12 +322,12 @@ export default function DataPage() {
         />
       </div>
 
-      <AssignPlacersDialog
+      <AssignPersonDialog
         open={dialog === "assign"}
         count={selected.size}
         busy={busy}
         onClose={() => setDialog(null)}
-        onAssign={(names) => void runBulk("assign_placers", t("admin.toast.assigned", { n: selected.size, names: names.join(", ") }), { placers: names })}
+        onAssign={(name) => void runBulk("assign_person", t("admin.toast.assigned", { n: selected.size, names: name }), { person: name })}
       />
       <ConfirmDialog
         open={dialog === "delete"}

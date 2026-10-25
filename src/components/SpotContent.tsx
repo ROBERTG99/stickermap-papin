@@ -1,4 +1,4 @@
-import type { PlacerStatus, SpotDetail, StickerType } from "../shared/types";
+import type { SpotDetail, StickerType } from "../shared/types";
 import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
@@ -14,10 +14,8 @@ export interface SpotView {
   countryCode: string | null;
   /** Resolved types; the first one is the main one. */
   types: StickerType[];
+  /** Who uploaded and stuck it (the same person); empty for anonymous spots. */
   placers: string[];
-  placerStatus: PlacerStatus;
-  /** Who uploaded it; null is "Anónimo". */
-  uploader: string | null;
   /** Date label already formatted ("15 abr 2025" or "hace 1 h"). */
   dateLabel: string;
   /** `/img/display/<id>.webp`; null renders the placeholder photo. */
@@ -38,8 +36,6 @@ export function toSpotView(spot: SpotDetail, allTypes: StickerType[]): SpotView 
     countryCode: spot.country_code,
     types,
     placers: spot.placers,
-    placerStatus: spot.placer_status,
-    uploader: spot.reporter,
     dateLabel: formatSpotDate(spot.taken_at ?? spot.created_at),
     photo: spot.photo,
     lat: spot.lat,
@@ -58,8 +54,6 @@ interface SpotContentProps {
   onOpenPhoto?: () => void;
   onShare?: () => void;
   onReport?: () => void;
-  /** "¿Sabés quién fue?" (unknown placer): the parent opens Reportar with the reason "Sé quién lo pegó". */
-  onKnowPlacer?: () => void;
   onEdit?: () => void;
 }
 
@@ -122,7 +116,7 @@ function mapsUrl(spot: SpotView): string {
 }
 
 /** The shared `mp-spot` block: same inside the mobile BottomSheet and the desktop SidePanel. */
-export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onShare, onReport, onKnowPlacer, onEdit }: SpotContentProps) {
+export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onShare, onReport, onEdit }: SpotContentProps) {
   if (variant === "peek") {
     return (
       <div class="mp-spot">
@@ -139,14 +133,9 @@ export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onS
     );
   }
 
-  const unknown = spot.placers.length === 0 || spot.placerStatus === "unknown";
-  const names = unknown ? [] : spot.placers;
+  const unknown = spot.placers.length === 0;
+  const names = spot.placers;
   const written = names.map((n) => (n === me ? t("common.person.you", { name: n }) : n));
-  const uploader = spot.uploader === null
-      ? t("common.person.anonymous")
-      : spot.uploader === me
-        ? t("common.person.you", { name: spot.uploader })
-        : spot.uploader;
 
   return (
     <div class="mp-spot">
@@ -174,16 +163,8 @@ export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onS
           <span class="mp-spot__by-label">{t("components.spot.placedBy")}</span>
           <span class="mp-spot__by-names">{unknown ? t("common.person.unknownPlacer") : placersLabel(written)}</span>
         </div>
-        {unknown && onKnowPlacer && (
-          <button type="button" class="mp-btn mp-btn--quiet mp-btn--sm" style="margin-left:auto" onClick={onKnowPlacer}>
-            {t("components.spot.knowWho")}
-          </button>
-        )}
       </div>
-      <div class="mp-spot__meta">
-        {t("components.spot.uploadedBy")} <b>{uploader}</b>
-        {spot.dateLabel && ` · ${spot.dateLabel}`}
-      </div>
+      {spot.dateLabel && <div class="mp-spot__meta">{spot.dateLabel}</div>}
       <div class="mp-spot__actions">
         <a class="mp-btn mp-btn--secondary" href={mapsUrl(spot)} target="_blank" rel="noopener noreferrer">
           <Icon name="external" size="sm" />

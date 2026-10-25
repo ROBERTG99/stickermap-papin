@@ -5,13 +5,11 @@ import { FilterChip, PersonAvatar, TypeChip } from "../../components/Chip";
 import { t } from "../../lib/i18n";
 import { people, types } from "../../lib/store";
 import {
-  ANONYMOUS_REPORTER,
   DATE_PRESETS,
   UNKNOWN_PLACER,
   listCountries,
   placerKeys,
   rankNames,
-  reporterKey,
   toggleValue,
   type DatePreset,
 } from "../../map/filters";
@@ -108,11 +106,6 @@ export function FilterSections() {
     const extra = people.value.filter((p) => p.placed > 0 && !seen.includes(p.name)).map((p) => p.name);
     return [...seen, ...extra];
   }, [features, people.value]);
-  const reporterNames = useMemo(() => {
-    const seen = rankNames(features, (s) => [reporterKey(s)]);
-    const extra = people.value.filter((p) => p.reported > 0 && !seen.includes(p.name)).map((p) => p.name);
-    return [...seen, ...extra];
-  }, [features, people.value]);
 
   return (
     <>
@@ -133,14 +126,6 @@ export function FilterSections() {
         special={{ [UNKNOWN_PLACER]: t("common.person.unknownPlacer") }}
         searchable
         onToggle={(n) => setFilters({ ...filters.value, placers: toggleValue(filters.value.placers, n) })}
-      />
-      <PeopleSection
-        title={t("map.filters.reporters")}
-        names={reporterNames}
-        counts={counts.reporters}
-        selected={f.reporters}
-        special={{ [ANONYMOUS_REPORTER]: t("common.person.anonymous") }}
-        onToggle={(n) => setFilters({ ...filters.value, reporters: toggleValue(filters.value.reporters, n) })}
       />
       {countries.length > 0 && (
         <Section title={t("map.filters.countries")}>

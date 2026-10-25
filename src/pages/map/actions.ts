@@ -24,21 +24,19 @@ export async function shareSpot(id: string, place: string): Promise<void> {
   }
 }
 
-export type ReportReason = "reported" | "know_placer";
-
 /** Sends a report (Turnstile token first). Returns true when it went through; failures show a toast with "Reintentar". */
-export async function submitReport(id: string, reason: ReportReason, note: string | null): Promise<boolean> {
+export async function submitReport(id: string): Promise<boolean> {
   try {
     const sitekey = config.value?.turnstile_sitekey;
     const turnstile_token = sitekey ? await getTurnstileToken(sitekey) : null;
-    await api.report(id, { reason, note, turnstile_token });
-    toast.show({ message: t(reason === "know_placer" ? "map.report.knowDone" : "map.report.done"), kind: "success" });
+    await api.report(id, { turnstile_token });
+    toast.show({ message: t("map.report.done"), kind: "success" });
     return true;
   } catch {
     toast.show({
       message: t("map.report.failed"),
       kind: "error",
-      action: { label: t("common.action.retry"), onClick: () => void submitReport(id, reason, note) },
+      action: { label: t("common.action.retry"), onClick: () => void submitReport(id) },
     });
     return false;
   }

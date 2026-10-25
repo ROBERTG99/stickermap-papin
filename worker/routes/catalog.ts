@@ -38,15 +38,13 @@ catalog.get("/people", (c) =>
 catalog.get("/stats", (c) =>
   cachedJson(c, async () => {
     const db = c.env.DB;
-    const [totals, types, placers, reporters, countries, months, countriesPerPlacer] = await db.batch([
-      db.prepare("SELECT COUNT(*) AS spots, COUNT(DISTINCT country_code) AS countries, MAX(updated_at) AS updated, SUM(placer_status = 'unknown') AS unknown_placers FROM spots WHERE status = 'published'"),
+    const [totals, types, placers, countries, months, countriesPerPlacer] = await db.batch([
+      db.prepare("SELECT COUNT(*) AS spots, COUNT(DISTINCT country_code) AS countries, MAX(updated_at) AS updated, SUM(reporter_person_id IS NULL) AS unknown_placers FROM spots WHERE status = 'published'"),
       db.prepare(`SELECT t.slug, t.label, COUNT(s.id) AS count FROM sticker_types t
                     LEFT JOIN spot_types st ON st.type_slug = t.slug LEFT JOIN spots s ON s.id = st.spot_id AND s.status = 'published'
                    WHERE t.is_active = 1 GROUP BY t.slug ORDER BY t.sort_order`),
       db.prepare(`SELECT p.display_name AS name, COUNT(DISTINCT s.id) AS count FROM spot_placers sp JOIN people p ON p.id = sp.person_id
                     JOIN spots s ON s.id = sp.spot_id AND s.status = 'published' GROUP BY p.id ORDER BY count DESC, name LIMIT 50`),
-      db.prepare(`SELECT p.display_name AS name, COUNT(*) AS count FROM spots s JOIN people p ON p.id = s.reporter_person_id
-                   WHERE s.status = 'published' GROUP BY p.id ORDER BY count DESC, name LIMIT 50`),
       db.prepare(`SELECT country_code AS code, country AS name, COUNT(*) AS count FROM spots WHERE status = 'published' AND country_code IS NOT NULL
                    GROUP BY country_code ORDER BY count DESC`),
       db.prepare("SELECT substr(created_at, 1, 7) AS month, COUNT(*) AS count FROM spots WHERE status = 'published' GROUP BY month ORDER BY month"),
@@ -58,7 +56,7 @@ catalog.get("/stats", (c) =>
     const body = {
       total_spots: t.spots, total_countries: t.countries, unknown_placers: t.unknown_placers ?? 0, types: types?.results ?? [],
       placers: ((placers?.results ?? []) as { name: string; count: number }[]).map((p) => ({ ...p, countries: perPlacer.get(p.name) ?? 0 })),
-      reporters: reporters?.results ?? [], countries: countries?.results ?? [], months: months?.results ?? [],
+      countries: countries?.results ?? [], months: months?.results ?? [],
     };
     return { body, etag: `W/"stats-${t.updated ?? ""}-${t.spots}"` };
   }, FIVE_MIN),

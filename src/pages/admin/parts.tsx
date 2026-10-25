@@ -151,13 +151,13 @@ export function PlaceCell({ spot }: { spot: Pick<AdminSpot, "place_name" | "coun
   );
 }
 
-/** "Asignar a…": pick (or create) the people who stuck the selected spots, then confirm. Bulk `assign_placers`. */
-export function AssignPlacersDialog({ open, count, busy, onClose, onAssign }: {
+/** "Asignar persona": pick (or create) the person who uploaded and stuck the selected spots, then confirm. Bulk `assign_person`. */
+export function AssignPersonDialog({ open, count, busy, onClose, onAssign }: {
   open: boolean;
   count: number;
   busy?: boolean;
   onClose: () => void;
-  onAssign: (names: string[]) => void;
+  onAssign: (name: string) => void;
 }) {
   const [names, setNames] = useState<string[]>([]);
   useEffect(() => {
@@ -170,7 +170,7 @@ export function AssignPlacersDialog({ open, count, busy, onClose, onAssign }: {
       onClose={onClose}
       actions={
         <>
-          <Button variant="primary" icon="users" loading={busy} disabled={names.length === 0} onClick={() => onAssign(names)}>
+          <Button variant="primary" icon="users" loading={busy} disabled={names.length === 0} onClick={() => onAssign(names[0]!)}>
             {busy ? t("admin.assign.busy") : t("admin.assign.confirm", { n: count })}
           </Button>
           <Button variant="secondary" onClick={onClose}>
@@ -185,8 +185,8 @@ export function AssignPlacersDialog({ open, count, busy, onClose, onAssign }: {
         options={adminPeople.value.map((p) => ({ name: p.name, count: p.placed }))}
         value={names}
         onChange={setNames}
+        multiple={false}
         allowCreate
-        maxItems={10}
         placeholder={t("admin.assign.placeholder")}
         hint={t("admin.assign.hint")}
       />

@@ -14,13 +14,6 @@ import {
 import { Fab } from "../../../components/Fab";
 import { Combobox, SearchField, SwitchRow, TextAreaField, TextField, type SearchResult } from "../../../components/Field";
 import { Segmented } from "../../../components/Segmented";
-import {
-  WHO_PLACED_ERROR,
-  WhoPlaced,
-  defaultWhoPlaced,
-  validateWhoPlaced,
-  type WhoPlacedValue,
-} from "../../../components/WhoPlaced";
 import type { PersonSummary } from "../../../shared/types";
 
 /* ── Sample data (Spanish, static) ───────────────────────────────────────── */
@@ -46,7 +39,6 @@ const PEOPLE: PersonSummary[] = [
   { name: "Hugo", placed: 1, reported: 1 },
 ];
 const COMBO_OPTIONS = PEOPLE.map((p) => ({ name: p.name, count: p.placed }));
-const RECENT = ["Dani", "Fede", "Eli"];
 
 const PLACES: SearchResult[] = [
   { id: "1", label: "Ciudad Vieja, Montevideo", meta: "Uruguay" },
@@ -67,7 +59,6 @@ export default function FormsSection() {
       <SegmentedDemo />
       <ChipDemo />
       <FieldDemo />
-      <WhoPlacedDemo />
     </div>
   );
 }
@@ -316,54 +307,4 @@ function FieldDemo() {
       <SwitchRow label="Ubicación aproximada" description="Redondea a ~100 m. Para casas." checked={approx} onChange={setApprox} />
     </section>
   );
-}
-
-function WhoPlacedDemo() {
-  const [soy, setSoy] = useState("Ana");
-  const [value, setValue] = useState<WhoPlacedValue>(defaultWhoPlaced("Ana"));
-  const [checked, setChecked] = useState(false);
-  const soyInput = useRef<HTMLInputElement>(null);
-  const error = checked ? validateWhoPlaced(value) : null;
-
-  return (
-    <section class="mp-stack" aria-labelledby="forms-whoplaced">
-      <h2 class="mp-title" id="forms-whoplaced">
-        WhoPlaced
-      </h2>
-      <p class="mp-field__label">En vivo, con “Soy:” (vaciá “Soy:” y probá “Yo”)</p>
-      <Combobox
-        label="Soy:"
-        inputLabel="Cambiar nombre"
-        placeholder="Tu nombre (opcional)"
-        options={COMBO_OPTIONS}
-        value={soy ? [soy] : []}
-        onChange={(v) => {
-          setSoy(v[0] ?? "");
-        }}
-        multiple={false}
-        allowCreate
-        selfName={soy}
-        inputRef={soyInput}
-      />
-      <WhoPlaced value={value} onChange={setValue} soy={soy} people={PEOPLE} recent={RECENT} error={error} onRequestSoy={() => soyInput.current?.focus()} />
-      <Button variant="secondary" onClick={() => setChecked(true)}>
-        Validar
-      </Button>
-      <output class="mp-field__hint">{JSON.stringify(value)}</output>
-
-      <p class="mp-field__label">Yo</p>
-      <StaticWho initial={defaultWhoPlaced("Ana")} soy="Ana" />
-      <p class="mp-field__label">Otro/s</p>
-      <StaticWho initial={{ status: "other", placers: ["Beto", "Caro"] }} soy="Ana" />
-      <p class="mp-field__label">No sé</p>
-      <StaticWho initial={{ status: "unknown", placers: [] }} soy="" />
-      <p class="mp-field__label">Error: Otro/s sin nombres</p>
-      <StaticWho initial={{ status: "other", placers: [] }} soy="Ana" error={WHO_PLACED_ERROR} />
-    </section>
-  );
-}
-
-function StaticWho({ initial, soy, error }: { initial: WhoPlacedValue; soy: string; error?: string }) {
-  const [value, setValue] = useState(initial);
-  return <WhoPlaced value={value} onChange={setValue} soy={soy} people={PEOPLE} recent={RECENT} error={error} />;
 }

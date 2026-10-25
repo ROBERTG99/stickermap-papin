@@ -6,7 +6,7 @@ import type { SpotDetail } from "../../src/shared/types";
 import { adminFromRequest } from "../lib/access";
 import { hashToken, randomToken, sha256Hex, timingSafeEqual, verifyBatchToken } from "../lib/crypto";
 import { CONTENT_TYPE, EXTENSION, sniffImage, type ImageKind } from "../lib/images";
-import { findOrCreatePeople, findOrCreatePerson } from "../lib/people";
+import { findOrCreatePerson, placerStatusFor } from "../lib/people";
 import { allowed, ipHash, record } from "../lib/ratelimit";
 import { meterStatement, putAll, type PutObject } from "../lib/r2";
 import { publishedCollection } from "../lib/spots";
@@ -199,7 +199,7 @@ spots.post("/", async (c) => {
   if (o) objects.push({ key: `orig/${id}.${EXTENSION[o.kind]}`, body: o.bytes, contentType: CONTENT_TYPE[o.kind] });
 
   const reporterId = meta.reporter ? await findOrCreatePerson(db, meta.reporter) : null;
-  const placerIds = meta.placer_status === "self" && reporterId ? [reporterId] : meta.placer_status === "other" ? await findOrCreatePeople(db, meta.placers) : [];
+  const placerIds = reporterId ? [reporterId] : [];
   const editToken = auth.batchId ? null : randomToken();
   const editHash = editToken ? await hashToken(editToken) : null;
   const bytes = objects.reduce((n, x) => n + x.body.byteLength, 0);
@@ -223,8 +223,8 @@ spots.post("/", async (c) => {
        VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?18,?19,?20,?21,?22,?23)`,
     )
     .bind(
-      id, lat, lng, meta.location_source, meta.location_accuracy_m ?? null, meta.is_approximate ? 1 : 0, reporterId, meta.reporter ?? null, meta.placer_status,
-      meta.placer_note ?? null, meta.note ?? null, meta.other_text ?? null,
+      id, lat, lng, meta.location_source, meta.location_accuracy_m ?? null, meta.is_approximate ? 1 : 0, reporterId, meta.reporter ?? null, placerStatusFor(reporterId),
+      null, meta.note ?? null, meta.other_text ?? null,
       displayKey, thumbKey, o ? `orig/${id}.${EXTENSION[o.kind]}` : null, sha, meta.taken_at ?? null, now,
       settings.moderation_mode === "approval" ? "pending" : "published", editHash, auth.batchId, meta.client_ref ?? null, ipH,
     );
@@ -268,7 +268,7 @@ spots.post("/:id/types", async (c) => {
   if (typeError) return c.json({ error: typeError }, 400);
 
   const reporterId = body.reporter ? await findOrCreatePerson(c.env.DB, body.reporter) : null;
-  const placerIds = body.placer_status === "self" && reporterId ? [reporterId] : body.placer_status === "other" ? await findOrCreatePeople(c.env.DB, body.placers) : [];
+  const placerIds = reporterId ? [reporterId] : [];
   const db = c.env.DB;
   await db.batch([
     ...[...new Set(body.types)].map((slug) => db.prepare("INSERT OR IGNORE INTO spot_types (spot_id, type_slug) VALUES (?1, ?2)").bind(id, slug)),
@@ -276,7 +276,7 @@ spots.post("/:id/types", async (c) => {
     ...placerIds.map((pid) => db.prepare("INSERT OR IGNORE INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, pid)),
     db.prepare(
       `UPDATE spots SET updated_at = ?2, placer_status = CASE WHEN ?3 > 0 AND placer_status = 'unknown' THEN ?4 ELSE placer_status END WHERE id = ?1`,
-    ).bind(id, new Date().toISOString(), placerIds.length, body.placer_status === "self" ? "self" : "other"),
+    ).bind(id, new Date().toISOString(), placerIds.length, "self"),
     db.prepare("INSERT INTO audit_log (actor, action, entity, entity_id, diff_json) VALUES ('submitter', 'add_types', 'spot', ?1, ?2)").bind(id, JSON.stringify({ types: body.types })),
   ]);
   await record(db, ipH, "single");
@@ -334,21 +334,7 @@ spots.patch("/:id", async (c) => {
   if (p.is_approximate === true && p.lat === undefined) sets.push("lat = ROUND(lat, 3)", "lng = ROUND(lng, 3)");
   if (p.note !== undefined) set("note", p.note ?? null);
   if (p.other_text !== undefined) set("other_text", p.other_text ?? null);
-  if (p.placer_note !== undefined) set("placer_note", p.placer_note ?? null);
   const statements: D1PreparedStatement[] = [];
-  if (p.placer_status !== undefined) {
-    const names = p.placers ?? [];
-    if (p.placer_status === "other" && names.length === 0) return c.json({ error: "other_requires_names" }, 400);
-    set("placer_status", p.placer_status);
-    statements.push(db.prepare("DELETE FROM spot_placers WHERE spot_id = ?1").bind(id));
-    if (p.placer_status === "other") {
-      for (const pid of await findOrCreatePeople(db, names)) statements.push(db.prepare("INSERT INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, pid));
-    } else if (p.placer_status === "self") {
-      const row = await db.prepare("SELECT reporter_person_id AS rid FROM spots WHERE id = ?1").bind(id).first<{ rid: number | null }>();
-      if (!row?.rid) return c.json({ error: "self_requires_reporter" }, 400);
-      statements.push(db.prepare("INSERT INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, row.rid));
-    }
-  }
   if (p.types) {
     statements.push(db.prepare("DELETE FROM spot_types WHERE spot_id = ?1").bind(id));
     for (const slug of new Set(p.types)) statements.push(db.prepare("INSERT INTO spot_types (spot_id, type_slug) VALUES (?1, ?2)").bind(id, slug));
@@ -380,7 +366,7 @@ spots.post("/:id/report", async (c) => {
   if (!parsed.success) return c.json({ error: "invalid" }, 400);
   if (!(await verifyTurnstile(c.env, parsed.data.turnstile_token, clientIp(c.req.raw), new URL(c.req.url).hostname))) return c.json({ error: "turnstile_failed" }, 403);
   const id = c.req.param("id");
-  const reason = parsed.data.reason === "know_placer" ? "know_placer" : "reported";
+  const reason = "reported";
   const res = await c.env.DB.prepare(
     `UPDATE spots SET needs_review = 1,
        review_reason = CASE WHEN review_reason IS NULL OR review_reason = '' THEN ?2 WHEN instr(review_reason, ?2) > 0 THEN review_reason ELSE review_reason || ',' || ?2 END,

@@ -7,7 +7,6 @@ export const MAX = {
   originalBytes: 25 * 1024 * 1024,
   name: 255,
   note: 280,
-  placerNote: 140,
   otherText: 40,
   batchSpots: 100,
 } as const;
@@ -21,12 +20,6 @@ const coords = {
   lng: z.number().min(-180).max(180),
 };
 
-const placerRules = (v: { reporter?: string | null; placer_status: string; placers: string[] }, ctx: z.RefinementCtx) => {
-  if (v.placer_status === "self" && !v.reporter) ctx.addIssue({ code: "custom", path: ["reporter"], message: "self_requires_reporter" });
-  if (v.placer_status === "other" && v.placers.length === 0) ctx.addIssue({ code: "custom", path: ["placers"], message: "other_requires_names" });
-  if (v.placer_status !== "other" && v.placers.length > 0) ctx.addIssue({ code: "custom", path: ["placers"], message: "placers_only_for_other" });
-};
-
 export const createSpotMeta = z
   .object({
     ...coords,
@@ -36,9 +29,6 @@ export const createSpotMeta = z
     types: z.array(slug).min(1).max(12),
     other_text: trimmed(MAX.otherText).nullish(),
     reporter: person.nullish(),
-    placer_status: z.enum(["self", "other", "unknown"]),
-    placers: z.array(person).max(10).default([]),
-    placer_note: trimmed(MAX.placerNote).nullish(),
     note: trimmed(MAX.note).nullish(),
     /** EXIF DateTimeOriginal as naive local time. */
     taken_at: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/).nullish(),
@@ -47,20 +37,15 @@ export const createSpotMeta = z
     /** Client id of the photo inside a batch (idempotent retries). */
     client_ref: z.string().min(1).max(64).nullish(),
     turnstile_token: z.string().max(4096).nullish(),
-  })
-  .superRefine(placerRules);
+  });
 export type CreateSpotMeta = z.infer<typeof createSpotMeta>;
 
-export const addTypesBody = z
-  .object({
-    types: z.array(slug).min(1).max(12),
-    other_text: trimmed(MAX.otherText).nullish(),
-    reporter: person.nullish(),
-    placer_status: z.enum(["self", "other", "unknown"]),
-    placers: z.array(person).max(10).default([]),
-    turnstile_token: z.string().max(4096).nullish(),
-  })
-  .superRefine(placerRules);
+export const addTypesBody = z.object({
+  types: z.array(slug).min(1).max(12),
+  other_text: trimmed(MAX.otherText).nullish(),
+  reporter: person.nullish(),
+  turnstile_token: z.string().max(4096).nullish(),
+});
 
 export const createBatchBody = z.object({
   reporter: person.nullish(),
@@ -68,7 +53,7 @@ export const createBatchBody = z.object({
 });
 
 export const reportBody = z.object({
-  reason: z.enum(["reported", "know_placer"]).default("reported"),
+  reason: z.literal("reported").default("reported"),
   note: trimmed(MAX.note).nullish(),
   turnstile_token: z.string().max(4096).nullish(),
 });
@@ -80,9 +65,6 @@ export const patchOwnSpot = z
     types: z.array(slug).min(1).max(12).optional(),
     other_text: trimmed(MAX.otherText).nullish(),
     note: trimmed(MAX.note).nullish(),
-    placer_status: z.enum(["self", "other", "unknown"]).optional(),
-    placers: z.array(person).max(10).optional(),
-    placer_note: trimmed(MAX.placerNote).nullish(),
     is_approximate: z.boolean().optional(),
   })
   .strict();

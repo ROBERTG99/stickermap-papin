@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  ANONYMOUS_REPORTER,
   EMPTY_FILTERS,
   UNKNOWN_PLACER,
   activeFilterCount,
@@ -75,11 +74,6 @@ describe("applyFilters", () => {
   it("matches a spot with several placers by any of them, and unknown placers by their own key", () => {
     expect(applyFilters(spots, f({ placers: ["Caro"] }), NOW).map((s) => s.id)).toEqual(["B"]);
     expect(applyFilters(spots, f({ placers: [UNKNOWN_PLACER] }), NOW).map((s) => s.id)).toEqual(["C"]);
-  });
-
-  it("matches anonymous reporters", () => {
-    expect(applyFilters(spots, f({ reporters: [ANONYMOUS_REPORTER] }), NOW).map((s) => s.id)).toEqual(["C"]);
-    expect(applyFilters(spots, f({ reporters: ["Ana", "Beto"] }), NOW).map((s) => s.id)).toEqual(["A", "B"]);
   });
 
   it("applies the date presets against taken_at, falling back to created_at", () => {

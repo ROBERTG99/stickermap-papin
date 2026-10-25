@@ -85,8 +85,7 @@
   "missing": {
     "photo_busy": "finish reading the photo",
     "no_location": "location",
-    "no_type": "sticker type",
-    "no_placers": "who stuck it"
+    "no_type": "sticker type"
   },
   "submit": {
     "missing": "Missing: {what}",

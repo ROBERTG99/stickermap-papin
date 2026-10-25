@@ -42,8 +42,6 @@ const SPOT_VISITOR: SpotView = {
   countryCode: "es",
   types: [PAPA, SEXO_PUNTO],
   placers: ["Beto", "Caro"],
-  placerStatus: "other",
-  uploader: "Ana",
   dateLabel: "15 abr 2025",
   photo: null,
   photoVariant: "pole",
@@ -57,8 +55,6 @@ const SPOT_OWN: SpotView = {
   countryCode: "uy",
   types: [OTRO],
   placers: ["Ana"],
-  placerStatus: "self",
-  uploader: "Ana",
   dateLabel: "hace 1 h",
   photo: null,
   photoVariant: "stone",
@@ -72,8 +68,6 @@ const SPOT_UNKNOWN: SpotView = {
   countryCode: "uy",
   types: [OTRO],
   placers: [],
-  placerStatus: "unknown",
-  uploader: null,
   dateLabel: "30 ago 2024",
   photo: null,
   photoVariant: "sign",
@@ -374,7 +368,6 @@ function SheetFrame({ spot, initialSnap, hours, onOpenPhoto, caption }: { spot: 
             onOpenPhoto={onOpenPhoto}
             onShare={() => setNote("Compartir")}
             onReport={() => setNote("Reportar")}
-            onKnowPlacer={() => setNote("Reportar: Sé quién lo pegó")}
             onEdit={() => setNote("Editar")}
           />
         </BottomSheet>

@@ -65,7 +65,7 @@ describe("where the location comes from (BUILD.md 7.3)", () => {
 });
 
 describe("what blocks Mandale Mecha", () => {
-  const ok: ValidationInput = { photoBusy: false, location: pinAt, locationBusy: false, types: ["papa"], placerStatus: "unknown", placers: [] };
+  const ok: ValidationInput = { photoBusy: false, location: pinAt, locationBusy: false, types: ["papa"] };
 
   it("passes with a type and a confirmed location", () => {
     expect(validateAdd(ok)).toEqual([]);
@@ -79,12 +79,6 @@ describe("what blocks Mandale Mecha", () => {
     expect(firstInvalidCard([])).toBeNull();
   });
 
-  it("Otro/s needs at least one name; Yo and No sé do not", () => {
-    expect(validateAdd({ ...ok, placerStatus: "other", placers: [] }).map((i) => i.code)).toEqual(["no_placers"]);
-    expect(validateAdd({ ...ok, placerStatus: "other", placers: ["Beto"] })).toEqual([]);
-    expect(validateAdd({ ...ok, placerStatus: "self", placers: ["Ana"] })).toEqual([]);
-  });
-
   it("waits for the photo to be read", () => {
     expect(validateAdd({ ...ok, photoBusy: true })).toEqual([{ card: 1, code: "photo_busy" }]);
   });
@@ -92,8 +86,8 @@ describe("what blocks Mandale Mecha", () => {
 
 describe("request body", () => {
   const base: MetaInput = {
-    location: pinAt, approximate: false, types: ["papa", "otro"], otherText: "  el de la vaca ", soy: " Ana ", placerStatus: "self", placers: ["Ana"],
-    placerNote: "", note: "  arriba del secamanos ", takenAt: "2023-08-02T10:31:01", photoSha256: "a".repeat(64), turnstileToken: "tok",
+    location: pinAt, approximate: false, types: ["papa", "otro"], otherText: "  el de la vaca ", soy: " Ana ",
+    note: "  arriba del secamanos ", takenAt: "2023-08-02T10:31:01", photoSha256: "a".repeat(64), turnstileToken: "tok",
   };
 
   it("matches the server schema", () => {
@@ -101,7 +95,7 @@ describe("request body", () => {
     expect(createSpotMeta.safeParse(meta).success).toBe(true);
     expect(meta).toMatchObject({
       lat: -34.9061234, lng: -56.1993456, location_source: "pin", location_accuracy_m: null, is_approximate: false, types: ["papa", "otro"],
-      other_text: "el de la vaca", reporter: "Ana", placer_status: "self", placers: [], note: "arriba del secamanos", turnstile_token: "tok",
+      other_text: "el de la vaca", reporter: "Ana", note: "arriba del secamanos", turnstile_token: "tok",
     });
   });
 
@@ -115,14 +109,10 @@ describe("request body", () => {
     expect(meta).toMatchObject({ location_source: "device", location_accuracy_m: 12.3 });
   });
 
-  it("anonymous reporter is null; Otro/s sends unique names; the note of No sé is capped at 140", () => {
-    const other = buildMeta({ ...base, soy: "", placerStatus: "other", placers: ["Beto", " beto ", "Caro"] });
-    expect(other).toMatchObject({ reporter: null, placer_status: "other", placers: ["Beto", "Caro"], placer_note: null });
-    expect(createSpotMeta.safeParse(other).success).toBe(true);
-    const unknown = buildMeta({ ...base, soy: "", placerStatus: "unknown", placers: [], placerNote: "x".repeat(300) });
-    expect(unknown.placer_note).toHaveLength(140);
-    expect(unknown.placers).toEqual([]);
-    expect(createSpotMeta.safeParse(unknown).success).toBe(true);
+  it("anonymous reporter is null", () => {
+    const anon = buildMeta({ ...base, soy: "  " });
+    expect(anon.reporter).toBeNull();
+    expect(createSpotMeta.safeParse(anon).success).toBe(true);
   });
 
   it("blank optional text becomes null", () => {
@@ -157,7 +147,7 @@ describe("server errors", () => {
 
 describe("edit patch", () => {
   const before: EditSnapshot = {
-    lat: -34.9, lng: -56.16, approximate: false, types: ["papa"], otherText: "", note: "", placerStatus: "self", placers: [], placerNote: "",
+    lat: -34.9, lng: -56.16, approximate: false, types: ["papa"], otherText: "", note: "",
   };
 
   it("is empty when nothing changed", () => {
@@ -173,14 +163,5 @@ describe("edit patch", () => {
   it("types and the free text of Otro go together", () => {
     expect(buildPatch(before, { ...before, types: ["papa", "otro"], otherText: " la vaca " }, true)).toEqual({ types: ["papa", "otro"], other_text: "la vaca" });
     expect(buildPatch({ ...before, types: ["otro"], otherText: "x" }, { ...before, types: ["papa"], otherText: "x" }, false)).toEqual({ types: ["papa"], other_text: null });
-  });
-
-  it("who stuck it: status, names and note", () => {
-    const toOther = buildPatch(before, { ...before, placerStatus: "other", placers: ["Beto", "Caro"] }, false);
-    expect(toOther).toEqual({ placer_status: "other", placers: ["Beto", "Caro"], placer_note: null });
-    const toUnknown = buildPatch(before, { ...before, placerStatus: "unknown", placerNote: "lo vio JM" }, false);
-    expect(toUnknown).toEqual({ placer_status: "unknown", placers: [], placer_note: "lo vio JM" });
-    const sameOthers = { ...before, placerStatus: "other" as const, placers: ["Caro", "Beto"] };
-    expect(buildPatch(sameOthers, { ...sameOthers, placers: ["Beto", "Caro"] }, false)).toEqual({});
   });
 });

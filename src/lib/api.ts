@@ -49,7 +49,6 @@ export interface StatsPayload {
   total_spots: number; total_countries: number; unknown_placers: number;
   types: { slug: string; label: string; count: number }[];
   placers: { name: string; count: number; countries: number }[];
-  reporters: { name: string; count: number }[];
   countries: { code: string; name: string; count: number }[];
   months: { month: string; count: number }[];
 }
@@ -68,7 +67,7 @@ export const api = {
   createBatch: (body: { reporter?: string | null; turnstile_token?: string | null }) => send<CreatedBatch>("POST", "/api/batches", body),
   deleteBatch: (id: string, editToken: string) => send<{ hidden: number }>("DELETE", `/api/batches/${id}`, undefined, { "X-Edit-Token": editToken }),
   addTypes: (id: string, body: unknown) => send<{ id: string }>("POST", `/api/spots/${id}/types`, body),
-  report: (id: string, body: { reason?: "reported" | "know_placer"; note?: string | null; turnstile_token?: string | null }) => send<{ id: string }>("POST", `/api/spots/${id}/report`, body),
+  report: (id: string, body: { turnstile_token?: string | null }) => send<{ id: string }>("POST", `/api/spots/${id}/report`, body),
   patchSpot: (id: string, editToken: string, body: unknown) => send<{ id: string }>("PATCH", `/api/spots/${id}`, body, { "X-Edit-Token": editToken }),
   deleteSpot: (id: string, editToken: string) => send<{ id: string }>("DELETE", `/api/spots/${id}`, undefined, { "X-Edit-Token": editToken }),
 };

@@ -60,16 +60,6 @@
       "chip": "No photo",
       "help": "It comes from the old survey: an “Other” with no photo or details. If there is no way to tell what it is, hide it."
     },
-    "know_placer": {
-      "label": "I know who stuck it",
-      "chip": "I know who",
-      "help": "Someone says they know who stuck this sticker. Assign that person in “Stuck by” and approve it."
-    },
-    "placer_note_in_soy": {
-      "label": "Note in the name",
-      "chip": "Notes in the name",
-      "help": "In the old survey someone wrote a note where the name goes. It is below: move it to the right name if you can."
-    },
     "deleted": {
       "label": "Deleted",
       "chip": "Deleted",
@@ -80,9 +70,9 @@
     }
   },
   "filter": {
-    "placerUnknown": "Stuck by: ¿?",
     "noPhoto": "No photo",
-    "batch": "Batch"
+    "batch": "Batch",
+    "anonymous": "No person"
   },
   "photo": {
     "of": "Photo: sticker",
@@ -125,7 +115,6 @@
     "placers": "Stuck by",
     "placersPlaceholder": "Add",
     "placersUnknown": "Nobody assigned yet: shown as ¿?.",
-    "placerNote": "They wrote in “Stuck by”",
     "note": "Note",
     "otherText": "“Other”, free text",
     "needOneType": "Pick at least one sticker type.",
@@ -154,9 +143,9 @@
     "restore": "Restore"
   },
   "assign": {
-    "title": "Assign “stuck by”",
-    "body": "Choose who stuck {n} stickers. This replaces whoever was assigned.",
-    "label": "Stuck by",
+    "title": "Assign person",
+    "body": "Choose who uploaded and stuck {n} stickers. This replaces whoever was assigned.",
+    "label": "Person",
     "placeholder": "Search or add a person",
     "hint": "If the name does not exist, the person is created.",
     "confirm": "Assign to {n} stickers",

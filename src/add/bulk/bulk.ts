@@ -5,8 +5,6 @@
  */
 import { computed, signal } from "@preact/signals";
 import { recordStickerAdded } from "../../lib/pwa";
-import { defaultWhoPlaced } from "../../components/WhoPlaced";
-import { rememberPlacers } from "../../components/WhoPlaced";
 import { api, ApiError } from "../../lib/api";
 import { bulkReminder } from "../../lib/drafts";
 import { takePendingFiles } from "../../lib/handoff";
@@ -231,7 +229,7 @@ function initialDefaults(): BulkDefaults {
   const known = new Set(typeBySlug.value.keys());
   const saved = storage.get<string[]>("lastTypes", []);
   const lastTypes = known.size > 0 ? saved.filter((s) => known.has(s)) : saved;
-  return { types: lastTypes, otherText: "", placer: defaultWhoPlaced(soy), soy, approximate: false, originals: true };
+  return { types: lastTypes, otherText: "", soy, approximate: false, originals: true };
 }
 
 /** Throw away the draft in memory and on disk. Safe to call without one. */
@@ -617,9 +615,6 @@ export async function submit(): Promise<void> {
   patchPhotos(ids, (p) => ({ ...p, upload: { state: "queued", send } }));
   storage.set("lastTypes", d.defaults.types);
   if (d.defaults.soy.trim()) lastPerson.set(d.defaults.soy);
-  const names = new Set<string>();
-  for (const p of photos.value) if (ids.has(p.id)) for (const n of (p.override.placer ?? d.defaults.placer).placers) names.add(n);
-  if (names.size > 0) rememberPlacers([...names]);
   setPhase("uploading");
   void runUpload();
 }

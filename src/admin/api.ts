@@ -15,7 +15,6 @@ export interface AdminSpot {
   types: string[];
   placers: string[];
   placer_status: PlacerStatus;
-  placer_note: string | null;
   reporter: string | null;
   place_name: string | null;
   country: string | null;
@@ -85,9 +84,6 @@ export interface SpotPatch {
   lng?: number;
   types?: string[];
   reporter?: string | null;
-  placer_status?: PlacerStatus;
-  placers?: string[];
-  placer_note?: string | null;
   note?: string | null;
   other_text?: string | null;
   place_name?: string | null;
@@ -98,7 +94,7 @@ export interface SpotPatch {
   location_source?: LocationSource;
 }
 
-export type BulkAction = "approve" | "hide" | "delete" | "restore" | "clear_review" | "assign_placers" | "set_types" | "fuzz";
+export type BulkAction = "approve" | "hide" | "delete" | "restore" | "clear_review" | "assign_person" | "set_types" | "fuzz";
 
 /* ── Filters (shared by the review queue, the table and the exports) ───────────────────── */
 
@@ -109,8 +105,8 @@ export interface SpotFilters {
   status: StatusFilter;
   /** One review reason code (`duplicate_photo_far_apart`...). */
   reason: string;
-  /** "Pegado por: ¿?" */
-  placerUnknown: boolean;
+  /** Spots without an uploader ("Sin persona"). */
+  anonymous: boolean;
   type: string;
   country: string;
   /** "" | "any" | a batch id. */
@@ -120,14 +116,14 @@ export interface SpotFilters {
   dir: SortDir;
 }
 
-export const EMPTY_FILTERS: SpotFilters = { status: "", reason: "", placerUnknown: false, type: "", country: "", batch: "", q: "", sort: "created_at", dir: "desc" };
+export const EMPTY_FILTERS: SpotFilters = { status: "", reason: "", anonymous: false, type: "", country: "", batch: "", q: "", sort: "created_at", dir: "desc" };
 
 /** Query string of `/api/admin/spots` and `/api/admin/export`: only the active filters, so both endpoints see the same thing. */
 export function filterParams(f: Partial<SpotFilters>): URLSearchParams {
   const p = new URLSearchParams();
   if (f.status) p.set("status", f.status);
   if (f.reason) p.set("reason", f.reason);
-  if (f.placerUnknown) p.set("placer", "unknown");
+  if (f.anonymous) p.set("anonymous", "1");
   if (f.type) p.set("type", f.type);
   if (f.country) p.set("country", f.country);
   if (f.batch) p.set("batch", f.batch);
@@ -139,7 +135,7 @@ export function filterParams(f: Partial<SpotFilters>): URLSearchParams {
 
 /** True when the filters narrow the list down (anything but sort order). */
 export function hasActiveFilters(f: SpotFilters): boolean {
-  return Boolean(f.status || f.reason || f.placerUnknown || f.type || f.country || f.batch || f.q.trim());
+  return Boolean(f.status || f.reason || f.anonymous || f.type || f.country || f.batch || f.q.trim());
 }
 
 /* ── Requests ──────────────────────────────────────────────────────────────────────────── */
@@ -168,7 +164,7 @@ export const adminApi = {
   spots: (params: URLSearchParams) => request<SpotsPage>("GET", `/api/admin/spots?${params}`),
   spot: (id: string) => request<AdminSpot>("GET", `/api/admin/spots/${encodeURIComponent(id)}`),
   patchSpot: (id: string, body: SpotPatch) => request<{ id: string }>("PATCH", `/api/admin/spots/${encodeURIComponent(id)}`, body),
-  bulk: (ids: string[], action: BulkAction, extra: { placers?: string[]; types?: string[] } = {}) =>
+  bulk: (ids: string[], action: BulkAction, extra: { person?: string; types?: string[] } = {}) =>
     request<{ ok: true; count: number }>("POST", "/api/admin/spots/bulk", { ids, action, ...extra }),
   hideBatch: (id: string) => request<{ id: string; hidden: number }>("DELETE", `/api/batches/${encodeURIComponent(id)}`),
 
