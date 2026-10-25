@@ -19,5 +19,7 @@
     "storage": "Por ahora no podemos guardar más videos. Mandá una foto.",
     "turnstile": "No pudimos verificar que sos una persona. Probá de nuevo.",
     "server": "Algo falló de nuestro lado. Probá en un rato."
-  }
+  },
+  "goneRule": "Para marcar que ya no está hace falta estar ahí y sumar una foto nueva. Si no, lo confirma otro aviso o un admin.",
+  "goneNear": "Estás ahí: sumá una foto nueva para que cuente ya. Si no, lo confirma otro aviso o un admin."
 }

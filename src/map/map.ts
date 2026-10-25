@@ -8,6 +8,7 @@ import { storage } from "../lib/local";
 import { computeBounds } from "./filters";
 import { NO_PADDING, samePadding, type Padding } from "./layout";
 import { CLUSTER_MAX_ZOOM, CLUSTER_RADIUS, MarkerLayer, SPOTS_LAYER, SPOTS_SOURCE } from "./markers";
+import { RoutesLayer, type RouteSpec } from "./routes-layer";
 import { mapColors, SATELLITE_LAYER } from "./style";
 
 /**
@@ -79,6 +80,8 @@ export class StickerMap {
   private typeMap: ReadonlyMap<string, StickerType> = new Map();
   private selected: string | null = null;
   private satellite = false;
+  private projection: "globe" | "mercator" = "mercator";
+  private readonly routes: RoutesLayer;
   private baseStyle: StyleSpecification | null = null;
   private padding: Padding = NO_PADDING;
   private me: Marker | null = null;
@@ -101,6 +104,7 @@ export class StickerMap {
     });
     // test hook (e2e compares marker dots with map.project): harmless read-only handle
     (window as unknown as { __mapaPapinMap?: MapLibreMap }).__mapaPapinMap = this.map;
+    this.routes = new RoutesLayer(this.map);
     this.map.touchZoomRotate.disableRotation();
     this.map.keyboard.disableRotation();
 
@@ -125,6 +129,8 @@ export class StickerMap {
     this.map.on("style.load", () => {
       this.pushData();
       this.applySatellite();
+      this.applyProjection();
+      this.routes.ensure();
       sync();
     });
     this.map.on("click", (e) => {
@@ -182,6 +188,38 @@ export class StickerMap {
   setSatellite(on: boolean): void {
     this.satellite = on;
     this.applySatellite();
+  }
+
+  /** F5: the globe (MapLibre blends back to the flat map by itself when you zoom in) or the plain map. */
+  setProjection(p: "globe" | "mercator"): void {
+    this.projection = p;
+    this.applyProjection();
+  }
+
+  private applyProjection(): void {
+    try {
+      this.map.setProjection({ type: this.projection });
+    } catch {
+      /* style still loading: style.load applies it */
+    }
+  }
+
+  /** F5: draw (or clear, with `[]`) the routes of the chosen people and frame the camera on them. */
+  setRoutes(routes: RouteSpec[], opts: { animate: boolean; padding: Padding }): void {
+    this.routes.set(routes, { animate: opts.animate });
+    const pts = this.routes.allPoints();
+    if (pts.length < 2) return;
+    const lngs = pts.map((p) => p[0]);
+    const lats = pts.map((p) => p[1]);
+    this.map.fitBounds([[Math.min(...lngs), Math.max(-80, Math.min(...lats))], [Math.max(...lngs), Math.min(80, Math.max(...lats))]], {
+      padding: { top: opts.padding.top + 60, bottom: opts.padding.bottom + 60, left: opts.padding.left + 40, right: opts.padding.right + 40 }, maxZoom: 6, duration: opts.animate ? 1200 : 0,
+    });
+  }
+
+  /** Camera follow for the time-lapse: fly to the newest sticker when it is off screen. */
+  flyIfOffscreen(lngLat: [number, number]): void {
+    if (this.map.getBounds().contains(lngLat)) return;
+    this.map.flyTo({ center: lngLat, zoom: Math.max(Math.min(this.map.getZoom(), 5), 2.5), duration: 1400, essential: false });
   }
 
   private applySatellite(): void {
@@ -265,6 +303,7 @@ export class StickerMap {
     this.destroyed = true;
     clearTimeout(this.viewTimer);
     this.markers.destroy();
+    this.routes.destroy();
     this.me?.remove();
     this.map.remove();
   }

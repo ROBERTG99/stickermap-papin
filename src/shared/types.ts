@@ -138,4 +138,6 @@ export interface AppConfig {
   turnstile_sitekey: string;
   map_style_url: string;
   features: { video: boolean; instagram: boolean; sightings: boolean; globe_wrapped: boolean };
+  /** F5: an admin viewing with the Wrapped flag on "admin" can open it before 1 December. */
+  wrapped_preview?: boolean;
 }

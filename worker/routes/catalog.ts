@@ -79,6 +79,7 @@ catalog.get("/config", async (c) => {
     turnstile_sitekey: c.env.PUBLIC_TURNSTILE_SITEKEY,
     map_style_url: s.map_style_url ?? "https://tiles.openfreemap.org/styles/liberty",
     features: { video: flag(s.feature_video), instagram: flag(s.feature_instagram), sightings: flag(s.feature_sightings), globe_wrapped: flag(s.feature_globe_wrapped) },
+    wrapped_preview: s.feature_globe_wrapped === "admin" && isAdmin,
   };
   // depends on who asks (admin-only flags), so never shared
   return c.json(body, 200, { "Cache-Control": "private, max-age=60" });

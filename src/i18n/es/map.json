@@ -67,5 +67,27 @@
   },
   "locate": {
     "failed": "No pudimos ubicarte. Revisá el permiso de ubicación."
+  },
+  "globe": {
+    "globe": "Globo",
+    "flat": "Plano",
+    "routes": "Rutas",
+    "story": "Historia",
+    "routesTitle": "Rutas",
+    "routesWho": "Pegado por (hasta {max})",
+    "routesHint": "Las rutas unen los stickers de cada persona en orden de fecha, por círculo máximo.",
+    "routesKey": "{name} · {stops} paradas · {km} km",
+    "routesKeyOne": "{name} · 1 parada · {km} km",
+    "routesClear": "Quitar rutas",
+    "routesDone": "Listo",
+    "routesMax": "Hasta {max} rutas a la vez.",
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "close": "Cerrar historia",
+    "count": "{n} de {total} stickers",
+    "speed": "Velocidad",
+    "date": "Fecha",
+    "storyLabel": "Historia del mapa",
+    "reduced": "Con movimiento reducido no hay vuelos de cámara."
   }
 }

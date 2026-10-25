@@ -1,0 +1,140 @@
+{
+  "title": "Papin Wrapped",
+  "footer": "Papin Wrapped {year}",
+  "kickerGroup": "The Papin year",
+  "bannerTitle": "Your Papin Wrapped {year} is out",
+  "bannerBody": "{n} stickers, {c} countries.",
+  "see": "See it",
+  "later": "Later",
+  "bannerGroup": "The Papin Wrapped {year} is out",
+  "empty": "You have not stuck any stickers in {year} yet.",
+  "emptyGroup": "There are no stickers in {year} yet.",
+  "notYet": "The Papin Wrapped {year} comes out on 1 December.",
+  "back": "Back to the map",
+  "share": "Share",
+  "download": "Download all (.zip)",
+  "preparing": "Building the cards…",
+  "prev": "Previous",
+  "next": "Next",
+  "close": "Close",
+  "card": "Card {n} of {total}",
+  "hold": "Press and hold to pause.",
+  "for": "For {name}",
+  "openMine": "My Papin Wrapped {year}",
+  "openGroup": "The group's Papin Wrapped",
+  "p": {
+    "year": {
+      "kicker": "Your Papin year",
+      "title": "stickers stuck",
+      "text": "{c} countries. Thanks for sticking, {name}.",
+      "textOne": "1 country. Thanks for sticking, {name}.",
+      "aria": "Your Papin year: {n} stickers stuck"
+    },
+    "km": {
+      "kicker": "Km travelled",
+      "title": "kilometres",
+      "text": "That is {laps} laps around the world.",
+      "textShort": "All close to home.",
+      "textNone": "One place this year.",
+      "aria": "{km} kilometres travelled"
+    },
+    "countries": {
+      "kicker": "New countries",
+      "title": "{names}",
+      "text": "new countries for you this year",
+      "textOne": "new country for you this year",
+      "none": "None new",
+      "noneText": "This year you went back to the same countries.",
+      "aria": "{n} new countries"
+    },
+    "favorite": {
+      "kicker": "Favourite sticker",
+      "title": "times {type}",
+      "text": "The one you stuck most.",
+      "aria": "Favourite sticker: {type}, {n} times"
+    },
+    "farthest": {
+      "kicker": "The farthest",
+      "title": "km: {place}",
+      "text": "Very far from Montevideo.",
+      "aria": "The farthest: {place}, {km} kilometres from Montevideo"
+    },
+    "longest": {
+      "kicker": "The longest-lived",
+      "title": "days",
+      "titleAlive": "days and counting",
+      "text": "{place}",
+      "aria": "The longest-lived: {days} days"
+    },
+    "rank": {
+      "kicker": "Your ranking",
+      "title": "of {n} people",
+      "text": "{name} is {gap} ahead. Catch up.",
+      "textFirst": "You are on top.",
+      "textAlone": "You are the only person this year.",
+      "aria": "Place {rank} of {n}"
+    },
+    "summary": {
+      "kicker": "Your summary",
+      "title": "stickers in {c} countries",
+      "text": "{km} km · place {rank}",
+      "aria": "Summary of your Papin year"
+    }
+  },
+  "g": {
+    "total": {
+      "kicker": "The Papin year",
+      "title": "stickers stuck",
+      "text": "All together. In {c} countries.",
+      "aria": "{n} stickers stuck all together"
+    },
+    "countries": {
+      "kicker": "New countries",
+      "title": "{names}",
+      "text": "new countries for the map",
+      "textOne": "new country for the map",
+      "none": "None new",
+      "noneText": "This year the map grew in the same countries.",
+      "aria": "{n} new countries"
+    },
+    "mvp": {
+      "kicker": "MVP of the year",
+      "title": "{name}",
+      "text": "stuck more than anyone",
+      "aria": "MVP: {name}, {n} stickers"
+    },
+    "month": {
+      "kicker": "The best month",
+      "title": "{month}",
+      "text": "stickers in a single month",
+      "aria": "The best month: {month}, {n} stickers"
+    },
+    "cemetery": {
+      "kicker": "Cemetery of the year",
+      "title": "came off",
+      "text": "The ones that did not make it to the end of the year.",
+      "textNone": "None came off this year.",
+      "aria": "{n} stickers came off this year"
+    },
+    "summary": {
+      "kicker": "Summary",
+      "title": "stickers, {c} countries",
+      "text": "MVP: {name}",
+      "aria": "Summary of the Papin year"
+    }
+  },
+  "months": [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ]
+}

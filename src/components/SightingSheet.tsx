@@ -152,7 +152,10 @@ export function SightingSheet({ open, onClose, onDone, spot, via = "app" }: Sigh
     }
   }
 
-  const banner = fixState === "finding"
+  const goneStatus = status === "covered" || status === "removed";
+  const banner = goneStatus
+    ? t(near ? "sighting.goneNear" : "sighting.goneRule")
+    : fixState === "finding"
     ? t("sighting.finding")
     : distance === null
       ? t(fixState === "denied" ? "sighting.noLocationDenied" : "sighting.noLocation")

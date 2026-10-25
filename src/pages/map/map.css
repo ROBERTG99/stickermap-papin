@@ -89,3 +89,7 @@
   .map-page--drawer .map-legend { left: calc(var(--panel-w) + 3 * var(--space-4)); }
   .map-hint { left: 50%; right: auto; width: 360px; transform: translateX(-50%); bottom: var(--space-8); }
 }
+
+/* F5 time-lapse card: above the tab bar on phones, bottom left on desktop */
+.map-tl { position: absolute; z-index: var(--z-fab); left: var(--space-4); right: var(--space-4); bottom: calc(var(--tabbar-h) + var(--space-5)); }
+@media (min-width: 900px) { .map-tl { right: auto; left: 50%; width: 440px; transform: translateX(-50%); bottom: var(--space-8); } }

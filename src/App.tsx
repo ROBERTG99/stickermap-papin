@@ -15,6 +15,7 @@ const ThanksPage = lazy(() => import("./pages/ThanksPage"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage"));
 const StatsPage = lazy(() => import("./pages/StatsPage"));
 const NearPage = lazy(() => import("./pages/NearPage"));
+const WrappedPage = lazy(() => import("./pages/WrappedPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SharePage = lazy(() => import("./pages/SharePage"));
 const AdminApp = lazy(() => import("./pages/admin/AdminApp"));
@@ -37,6 +38,10 @@ function Routes() {
   if (match("/galeria", p)) return <GalleryPage />;
   if (match("/stats", p)) return <StatsPage />;
   if (match("/cerca", p)) return <NearPage />;
+  const wrappedPerson = match("/wrapped/:year/:person", p);
+  if (wrappedPerson) return <WrappedPage year={Number(wrappedPerson.year)} person={decodeURIComponent(wrappedPerson.person!)} />;
+  const wrappedGroup = match("/wrapped/:year", p);
+  if (wrappedGroup) return <WrappedPage year={Number(wrappedGroup.year)} />;
   const person = match("/p/:name", p);
   if (person) return <ProfilePage name={person.name!} />;
   if (match("/compartir", p)) return <SharePage />;

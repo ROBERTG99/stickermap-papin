@@ -67,5 +67,27 @@
   },
   "locate": {
     "failed": "We could not locate you. Check the location permission."
+  },
+  "globe": {
+    "globe": "Globe",
+    "flat": "Flat",
+    "routes": "Routes",
+    "story": "Story",
+    "routesTitle": "Routes",
+    "routesWho": "Stuck by (up to {max})",
+    "routesHint": "Routes join each person's stickers in date order, along the great circle.",
+    "routesKey": "{name} · {stops} stops · {km} km",
+    "routesKeyOne": "{name} · 1 stop · {km} km",
+    "routesClear": "Clear routes",
+    "routesDone": "Done",
+    "routesMax": "Up to {max} routes at once.",
+    "play": "Play",
+    "pause": "Pause",
+    "close": "Close story",
+    "count": "{n} of {total} stickers",
+    "speed": "Speed",
+    "date": "Date",
+    "storyLabel": "Map story",
+    "reduced": "With reduced motion there are no camera flights."
   }
 }

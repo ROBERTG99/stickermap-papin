@@ -8,6 +8,7 @@ import { Shell } from "../components/Shell";
 import { formatDate, formatNumber } from "../lib/format";
 import { lang, t } from "../lib/i18n";
 import { config, people, spots } from "../lib/store";
+import { wrappedOpen } from "../lib/wrapped";
 
 /** /p/:name: counts as stickers, a mini map with the exact points and a photo grid (Page09Profile). */
 export default function ProfilePage({ name }: { name: string }) {
@@ -48,6 +49,9 @@ export default function ProfilePage({ name }: { name: string }) {
               </span>
             </div>
             {person?.instagram && config.value?.features.instagram === true && <InstagramLink handle={person.instagram} button />}
+            {config.value?.features.globe_wrapped === true && wrappedOpen(new Date().getUTCFullYear(), Date.now(), config.value.wrapped_preview === true) && (
+              <a class="mp-btn mp-btn--secondary" href={`/wrapped/${new Date().getUTCFullYear()}/${encodeURIComponent(shownName)}`}>{t("wrapped.openMine", { year: new Date().getUTCFullYear() })}</a>
+            )}
             <div class="profile__stats">
               {[
                 { n: placed.length, label: t("profile.placed"), tone: "", tilt: 2 },

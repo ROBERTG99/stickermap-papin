@@ -1,5 +1,7 @@
 import { computed, signal } from "@preact/signals";
 import { storage } from "../../lib/local";
+import { isDesktop, prefersReducedMotion } from "../../lib/media";
+import { placedAtMs } from "../../map/routes";
 import { spots } from "../../lib/store";
 import { activeFilterCount, applyFilters, EMPTY_FILTERS, facetCounts, type Filters } from "../../map/filters";
 
@@ -26,3 +28,39 @@ export const setLegendCollapsed = (collapsed: boolean): void => {
   legendPref.value = collapsed;
   storage.set("legendCollapsed", collapsed);
 };
+
+// ── F5: globe, routes and time-lapse ──────────────────────────────────────
+
+export type ProjectionChoice = "globe" | "mercator";
+
+/** The remembered choice; otherwise the globe on desktop and on phones that can take it, flat with reduced motion or a weak device. */
+function initialProjection(): ProjectionChoice {
+  const saved = storage.get<ProjectionChoice | null>("projection", null);
+  if (saved === "globe" || saved === "mercator") return saved;
+  const weak = (navigator.hardwareConcurrency ?? 4) <= 4;
+  return !prefersReducedMotion.value && (isDesktop.value || !weak) ? "globe" : "mercator";
+}
+export const projection = signal<ProjectionChoice>(initialProjection());
+export function setProjectionChoice(next: ProjectionChoice): void {
+  projection.value = next;
+  storage.set("projection", next);
+}
+
+/** People whose routes are drawn (up to 4, in selection order: that order picks the colour and dash). */
+export const routePeople = signal<string[]>([]);
+export const MAX_ROUTES = 4;
+
+export type TimelapseSpeed = 1 | 4 | 16;
+export const timelapse = signal<{ active: boolean; playing: boolean; t: number; speed: TimelapseSpeed }>({ active: false, playing: false, t: 0, speed: 4 });
+
+/** Oldest and newest placement among the spots that pass the filters. */
+export const timelapseRange = computed(() => {
+  const times = filteredFeatures.value.map(placedAtMs).filter(Number.isFinite);
+  return times.length ? { min: Math.min(...times), max: Math.max(...times) } : null;
+});
+
+/** What the map draws: the filtered spots, or only those placed by the time-lapse clock. */
+export const visibleFeatures = computed(() => {
+  const tl = timelapse.value;
+  return tl.active ? filteredFeatures.value.filter((f) => placedAtMs(f) <= tl.t) : filteredFeatures.value;
+});

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { AppHeader } from "../components/AppHeader";
 import { AppMenu } from "../components/AppMenu";
 import { Banner, FirstVisitHint } from "../components/Banner";
+import { WrappedBanner } from "../components/WrappedBanner";
 import { BottomSheet, type SheetSnap } from "../components/BottomSheet";
 import { EmptyState } from "../components/EmptyState";
-import { Icon } from "../components/Icon";
 import { Legend } from "../components/Legend";
 import { MapAttribution, MapControls } from "../components/MapControls";
 import { Shell } from "../components/Shell";
@@ -31,7 +31,11 @@ import { PlaceSearchBox } from "./map/PlaceSearchBox";
 import { ReportDialog, type ReportTarget } from "./map/ReportDialog";
 import { SpotBody } from "./map/SpotBody";
 import { refreshSpotDetail, useSpotDetail } from "./map/detail";
-import { activeCount, allFeatures, clearFilters, facets, filteredFeatures, filters, legendPref, setFilters, setLegendCollapsed } from "./map/state";
+import { RoutesSheet } from "./map/RoutesSheet";
+import { TimelapseCard } from "../components/TimelapseCard";
+import { Icon } from "../components/Icon";
+import { placedAtMs, stopsFor } from "../map/routes";
+import { activeCount, allFeatures, clearFilters, facets, filteredFeatures, filters, legendPref, projection, routePeople, setFilters, setLegendCollapsed, setProjectionChoice, timelapse, timelapseRange, visibleFeatures } from "./map/state";
 import "./map/map.css";
 
 const FALLBACK_HEADER_BOTTOM = 124;
@@ -64,6 +68,8 @@ export default function MapPage({ spotId }: { spotId?: string }) {
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [photoFor, setPhotoFor] = useState<string | null>(null);
   const [hint, setHint] = useState(() => !storage.get("hintSeen", false));
+  const [routesOpen, setRoutesOpen] = useState(false);
+  const globeOn = config.value?.features.globe_wrapped === true;
 
   const all = allFeatures.value;
   const filtered = filteredFeatures.value;
@@ -157,9 +163,39 @@ export default function MapPage({ spotId }: { spotId?: string }) {
   useEffect(() => {
     smRef.current?.setAllSpots(all);
   }, [all]);
+  // F5: the time-lapse shows only what was stuck by its clock
+  const drawn = visibleFeatures.value;
   useEffect(() => {
-    smRef.current?.setData(filtered);
-  }, [filtered]);
+    smRef.current?.setData(drawn);
+  }, [drawn]);
+
+  const wantGlobe = globeOn ? projection.value : "mercator";
+  useEffect(() => {
+    smRef.current?.setProjection(wantGlobe);
+  }, [wantGlobe]);
+
+  const people = routePeople.value;
+  useEffect(() => {
+    const sm = smRef.current;
+    if (!sm || !globeOn) return;
+    const specs = people.map((name, i) => ({ slot: i + 1, name, stops: stopsFor(all, name) })).filter((r) => r.stops.length > 0);
+    sm.setRoutes(specs, { animate: !reduceMotion, padding: { top: desktop ? 0 : 160, right: desktop ? 420 : 0, bottom: desktop ? 0 : 160, left: 0 } });
+  }, [people.join("|"), all.length, globeOn]);
+
+  // time-lapse: start from the oldest spot, and follow the newest one with the camera (not with reduced motion)
+  const tl = timelapse.value;
+  const lastFly = useRef(0);
+  useEffect(() => {
+    if (!tl.active || !tl.playing || reduceMotion || drawn.length === 0 || Date.now() - lastFly.current < 1600) return;
+    const newest = drawn.reduce((a, b) => (placedAtMs(a) >= placedAtMs(b) ? a : b));
+    lastFly.current = Date.now();
+    smRef.current?.flyIfOffscreen(newest.geometry.coordinates as [number, number]);
+  }, [tl.t, tl.active, tl.playing]);
+  const startStory = () => {
+    const range = timelapseRange.value;
+    if (!range) return;
+    timelapse.value = { ...timelapse.value, active: true, playing: true, t: range.min };
+  };
   const bySlug = typeBySlug.value;
   useEffect(() => {
     smRef.current?.setTypes(bySlug);
@@ -337,7 +373,16 @@ export default function MapPage({ spotId }: { spotId?: string }) {
               onZoomOut={() => smRef.current?.zoomBy(-1)}
               onLocate={locate}
               locating={locating}
-            />
+            >
+              {globeOn && (
+                <>
+                  <button type="button" class="mp-sat" aria-pressed={projection.value === "globe"} onClick={() => setProjectionChoice("globe")}><Icon name="globe" />{t("map.globe.globe")}</button>
+                  <button type="button" class="mp-sat" aria-pressed={projection.value === "mercator"} onClick={() => setProjectionChoice("mercator")}><Icon name="map" />{t("map.globe.flat")}</button>
+                  <button type="button" class="mp-sat" aria-pressed={routePeople.value.length > 0} onClick={() => setRoutesOpen(true)}><Icon name="route" />{t("map.globe.routes")}</button>
+                  <button type="button" class="mp-sat" aria-pressed={timelapse.value.active} onClick={startStory}><Icon name="play" />{t("map.globe.story")}</button>
+                </>
+              )}
+            </MapControls>
           </div>
 
           {loading && (
@@ -368,6 +413,7 @@ export default function MapPage({ spotId }: { spotId?: string }) {
           <MapAttribution satellite={satellite} class="map-attrib" />
 
           {hint && !loading && !offline && !empty && all.length > 0 && !spotId && !filtersOpen && <FirstVisitHint class="map-hint" onDismiss={dismissHint} />}
+          {!hint && !loading && !offline && all.length > 0 && !spotId && !filtersOpen && <WrappedBanner class="map-hint" />}
 
           {empty && (
             <div class="map-center">
@@ -464,6 +510,8 @@ export default function MapPage({ spotId }: { spotId?: string }) {
       )}
 
       <ReportDialog target={report} onClose={() => setReport(null)} />
+      {globeOn && <RoutesSheet open={routesOpen} onClose={() => setRoutesOpen(false)} />}
+      {globeOn && <TimelapseCard class="map-tl" />}
     </>
   );
 }

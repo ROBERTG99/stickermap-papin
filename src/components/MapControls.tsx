@@ -1,3 +1,4 @@
+import type { ComponentChildren } from "preact";
 import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
@@ -12,11 +13,13 @@ interface MapControlsProps {
   onLocate: () => void;
   /** A location request is in flight. */
   locating?: boolean;
+  /** Extra buttons under "Satélite" (F5: globe / flat, routes, story). */
+  children?: ComponentChildren;
   class?: string;
 }
 
 /** Floating map controls: zoom +/-, locate, Satélite toggle. Replaces MapLibre's NavigationControl. */
-export function MapControls({ satellite, onToggleSatellite, onZoomIn, onZoomOut, onLocate, locating, class: className }: MapControlsProps) {
+export function MapControls({ satellite, onToggleSatellite, onZoomIn, onZoomOut, onLocate, locating, children, class: className }: MapControlsProps) {
   return (
     <div class={cx("mp-mapctl", className)}>
       <div class="mp-mapctl__group">
@@ -34,6 +37,7 @@ export function MapControls({ satellite, onToggleSatellite, onZoomIn, onZoomOut,
         <Icon name="layers" />
         {t("components.mapctl.satellite")}
       </button>
+      {children}
     </div>
   );
 }

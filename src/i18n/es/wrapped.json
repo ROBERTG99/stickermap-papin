@@ -1,0 +1,140 @@
+{
+  "title": "Papin Wrapped",
+  "footer": "Papin Wrapped {year}",
+  "kickerGroup": "El año Papin",
+  "bannerTitle": "Ya salió tu Papin Wrapped {year}",
+  "bannerBody": "{n} stickers, {c} países.",
+  "see": "Verlo",
+  "later": "Después",
+  "bannerGroup": "Ya salió el Papin Wrapped {year}",
+  "empty": "Todavía no pegaste stickers en {year}.",
+  "emptyGroup": "Todavía no hay stickers en {year}.",
+  "notYet": "El Papin Wrapped {year} sale el 1 de diciembre.",
+  "back": "Volver al mapa",
+  "share": "Compartir",
+  "download": "Descargar todo (.zip)",
+  "preparing": "Armando las tarjetas…",
+  "prev": "Anterior",
+  "next": "Siguiente",
+  "close": "Cerrar",
+  "card": "Tarjeta {n} de {total}",
+  "hold": "Mantené apretado para pausar.",
+  "for": "Para {name}",
+  "openMine": "Mi Papin Wrapped {year}",
+  "openGroup": "El Papin Wrapped del grupo",
+  "p": {
+    "year": {
+      "kicker": "Tu año Papin",
+      "title": "stickers pegados",
+      "text": "{c} países. Gracias por pegar, {name}.",
+      "textOne": "1 país. Gracias por pegar, {name}.",
+      "aria": "Tu año Papin: {n} stickers pegados"
+    },
+    "km": {
+      "kicker": "Km recorridos",
+      "title": "kilómetros",
+      "text": "Eso es {laps} vueltas al mundo.",
+      "textShort": "Todo cerca de casa.",
+      "textNone": "Un solo lugar este año.",
+      "aria": "{km} kilómetros recorridos"
+    },
+    "countries": {
+      "kicker": "Países nuevos",
+      "title": "{names}",
+      "text": "países nuevos para vos este año",
+      "textOne": "país nuevo para vos este año",
+      "none": "Ninguno nuevo",
+      "noneText": "Este año volviste a los mismos países.",
+      "aria": "{n} países nuevos"
+    },
+    "favorite": {
+      "kicker": "Sticker favorito",
+      "title": "veces {type}",
+      "text": "El que más pegaste.",
+      "aria": "Sticker favorito: {type}, {n} veces"
+    },
+    "farthest": {
+      "kicker": "El más lejano",
+      "title": "km: {place}",
+      "text": "Lejísimos de Montevideo.",
+      "aria": "El más lejano: {place}, {km} kilómetros de Montevideo"
+    },
+    "longest": {
+      "kicker": "El más longevo",
+      "title": "días",
+      "titleAlive": "días y sigue",
+      "text": "{place}",
+      "aria": "El más longevo: {days} días"
+    },
+    "rank": {
+      "kicker": "Tu ranking",
+      "title": "de {n} personas",
+      "text": "{name} te lleva {gap}. Alcanzalo.",
+      "textFirst": "Estás en la cima.",
+      "textAlone": "Sos la única persona este año.",
+      "aria": "Puesto {rank} de {n}"
+    },
+    "summary": {
+      "kicker": "Tu resumen",
+      "title": "stickers en {c} países",
+      "text": "{km} km · puesto {rank}",
+      "aria": "Resumen de tu año Papin"
+    }
+  },
+  "g": {
+    "total": {
+      "kicker": "El año Papin",
+      "title": "stickers pegados",
+      "text": "Entre todos. En {c} países.",
+      "aria": "{n} stickers pegados entre todos"
+    },
+    "countries": {
+      "kicker": "Países nuevos",
+      "title": "{names}",
+      "text": "países nuevos para el mapa",
+      "textOne": "país nuevo para el mapa",
+      "none": "Ninguno nuevo",
+      "noneText": "Este año el mapa creció en los mismos países.",
+      "aria": "{n} países nuevos"
+    },
+    "mvp": {
+      "kicker": "MVP del año",
+      "title": "{name}",
+      "text": "pegó más que nadie",
+      "aria": "MVP: {name}, {n} stickers"
+    },
+    "month": {
+      "kicker": "El mejor mes",
+      "title": "{month}",
+      "text": "stickers en un solo mes",
+      "aria": "El mejor mes: {month}, {n} stickers"
+    },
+    "cemetery": {
+      "kicker": "Cementerio del año",
+      "title": "despegados",
+      "text": "Los que no llegaron a fin de año.",
+      "textNone": "Ninguno se despegó este año.",
+      "aria": "{n} stickers despegados este año"
+    },
+    "summary": {
+      "kicker": "Resumen",
+      "title": "stickers, {c} países",
+      "text": "MVP: {name}",
+      "aria": "Resumen del año Papin"
+    }
+  },
+  "months": [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre"
+  ]
+}
