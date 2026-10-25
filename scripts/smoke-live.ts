@@ -9,8 +9,24 @@ import { chromium } from "@playwright/test";
 
 const origin = process.argv[2] ?? process.env.SITE_ORIGIN;
 if (!origin) throw new Error("pass the site origin as an argument or set SITE_ORIGIN");
-const browser = await chromium.launch();
 const failures: string[] = [];
+
+// v2 endpoints answer in the right shape (they work even while their feature flags are off)
+const get = async (path: string) => {
+  const res = await fetch(`${origin}${path}`);
+  return { status: res.status, body: (await res.json().catch(() => null)) as unknown };
+};
+const cfg = await get("/api/config");
+if (cfg.status !== 200 || !(cfg.body as { features?: object } | null)?.features) failures.push("api/config: no feature flags");
+const near = await get("/api/nearby?lat=-34.9061&lng=-56.1993&limit=3");
+if (near.status !== 200 || !Array.isArray(near.body) || near.body.length === 0 || typeof (near.body[0] as { distance_m?: unknown }).distance_m !== "number") failures.push("api/nearby: unexpected answer");
+const longevity = await get("/api/stats/longevity");
+if (longevity.status !== 200 || typeof (longevity.body as { totals?: { alive?: number } } | null)?.totals?.alive !== "number") failures.push("api/stats/longevity: unexpected answer");
+const media = await fetch(`${origin}/media/video/00000000000000000000000000.mp4`);
+if (media.status !== 404) failures.push(`media/video of an unknown spot answered ${media.status}, expected 404`);
+console.log("api", cfg.status, near.status, longevity.status, media.status);
+
+const browser = await chromium.launch();
 for (const [name, viewport] of [["mobile", { width: 390, height: 844 }], ["desktop", { width: 1440, height: 900 }]] as const) {
   const page = await (await browser.newContext({ viewport, serviceWorkers: "block" })).newPage();
   const errors: string[] = [];
