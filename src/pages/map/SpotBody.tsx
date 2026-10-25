@@ -1,11 +1,13 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { Icon } from "../../components/Icon";
 import { SpotContent, toSpotView } from "../../components/SpotContent";
+import { StorySheet } from "../../components/StorySheet";
 import { EDIT_WINDOW_MS, editGrants, lastPerson } from "../../lib/local";
 import { formatRemaining } from "../../lib/format";
 import { t } from "../../lib/i18n";
 import { navigate } from "../../lib/router";
-import { types } from "../../lib/store";
+import { storyInputFor } from "../../lib/story";
+import { config, types } from "../../lib/store";
 import type { SpotDetail } from "../../shared/types";
 import { shareSpot } from "./actions";
 
@@ -37,6 +39,9 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
   const remaining = useEditRemaining(detail.id);
   const me = lastPerson.get() || undefined;
   const hasPhoto = Boolean(detail.photo);
+  const instagram = config.value?.features.instagram === true;
+  const [story, setStory] = useState(false);
+  const storyInput = useMemo(() => (story ? storyInputFor(detail, all) : null), [story, detail, all]);
 
   return (
     <div class="map-spot">
@@ -46,6 +51,8 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
         me={me}
         onOpenPhoto={hasPhoto ? onOpenPhoto : undefined}
         onShare={() => void shareSpot(detail.id, view.place)}
+        instagram={instagram}
+        onShareStory={() => setStory(true)}
         onReport={onReport}
       />
       {variant === "full" && detail.other_text && (
@@ -66,6 +73,7 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
           </small>
         </div>
       )}
+      {instagram && <StorySheet open={story} onClose={() => setStory(false)} link={`${location.origin}/s/${detail.id}`} filename={`mapa-papin-${detail.id}.png`} input={storyInput} />}
     </div>
   );
 }

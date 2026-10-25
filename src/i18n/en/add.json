@@ -85,7 +85,8 @@
   "missing": {
     "photo_busy": "finish reading the photo",
     "no_location": "location",
-    "no_type": "sticker type"
+    "no_type": "sticker type",
+    "bad_instagram": "check the Instagram fields"
   },
   "submit": {
     "missing": "Missing: {what}",
@@ -157,5 +158,15 @@
     "thanksTitle": "You sent it!",
     "thanksLine": "Your Papin contribution is recognised and appreciated",
     "notFound": "This sticker came unstuck"
+  },
+  "instagram": {
+    "label": "Your Instagram",
+    "optional": "(optional)",
+    "hint": "Shown next to your name. You can only set it once.",
+    "error": "Letters, numbers, dots and underscores only (up to 30).",
+    "postLabel": "Link to the post or reel",
+    "postReel": "Instagram reel",
+    "postPost": "Instagram post",
+    "postError": "Paste an instagram.com/p, /reel or /tv link."
   }
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildMeta, buildPatch, checkPhotoFile, classifySubmitError, firstInvalidCard, isFreshPhoto, isLocationConflict, keepsDraft, MAX_PHOTO_BYTES,
-  photoMime, planLocation, uniqueNames, validateAdd, type EditSnapshot, type LocationChoice, type MetaInput, type ValidationInput,
+  instagramProblems, photoMime, planLocation, uniqueNames, validateAdd, type EditSnapshot, type LocationChoice, type MetaInput, type ValidationInput,
 } from "../../src/add/logic";
 import { createSpotMeta } from "../../src/shared/schema";
 
@@ -79,6 +79,13 @@ describe("what blocks Mandale Mecha", () => {
     expect(firstInvalidCard([])).toBeNull();
   });
 
+  it("blocks a typed Instagram handle or post link that would be rejected", () => {
+    expect(validateAdd({ ...ok, badInstagram: true }).map((i) => i.code)).toEqual(["bad_instagram"]);
+    expect(instagramProblems("no..good", "")).toEqual({ handle: true, post: false });
+    expect(instagramProblems("", "https://example.com/p/a")).toEqual({ handle: false, post: true });
+    expect(instagramProblems("  ", "")).toEqual({ handle: false, post: false });
+  });
+
   it("waits for the photo to be read", () => {
     expect(validateAdd({ ...ok, photoBusy: true })).toEqual([{ card: 1, code: "photo_busy" }]);
   });
@@ -113,6 +120,13 @@ describe("request body", () => {
     const anon = buildMeta({ ...base, soy: "  " });
     expect(anon.reporter).toBeNull();
     expect(createSpotMeta.safeParse(anon).success).toBe(true);
+  });
+
+  it("sends the normalized Instagram handle and post link, only with a reporter", () => {
+    const meta = buildMeta({ ...base, instagram: " @Ana.Papa ", postUrl: "instagram.com/reel/C8xQ2p?igsh=1" });
+    expect(meta).toMatchObject({ reporter_instagram: "ana.papa", instagram_post_url: "https://www.instagram.com/reel/C8xQ2p/" });
+    expect(createSpotMeta.safeParse(meta).success).toBe(true);
+    expect(buildMeta({ ...base, soy: "", instagram: "ana.papa" }).reporter_instagram).toBeNull();
   });
 
   it("blank optional text becomes null", () => {

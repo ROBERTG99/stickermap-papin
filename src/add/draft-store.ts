@@ -28,6 +28,8 @@ export interface AddDraft {
   types: string[];
   otherText: string;
   soy: string;
+  instagram?: string;
+  postUrl?: string;
   note: string;
 }
 

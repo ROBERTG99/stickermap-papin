@@ -60,6 +60,9 @@ export interface AddState {
   types: string[];
   otherText: string;
   soy: string;
+  /** F2: "Tu Instagram" (without @) and the post link, as typed. */
+  instagram: string;
+  postUrl: string;
   note: string;
   noteOpen: boolean;
 

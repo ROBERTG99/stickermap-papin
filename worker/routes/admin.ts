@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { round3 } from "../../src/shared/geo";
+import { normalizeHandle, normalizePostUrl } from "../../src/shared/instagram";
 import type { AppEnv } from "../app";
 import { adminFromRequest } from "../lib/access";
 import { bustSpotsCache } from "../lib/cache";
@@ -152,6 +153,7 @@ const adminPatch = z.object({
   types: z.array(slug).min(1).max(12).optional(),
   reporter: name.nullish(),
   note: z.string().trim().max(280).nullish(),
+  instagram_post_url: z.string().trim().max(300).refine((v) => v === "" || normalizePostUrl(v) !== null).nullish(),
   other_text: z.string().trim().max(40).nullish(),
   place_name: z.string().trim().max(200).nullish(),
   status: z.enum(["published", "pending", "hidden"]).optional(),
@@ -201,6 +203,7 @@ admin.patch("/spots/:id", async (c) => {
     set("placer_status", placerStatusFor(reporterId));
     extra.push(...syncPlacerStatements(db, id, reporterId));
   }
+  if (p.instagram_post_url !== undefined) set("instagram_post_url", normalizePostUrl(p.instagram_post_url));
   for (const [k, col] of [["note", "note"], ["other_text", "other_text"], ["place_name", "place_name"], ["review_reason", "review_reason"]] as const) {
     if (p[k] !== undefined) set(col, p[k] ?? null);
   }
@@ -416,7 +419,7 @@ admin.get("/people", async (c) => {
   const db = c.env.DB;
   const [people, aliases] = await db.batch([
     db.prepare(
-      `SELECT p.id, p.display_name AS name,
+      `SELECT p.id, p.display_name AS name, p.instagram_handle AS instagram,
               (SELECT COUNT(*) FROM spot_placers sp WHERE sp.person_id = p.id) AS placed,
               (SELECT COUNT(*) FROM spots s WHERE s.reporter_person_id = p.id) AS reported
          FROM people p ORDER BY placed DESC, reported DESC, p.display_name`,
@@ -425,7 +428,7 @@ admin.get("/people", async (c) => {
   ]);
   const byPerson = new Map<number, string[]>();
   for (const a of (aliases?.results ?? []) as { alias: string; person_id: number }[]) byPerson.set(a.person_id, [...(byPerson.get(a.person_id) ?? []), a.alias]);
-  return c.json(((people?.results ?? []) as { id: number; name: string; placed: number; reported: number }[]).map((p) => ({ ...p, aliases: byPerson.get(p.id) ?? [] })));
+  return c.json(((people?.results ?? []) as { id: number; name: string; instagram: string | null; placed: number; reported: number }[]).map((p) => ({ ...p, aliases: byPerson.get(p.id) ?? [] })));
 });
 
 admin.post("/people/merge", async (c) => {
@@ -451,17 +454,31 @@ admin.post("/people/merge", async (c) => {
   return c.json({ id: into_id });
 });
 
+const igInput = z.string().trim().max(40).refine((v) => v === "" || normalizeHandle(v) !== null).nullable();
+
 admin.patch("/people/:id", async (c) => {
-  const parsed = z.object({ display_name: name }).safeParse(await c.req.json().catch(() => null));
-  if (!parsed.success) return c.json({ error: "invalid" }, 400);
+  const parsed = z.object({ display_name: name.optional(), instagram: igInput.optional() }).safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success || (parsed.data.display_name === undefined && parsed.data.instagram === undefined)) return c.json({ error: "invalid" }, 400);
   const id = Number(c.req.param("id"));
-  const clash = await c.env.DB.prepare("SELECT id FROM people WHERE display_name = ?1 AND id != ?2").bind(parsed.data.display_name, id).first();
-  if (clash) return c.json({ error: "name_exists" }, 409);
-  await c.env.DB.batch([
-    c.env.DB.prepare("UPDATE people SET display_name = ?2 WHERE id = ?1").bind(id, parsed.data.display_name),
-    c.env.DB.prepare("INSERT OR IGNORE INTO people_aliases (alias, person_id) VALUES (?1, ?2)").bind(parsed.data.display_name, id),
-    audit(c.env.DB, c.get("email"), "rename_person", "person", String(id), parsed.data),
-  ]);
+  const db = c.env.DB;
+  const stmts: D1PreparedStatement[] = [];
+  if (parsed.data.display_name !== undefined) {
+    const clash = await db.prepare("SELECT id FROM people WHERE display_name = ?1 AND id != ?2").bind(parsed.data.display_name, id).first();
+    if (clash) return c.json({ error: "name_exists" }, 409);
+    stmts.push(
+      db.prepare("UPDATE people SET display_name = ?2 WHERE id = ?1").bind(id, parsed.data.display_name),
+      db.prepare("INSERT OR IGNORE INTO people_aliases (alias, person_id) VALUES (?1, ?2)").bind(parsed.data.display_name, id),
+    );
+  }
+  if (parsed.data.instagram !== undefined) {
+    const handle = normalizeHandle(parsed.data.instagram);
+    if (handle) {
+      const taken = await db.prepare("SELECT id FROM people WHERE instagram_handle = ?1 AND id != ?2").bind(handle, id).first();
+      if (taken) return c.json({ error: "instagram_exists" }, 409);
+    }
+    stmts.push(db.prepare("UPDATE people SET instagram_handle = ?2 WHERE id = ?1").bind(id, handle));
+  }
+  await db.batch([...stmts, audit(db, c.get("email"), "update_person", "person", String(id), parsed.data)]);
   c.executionCtx.waitUntil(bustSpotsCache(c));
   return c.json({ id });
 });

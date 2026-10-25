@@ -1,17 +1,23 @@
 import { TypeGrid } from "../components/Chip";
-import { Combobox } from "../components/Field";
+import { Combobox, TextField } from "../components/Field";
+import { InstagramField } from "../components/InstagramHandle";
 import { StickerCard } from "../components/StickerCard";
 import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { TextAreaField } from "../components/Field";
 import { t } from "../lib/i18n";
-import { people, types as typeList } from "../lib/store";
-import { NOTE_MAX, OTHER_TEXT_MAX } from "./logic";
+import { config, people, types as typeList } from "../lib/store";
+import { normalizePostUrl, postKind } from "../shared/instagram";
+import { instagramProblems, NOTE_MAX, OTHER_TEXT_MAX } from "./logic";
 import type { AddForm } from "./useAddForm";
 
 /** Type tiles + "Soy:" (the person who uploads is the one who stuck it). Shared by card 3 and the "Agregar sticker a ese lugar" sheet. */
 export function WhatFields({ form, showErrors }: { form: AddForm; showErrors: boolean }) {
   const { s, actions } = form;
+  const igOn = config.value?.features.instagram === true;
+  const me = s.soy.trim().toLowerCase();
+  const knownHandle = people.value.find((p) => p.name.toLowerCase() === me)?.instagram;
+  const bad = instagramProblems(s.instagram, "");
 
   return (
     <>
@@ -38,6 +44,9 @@ export function WhatFields({ form, showErrors }: { form: AddForm; showErrors: bo
           multiple={false}
           allowCreate
         />
+        {igOn && me !== "" && !knownHandle && (
+          <InstagramField id="add-ig" value={s.instagram} onInput={actions.setInstagram} error={showErrors && bad.handle ? t("add.instagram.error") : undefined} />
+        )}
       </div>
     </>
   );
@@ -45,7 +54,10 @@ export function WhatFields({ form, showErrors }: { form: AddForm; showErrors: bo
 
 /** Card 3, ¿Qué sticker?. */
 export function WhatCard({ form }: { form: AddForm }) {
-  const { s, issues } = form;
+  const { s, issues, actions } = form;
+  const igOn = config.value?.features.instagram === true;
+  const post = normalizePostUrl(s.postUrl);
+  const postBad = instagramProblems("", s.postUrl).post;
   const invalid = s.attempted && issues.some((i) => i.card === 3);
   const ready = s.types.length > 0 && !issues.some((i) => i.card === 3);
   return (
@@ -59,13 +71,31 @@ export function WhatCard({ form }: { form: AddForm }) {
       <WhatFields form={form} showErrors={s.attempted} />
       <div class="add-what" style={{ marginTop: "var(--space-4)" }}>
         {s.noteOpen ? (
-          <TextAreaField
-            label={t("add.what.note")}
-            value={s.note}
-            maxLength={NOTE_MAX}
-            placeholder={t("add.what.notePlaceholder")}
-            onInput={(e) => form.set({ note: e.currentTarget.value })}
-          />
+          <>
+            <TextAreaField
+              label={t("add.what.note")}
+              value={s.note}
+              maxLength={NOTE_MAX}
+              placeholder={t("add.what.notePlaceholder")}
+              onInput={(e) => form.set({ note: e.currentTarget.value })}
+            />
+            {igOn && (
+              <TextField
+                id="add-ig-post"
+                mono
+                label={<>{t("add.instagram.postLabel")} <span style={{ fontWeight: 500, color: "var(--ink-muted)" }}>{t("add.instagram.optional")}</span></>}
+                value={s.postUrl}
+                placeholder="instagram.com/reel/…"
+                inputMode="url"
+                autoCapitalize="none"
+                autoComplete="off"
+                spellcheck={false}
+                onInput={(e) => actions.setPostUrl(e.currentTarget.value)}
+                error={s.attempted && postBad ? t("add.instagram.postError") : undefined}
+                ok={post ? t(postKind(post) === "reel" ? "add.instagram.postReel" : "add.instagram.postPost") : undefined}
+              />
+            )}
+          </>
         ) : (
           <Button variant="ghost" class="add-note" onClick={() => form.set({ noteOpen: true })}>
             {t("add.what.addNote")}

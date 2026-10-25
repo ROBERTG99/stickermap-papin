@@ -4,6 +4,7 @@ import { Banner } from "../components/Banner";
 import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { Polaroid, TypeSticker } from "../components/Polaroid";
+import { StorySheet } from "../components/StorySheet";
 import { lastCreated } from "../add/created";
 import { AddStyles } from "../add/styles";
 import { api } from "../lib/api";
@@ -12,7 +13,8 @@ import { t } from "../lib/i18n";
 import { editGrants } from "../lib/local";
 import { isDesktop } from "../lib/media";
 import { toast } from "../lib/toast";
-import { typeBySlug } from "../lib/store";
+import { storyInputFor } from "../lib/story";
+import { config, types as allTypes, typeBySlug } from "../lib/store";
 import type { SpotDetail } from "../shared/types";
 
 const RAYS = Array.from({ length: 12 }, (_, i) => i * 30);
@@ -22,6 +24,8 @@ export default function ThanksPage({ id }: { id: string }) {
   const created = lastCreated.value?.id === id ? lastCreated.value : null;
   const [spot, setSpot] = useState<SpotDetail | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [story, setStory] = useState(false);
+  const instagram = config.value?.features.instagram === true;
   const desktop = isDesktop.value;
 
   useEffect(() => {
@@ -104,6 +108,9 @@ export default function ThanksPage({ id }: { id: string }) {
         )}
         <div class="thanks__actions">
           <a class="mp-btn mp-btn--primary mp-btn--lg" href={`/s/${id}`}>{t("add.thanks.view")}</a>
+          {instagram && spot && (
+            <Button variant="secondary" icon="share" onClick={() => setStory(true)}>{t("share.story.title")}</Button>
+          )}
           <div class="thanks__row">
             <a class="mp-btn mp-btn--secondary" href="/nuevo">{t("add.thanks.another")}</a>
             <Button variant="secondary" icon="share" onClick={() => void share()}>{t("add.common.share")}</Button>
@@ -121,6 +128,9 @@ export default function ThanksPage({ id }: { id: string }) {
           </a>
         )}
       </main>
+      {instagram && spot && (
+        <StorySheet open={story} onClose={() => setStory(false)} link={`${location.origin}/s/${id}`} filename={`mapa-papin-${id}.png`} input={story ? storyInputFor(spot, allTypes.value) : null} />
+      )}
     </div>
   );
 }

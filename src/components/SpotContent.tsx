@@ -2,6 +2,7 @@ import type { SpotDetail, StickerType } from "../shared/types";
 import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
+import { InstagramLink } from "./InstagramHandle";
 import { Flag, PlacerAvatar, TypeSticker, formatSpotDate, placersLabel } from "./map-parts";
 
 /** What the spot block needs, already resolved (type slugs -> StickerType, dates -> labels). */
@@ -16,6 +17,9 @@ export interface SpotView {
   types: StickerType[];
   /** Who uploaded and stuck it (the same person); empty for anonymous spots. */
   placers: string[];
+  /** Instagram handle by person name, and the spot's post/reel link (F2). */
+  ig: Record<string, string>;
+  igPost: string | null;
   /** Date label already formatted ("15 abr 2025" or "hace 1 h"). */
   dateLabel: string;
   /** `/img/display/<id>.webp`; null renders the placeholder photo. */
@@ -36,6 +40,8 @@ export function toSpotView(spot: SpotDetail, allTypes: StickerType[]): SpotView 
     countryCode: spot.country_code,
     types,
     placers: spot.placers,
+    ig: spot.ig ?? {},
+    igPost: spot.ig_post ?? null,
     dateLabel: formatSpotDate(spot.taken_at ?? spot.created_at),
     photo: spot.photo,
     lat: spot.lat,
@@ -53,6 +59,9 @@ interface SpotContentProps {
   editHoursLeft?: number;
   onOpenPhoto?: () => void;
   onShare?: () => void;
+  /** F2: shows "Compartir en historia" (and the @handles) when the feature is on. */
+  onShareStory?: () => void;
+  instagram?: boolean;
   onReport?: () => void;
   onEdit?: () => void;
 }
@@ -116,7 +125,7 @@ function mapsUrl(spot: SpotView): string {
 }
 
 /** The shared `mp-spot` block: same inside the mobile BottomSheet and the desktop SidePanel. */
-export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onShare, onReport, onEdit }: SpotContentProps) {
+export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onShare, onShareStory, instagram, onReport, onEdit }: SpotContentProps) {
   if (variant === "peek") {
     return (
       <div class="mp-spot">
@@ -162,10 +171,27 @@ export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onS
         <div>
           <span class="mp-spot__by-label">{t("components.spot.placedBy")}</span>
           <span class="mp-spot__by-names">{unknown ? t("common.person.unknownPlacer") : placersLabel(written)}</span>
+          {instagram && names.some((n) => spot.ig[n]) && (
+            <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3)">
+              {names.filter((n) => spot.ig[n]).map((n) => <InstagramLink key={n} handle={spot.ig[n]!} />)}
+            </div>
+          )}
         </div>
       </div>
       {spot.dateLabel && <div class="mp-spot__meta">{spot.dateLabel}</div>}
       <div class="mp-spot__actions">
+        {instagram && onShareStory && (
+          <button type="button" class="mp-btn mp-btn--primary" style="grid-column:1/-1" onClick={onShareStory}>
+            <Icon name="share" size="sm" />
+            {t("share.story.title")}
+          </button>
+        )}
+        {instagram && spot.igPost && (
+          <a class="mp-btn mp-btn--secondary" href={spot.igPost} target="_blank" rel="noopener noreferrer">
+            <Icon name="external" size="sm" />
+            {t("components.spot.viewOnInstagram")}
+          </a>
+        )}
         <a class="mp-btn mp-btn--secondary" href={mapsUrl(spot)} target="_blank" rel="noopener noreferrer">
           <Icon name="external" size="sm" />
           {t("components.spot.maps")}

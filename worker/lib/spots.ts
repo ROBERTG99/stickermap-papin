@@ -4,7 +4,7 @@ interface SpotRow {
   id: string; lat: number; lng: number; placer_status: "self" | "other" | "unknown";
   place_name: string | null; country: string | null; country_code: string | null;
   taken_at: string | null; created_at: string; updated_at: string;
-  photo_key: string | null; thumb_key: string | null; reporter: string | null;
+  photo_key: string | null; thumb_key: string | null; reporter: string | null; instagram_post_url: string | null;
 }
 
 const img = (key: string | null) => (key ? `/img/${key}` : null);
@@ -16,7 +16,7 @@ export async function publishedCollection(db: D1Database): Promise<{ collection:
   const [spots, types, placers] = await db.batch([
     db.prepare(
       `SELECT s.id, s.lat, s.lng, s.placer_status, s.place_name, s.country, s.country_code, s.taken_at, s.created_at, s.updated_at,
-              s.photo_key, s.thumb_key, p.display_name AS reporter
+              s.photo_key, s.thumb_key, s.instagram_post_url, p.display_name AS reporter
          FROM spots s LEFT JOIN people p ON p.id = s.reporter_person_id
         WHERE s.status = 'published' ORDER BY s.created_at, s.id`,
     ),
@@ -26,7 +26,7 @@ export async function publishedCollection(db: D1Database): Promise<{ collection:
          JOIN sticker_types t ON t.slug = st.type_slug ORDER BY t.sort_order`,
     ),
     db.prepare(
-      `SELECT sp.spot_id AS id, p.display_name AS name FROM spot_placers sp
+      `SELECT sp.spot_id AS id, p.display_name AS name, p.instagram_handle AS ig FROM spot_placers sp
          JOIN spots s ON s.id = sp.spot_id AND s.status = 'published'
          JOIN people p ON p.id = sp.person_id ORDER BY p.display_name`,
     ),
@@ -37,7 +37,10 @@ export async function publishedCollection(db: D1Database): Promise<{ collection:
     return m;
   };
   const typeMap = group((types?.results ?? []) as { id: string; slug: string }[], (r) => r.slug);
-  const placerMap = group((placers?.results ?? []) as { id: string; name: string }[], (r) => r.name);
+  const placerRows = (placers?.results ?? []) as { id: string; name: string; ig: string | null }[];
+  const placerMap = group(placerRows, (r) => r.name);
+  const igMap = new Map<string, Record<string, string>>();
+  for (const r of placerRows) if (r.ig) igMap.set(r.id, { ...(igMap.get(r.id) ?? {}), [r.name]: r.ig });
 
   const rows = (spots?.results ?? []) as unknown as SpotRow[];
   let maxUpdated = "";
@@ -52,6 +55,7 @@ export async function publishedCollection(db: D1Database): Promise<{ collection:
         id: r.id, types: t, placers: placerMap.get(r.id) ?? [], placer_status: r.placer_status, reporter: r.reporter,
         place_name: orNull(r.place_name), country: r.country, country_code: r.country_code, taken_at: r.taken_at,
         created_at: r.created_at, thumb: img(r.thumb_key), photo: img(r.photo_key), n: t.length,
+        ...(igMap.has(r.id) ? { ig: igMap.get(r.id) } : {}), ...(r.instagram_post_url ? { ig_post: r.instagram_post_url } : {}),
       },
     };
   });

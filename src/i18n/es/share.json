@@ -1,1 +1,18 @@
-{ "received": "Foto recibida desde Galería" }
+{
+  "received": "Foto recibida desde Galería",
+  "story": {
+    "title": "Compartir en historia",
+    "text": "Mirá este sticker en Mapa Papin",
+    "linkCopied": "Link copiado. Pegalo como sticker de enlace.",
+    "saved": "Imagen lista.",
+    "share": "Compartir",
+    "download": "Descargar imagen",
+    "preview": "Imagen para historia",
+    "failed": "No pudimos armar la imagen.",
+    "preparing": "Armando la imagen…",
+    "background": "Fondo",
+    "mint": "Menta",
+    "brand": "Verde",
+    "ink": "Tinta"
+  }
+}

@@ -160,7 +160,8 @@
     "viewFull": "Ver foto en pantalla completa",
     "placedBy": "PEGADO POR",
     "maps": "Ver en Google Maps",
-    "editWindow": "podés editar por {h} h"
+    "editWindow": "podés editar por {h} h",
+    "viewOnInstagram": "Ver en Instagram"
   },
   "date": {
     "hoursAgo": "hace {n} h",
@@ -199,5 +200,8 @@
     "iphonePost": " al elegir la foto.",
     "approx": "Ubicación aproximada",
     "approxHint": "Se muestra redondeada (~100 m). Útil para casas."
+  },
+  "ig": {
+    "open": "Abrir @{handle} en Instagram"
   }
 }

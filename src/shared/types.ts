@@ -26,6 +26,8 @@ export interface PersonSummary {
   name: string;
   placed: number;
   reported: number;
+  /** Instagram handle without "@" (F2), when the person has one. */
+  instagram?: string;
 }
 
 /** Properties of one feature in `GET /api/spots`. Coordinates are in the GeoJSON geometry. */
@@ -45,6 +47,10 @@ export interface SpotProps {
   photo: string | null;
   /** Number of sticker types (marker "+N" badge). */
   n: number;
+  /** Instagram handle by person name (F2); only people who have one. */
+  ig?: Record<string, string>;
+  /** Link to the spot's Instagram post or reel (F2). */
+  ig_post?: string;
 }
 
 export interface SpotFeature {

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { addTypesBody, createSpotMeta, MAX, patchOwnSpot, reportBody, sha256List } from "../../src/shared/schema";
 import { round3 } from "../../src/shared/geo";
 import { newUlid } from "../../src/shared/ulid";
+import { normalizeHandle, normalizePostUrl } from "../../src/shared/instagram";
 import type { SpotDetail } from "../../src/shared/types";
 import { adminFromRequest } from "../lib/access";
 import { hashToken, randomToken, sha256Hex, timingSafeEqual, verifyBatchToken } from "../lib/crypto";
@@ -105,12 +106,13 @@ export async function loadSpotDetail(db: D1Database, id: string): Promise<SpotDe
       `SELECT s.*, rp.display_name AS reporter FROM spots s LEFT JOIN people rp ON rp.id = s.reporter_person_id WHERE s.id = ?1 AND s.status = 'published'`,
     ).bind(id),
     db.prepare("SELECT type_slug AS slug FROM spot_types st JOIN sticker_types t ON t.slug = st.type_slug WHERE spot_id = ?1 ORDER BY t.sort_order").bind(id),
-    db.prepare("SELECT p.display_name AS name FROM spot_placers sp JOIN people p ON p.id = sp.person_id WHERE sp.spot_id = ?1 ORDER BY p.display_name").bind(id),
+    db.prepare("SELECT p.display_name AS name, p.instagram_handle AS ig FROM spot_placers sp JOIN people p ON p.id = sp.person_id WHERE sp.spot_id = ?1 ORDER BY p.display_name").bind(id),
   ]);
   const s = row?.results[0] as Record<string, unknown> | undefined;
   if (!s) return null;
   const t = (types?.results ?? []).map((r) => (r as { slug: string }).slug);
   const key = (k: unknown) => (typeof k === "string" ? `/img/${k}` : null);
+  const ig = Object.fromEntries(((placers?.results ?? []) as { name: string; ig: string | null }[]).filter((r) => r.ig).map((r) => [r.name, r.ig!]));
   return {
     id: s.id as string, types: t, placers: (placers?.results ?? []).map((r) => (r as { name: string }).name),
     placer_status: s.placer_status as SpotDetail["placer_status"], reporter: (s.reporter as string | null) ?? null,
@@ -120,6 +122,7 @@ export async function loadSpotDetail(db: D1Database, id: string): Promise<SpotDe
     location_accuracy_m: (s.location_accuracy_m as number | null) ?? null, is_approximate: s.is_approximate === 1,
     city: (s.city as string | null) ?? null, note: (s.note as string | null) ?? null, other_text: (s.other_text as string | null) ?? null,
     placer_note: (s.placer_note as string | null) ?? null, photo_w: (s.photo_w as number | null) ?? null, photo_h: (s.photo_h as number | null) ?? null,
+    ...(Object.keys(ig).length ? { ig } : {}), ...(typeof s.instagram_post_url === "string" ? { ig_post: s.instagram_post_url } : {}),
   };
 }
 
@@ -200,6 +203,8 @@ spots.post("/", async (c) => {
 
   const reporterId = meta.reporter ? await findOrCreatePerson(db, meta.reporter) : null;
   const placerIds = reporterId ? [reporterId] : [];
+  const igHandle = normalizeHandle(meta.reporter_instagram);
+  const igPost = normalizePostUrl(meta.instagram_post_url);
   const editToken = auth.batchId ? null : randomToken();
   const editHash = editToken ? await hashToken(editToken) : null;
   const bytes = objects.reduce((n, x) => n + x.body.byteLength, 0);
@@ -219,14 +224,14 @@ spots.post("/", async (c) => {
   const insertSpot = db
     .prepare(
       `INSERT INTO spots (id, lat, lng, location_source, location_accuracy_m, is_approximate, reporter_person_id, reporter_raw, placer_status, placer_note, note, other_text,
-         photo_key, thumb_key, orig_key, photo_sha256, taken_at, created_at, updated_at, status, edit_token_hash, batch_id, client_ref, submitter_ip_hash)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?18,?19,?20,?21,?22,?23)`,
+         photo_key, thumb_key, orig_key, photo_sha256, taken_at, created_at, updated_at, status, edit_token_hash, batch_id, client_ref, submitter_ip_hash, instagram_post_url)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?18,?19,?20,?21,?22,?23,?24)`,
     )
     .bind(
       id, lat, lng, meta.location_source, meta.location_accuracy_m ?? null, meta.is_approximate ? 1 : 0, reporterId, meta.reporter ?? null, placerStatusFor(reporterId),
       null, meta.note ?? null, meta.other_text ?? null,
       displayKey, thumbKey, o ? `orig/${id}.${EXTENSION[o.kind]}` : null, sha, meta.taken_at ?? null, now,
-      settings.moderation_mode === "approval" ? "pending" : "published", editHash, auth.batchId, meta.client_ref ?? null, ipH,
+      settings.moderation_mode === "approval" ? "pending" : "published", editHash, auth.batchId, meta.client_ref ?? null, ipH, igPost,
     );
   const statements: D1PreparedStatement[] = [
     insertSpot,
@@ -234,6 +239,12 @@ spots.post("/", async (c) => {
     ...placerIds.map((pid) => db.prepare("INSERT INTO spot_placers (spot_id, person_id) VALUES (?1, ?2)").bind(id, pid)),
     db.prepare("INSERT INTO audit_log (actor, action, entity, entity_id) VALUES ('submitter', 'create', 'spot', ?1)").bind(id),
   ];
+  // anti-hijack: the public form can only fill an empty handle (and never one that already belongs to someone else); changing it is admin-only
+  if (reporterId && igHandle) {
+    statements.push(
+      db.prepare("UPDATE people SET instagram_handle = ?2 WHERE id = ?1 AND instagram_handle IS NULL AND NOT EXISTS (SELECT 1 FROM people WHERE instagram_handle = ?2)").bind(reporterId, igHandle),
+    );
+  }
   if (bytes > 0) statements.push(meterStatement(db, bytes));
   try {
     await db.batch(statements);

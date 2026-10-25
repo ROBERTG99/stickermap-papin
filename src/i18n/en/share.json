@@ -1,1 +1,18 @@
-{ "received": "Photo received from Gallery" }
+{
+  "received": "Photo received from Gallery",
+  "story": {
+    "title": "Share to your story",
+    "text": "Look at this sticker on Mapa Papin",
+    "linkCopied": "Link copied. Paste it as a link sticker.",
+    "saved": "Image ready.",
+    "share": "Share",
+    "download": "Download image",
+    "preview": "Story image",
+    "failed": "We could not build the image.",
+    "preparing": "Building the image…",
+    "background": "Background",
+    "mint": "Mint",
+    "brand": "Green",
+    "ink": "Ink"
+  }
+}

@@ -85,7 +85,8 @@
   "missing": {
     "photo_busy": "terminar de leer la foto",
     "no_location": "ubicación",
-    "no_type": "tipo de sticker"
+    "no_type": "tipo de sticker",
+    "bad_instagram": "revisar el Instagram"
   },
   "submit": {
     "missing": "Falta: {what}",
@@ -157,5 +158,15 @@
     "thanksTitle": "¡Mandaste mecha!",
     "thanksLine": "Tu aporte Papin es reconocido y apreciado",
     "notFound": "Este sticker se despegó"
+  },
+  "instagram": {
+    "label": "Tu Instagram",
+    "optional": "(opcional)",
+    "hint": "Aparece al lado de tu nombre. Solo lo podés poner una vez.",
+    "error": "Solo letras, números, puntos y guiones bajos (hasta 30).",
+    "postLabel": "Link al post o reel",
+    "postReel": "Reel de Instagram",
+    "postPost": "Post de Instagram",
+    "postError": "Pegá un link de instagram.com/p, /reel o /tv."
   }
 }

@@ -25,13 +25,13 @@ catalog.get("/types", (c) =>
 catalog.get("/people", (c) =>
   cachedJson(c, async () => {
     const { results } = await c.env.DB.prepare(
-      `SELECT p.display_name AS name,
+      `SELECT p.display_name AS name, p.instagram_handle AS instagram,
               (SELECT COUNT(*) FROM spot_placers sp JOIN spots s ON s.id = sp.spot_id AND s.status = 'published' WHERE sp.person_id = p.id) AS placed,
               (SELECT COUNT(*) FROM spots s WHERE s.reporter_person_id = p.id AND s.status = 'published') AS reported
          FROM people p ORDER BY placed DESC, reported DESC, p.display_name`,
-    ).all<PersonSummary>();
-    const body = results.filter((p) => p.placed > 0 || p.reported > 0);
-    return { body, etag: `W/"people-${body.map((p) => `${p.name}${p.placed}.${p.reported}`).join("|")}"` };
+    ).all<Omit<PersonSummary, "instagram"> & { instagram: string | null }>();
+    const body: PersonSummary[] = results.filter((p) => p.placed > 0 || p.reported > 0).map(({ instagram, ...p }) => (instagram ? { ...p, instagram } : p));
+    return { body, etag: `W/"people-${body.map((p) => `${p.name}${p.placed}.${p.reported}${p.instagram ?? ""}`).join("|")}"` };
   }, FIVE_MIN),
 );
 

@@ -5,6 +5,7 @@
  */
 import type { CreateSpotMeta } from "../shared/schema";
 import { haversineMeters, round3 } from "../shared/geo";
+import { normalizeHandle, normalizePostUrl } from "../shared/instagram";
 import type { LocationSource } from "../shared/types";
 
 export const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
@@ -89,7 +90,7 @@ export interface LocationChoice extends LatLng {
 
 // ── validation ────────────────────────────────────────────────────────────
 
-export type IssueCode = "photo_busy" | "no_location" | "no_type";
+export type IssueCode = "photo_busy" | "no_location" | "no_type" | "bad_instagram";
 export interface Issue { card: 1 | 2 | 3; code: IssueCode }
 
 export interface ValidationInput {
@@ -98,6 +99,8 @@ export interface ValidationInput {
   /** Location card still waiting for the device. */
   locationBusy: boolean;
   types: readonly string[];
+  /** F2: the Instagram handle or post link was typed but is not valid. */
+  badInstagram?: boolean;
 }
 
 /** Everything that blocks "Mandale Mecha", in card order. */
@@ -106,7 +109,13 @@ export function validateAdd(input: ValidationInput): Issue[] {
   if (input.photoBusy) issues.push({ card: 1, code: "photo_busy" });
   if (!input.location || input.locationBusy) issues.push({ card: 2, code: "no_location" });
   if (input.types.length === 0) issues.push({ card: 3, code: "no_type" });
+  if (input.badInstagram) issues.push({ card: 3, code: "bad_instagram" });
   return issues;
+}
+
+/** True when a typed handle or post link would be rejected (blank is fine: both are optional). */
+export function instagramProblems(handle: string, postUrl: string): { handle: boolean; post: boolean } {
+  return { handle: handle.trim() !== "" && normalizeHandle(handle) === null, post: postUrl.trim() !== "" && normalizePostUrl(postUrl) === null };
 }
 
 export const firstInvalidCard = (issues: readonly Issue[]): 1 | 2 | 3 | null => issues[0]?.card ?? null;
@@ -120,6 +129,9 @@ export interface MetaInput {
   /** Free text of the type that allows it; ignored when blank. */
   otherText: string;
   soy: string;
+  /** F2: the reporter's Instagram handle and the post link, as typed (blank = none). */
+  instagram?: string;
+  postUrl?: string;
   note: string;
   takenAt: string | null;
   photoSha256: string | null;
@@ -159,6 +171,8 @@ export function buildMeta(input: MetaInput): CreateSpotMeta {
     types: [...new Set(input.types)],
     other_text: otherText || null,
     reporter,
+    reporter_instagram: reporter ? normalizeHandle(input.instagram) : null,
+    instagram_post_url: normalizePostUrl(input.postUrl),
     note: note || null,
     taken_at: input.takenAt,
     photo_sha256: input.photoSha256,

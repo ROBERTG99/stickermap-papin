@@ -307,12 +307,16 @@
     "stickersOf": "{n} stickers",
     "rename": "Rename",
     "renameFor": "Rename {name}",
-    "renameTitle": "Rename {name}",
+    "renameTitle": "Edit {name}",
     "newName": "New name",
     "renameHint": "The old name stays as an alias, so nothing is lost.",
     "errEmpty": "Write a name.",
     "errExists": "Someone is already called {name}. If it is the same person, merge them.",
-    "renamed": "{from} is now {to}"
+    "renamed": "{from} is now {to}",
+    "colInstagram": "Instagram",
+    "saved": "Done: saved {name}.",
+    "errInstagramExists": "That Instagram belongs to someone else.",
+    "instagramHint": "Only an admin can change it: people set it once."
   },
   "settings": {
     "title": "Settings",

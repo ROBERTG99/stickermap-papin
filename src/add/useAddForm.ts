@@ -18,10 +18,11 @@ import { DeviceError, getDeviceFix } from "./device";
 import { clearDraft, loadDraft, saveDraft, type AddDraft } from "./draft-store";
 import { placeNameAt, searchPlaces } from "./geocode";
 import {
-  buildMeta, checkPhotoFile, classifySubmitError, distanceKm, isLocationConflict, keepsDraft, photoMime, planLocation, validateAdd,
+  buildMeta, checkPhotoFile, classifySubmitError, distanceKm, instagramProblems, isLocationConflict, keepsDraft, photoMime, planLocation, validateAdd,
   type LocationChoice, type SubmitErrorKind,
 } from "./logic";
 import { derivativeName, rotatePhoto } from "./photo-tools";
+import { normalizeHandle } from "../shared/instagram";
 import type { AddState, PhotoState } from "./state";
 
 const FALLBACK_VIEW = { lat: -34.9, lng: -56.16, zoom: 11 };
@@ -34,15 +35,21 @@ export function fallbackView(): { lat: number; lng: number; zoom: number } {
 
 function initialState(): AddState {
   const soy = lastPerson.get();
+  const remembered = storage.get<{ name: string; handle: string } | null>("lastInstagram", null);
   return {
     photo: null, photoError: null,
     choice: null, revert: null, exif: null, device: null, resolving: false, denied: false, conflict: null,
     results: [], paste: null, pasteError: null, focus: null, approximate: false,
-    types: [], otherText: "", soy, note: "", noteOpen: false,
+    types: [], otherText: "", soy, instagram: remembered && remembered.name.toLowerCase() === soy.toLowerCase() ? remembered.handle : "", postUrl: "", note: "", noteOpen: false,
     attempted: false, phase: "idle", progress: 0, error: null,
     duplicate: null, duplicateStage: "closed", addingHere: false, restored: false,
   };
 }
+
+const hasBadInstagram = (cur: Pick<AddState, "instagram" | "postUrl">) => {
+  const bad = instagramProblems(cur.instagram, cur.postUrl);
+  return bad.handle || bad.post;
+};
 
 const manual = (c: LocationChoice | null) => !!c && (c.source === "pin" || c.source === "search" || c.source === "paste");
 const revoke = (p: PhotoState | null) => { if (p?.previewUrl) URL.revokeObjectURL(p.previewUrl); };
@@ -278,6 +285,8 @@ export function useAddForm() {
   const setSoy = useCallback((soy: string) => {
     patch({ soy });
   }, [patch]);
+  const setInstagram = useCallback((instagram: string) => patch({ instagram: instagram.replace(/^@+/, "").slice(0, 40) }), [patch]);
+  const setPostUrl = useCallback((postUrl: string) => patch({ postUrl: postUrl.slice(0, 300) }), [patch]);
 
   // ── derived ───────────────────────────────────────────────────────────
 
@@ -289,6 +298,7 @@ export function useAddForm() {
     location: s.choice,
     locationBusy: false,
     types: s.types,
+    badInstagram: hasBadInstagram(s),
   });
 
   // ── draft ─────────────────────────────────────────────────────────────
@@ -300,7 +310,7 @@ export function useAddForm() {
           display: cur.photo.processed.display, thumb: cur.photo.processed.thumb, decoded: cur.photo.processed.decoded }
       : null,
     choice: cur.choice, exif: cur.exif, approximate: cur.approximate, types: cur.types, otherText: cur.otherText,
-    soy: cur.soy, note: cur.note,
+    soy: cur.soy, instagram: cur.instagram, postUrl: cur.postUrl, note: cur.note,
   }), []);
 
   // Restore an unsent sticker (a failed upload from an earlier visit).
@@ -318,7 +328,7 @@ export function useAddForm() {
         : null;
       patch((cur) => ({
         photo, choice: draft.choice, exif: draft.exif, approximate: draft.approximate, types: draft.types, otherText: draft.otherText,
-        soy: draft.soy || cur.soy, note: draft.note, noteOpen: !!draft.note, restored: true,
+        soy: draft.soy || cur.soy, instagram: draft.instagram ?? cur.instagram, postUrl: draft.postUrl ?? "", note: draft.note, noteOpen: !!(draft.note || draft.postUrl), restored: true,
         focus: draft.choice ? focusOf(cur, draft.choice.lat, draft.choice.lng, 17) : null,
       }));
     });
@@ -330,14 +340,14 @@ export function useAddForm() {
     if (!draftActive.current) return;
     const id = window.setTimeout(() => { void saveDraft(snapshot(ref.current)); }, 700);
     return () => window.clearTimeout(id);
-  }, [s.photo?.processed, s.choice, s.approximate, s.types, s.otherText, s.soy, s.note, snapshot]);
+  }, [s.photo?.processed, s.choice, s.approximate, s.types, s.otherText, s.soy, s.instagram, s.postUrl, s.note, snapshot]);
 
   const discardDraft = useCallback(() => {
     draftActive.current = false;
     void clearDraft();
     photoToken.current++;
     revoke(ref.current.photo);
-    patch({ ...initialState(), soy: ref.current.soy });
+    patch({ ...initialState(), soy: ref.current.soy, instagram: ref.current.instagram });
   }, [patch]);
 
   useEffect(() => () => revoke(ref.current.photo), []);
@@ -368,14 +378,14 @@ export function useAddForm() {
 
   const submit = useCallback(async () => {
     const cur = ref.current;
-    if (cur.phase === "uploading" || !cur.choice || validateAdd({ photoBusy: cur.photo?.status === "processing", location: cur.choice, locationBusy: false, types: cur.types }).length) return;
+    if (cur.phase === "uploading" || !cur.choice || validateAdd({ photoBusy: cur.photo?.status === "processing", location: cur.choice, locationBusy: false, types: cur.types, badInstagram: hasBadInstagram(cur) }).length) return;
     patch({ phase: "uploading", progress: 0, error: null });
     try {
       const token = await turnstile();
       const meta = buildMeta({
         location: cur.choice, approximate: cur.approximate, types: cur.types,
         otherText: cur.types.some((slug) => textSlugs.has(slug)) ? cur.otherText : "",
-        soy: cur.soy, note: cur.note,
+        soy: cur.soy, instagram: cur.instagram, postUrl: cur.postUrl, note: cur.note,
         takenAt: cur.photo?.processed?.exif.takenAt ?? null,
         photoSha256: cur.photo && !cur.photo.keepAnyway ? (cur.photo.processed?.sha256 ?? null) : null,
         turnstileToken: token,
@@ -392,7 +402,10 @@ export function useAddForm() {
 
       const created = await api.createSpot(form, { onProgress: (f) => patch({ progress: Math.min(99, Math.round(f * 100)) }) });
       if (created.editToken) editGrants.save(`spot:${created.id}`, created.editToken);
-      if (cur.soy.trim()) lastPerson.set(cur.soy);
+      if (cur.soy.trim()) {
+        lastPerson.set(cur.soy);
+        if (normalizeHandle(cur.instagram)) storage.set("lastInstagram", { name: cur.soy.trim(), handle: normalizeHandle(cur.instagram) });
+      }
       storage.set("lastLocation", { lat: cur.choice.lat, lng: cur.choice.lng });
       lastCreated.value = {
         id: created.id, types: cur.types, lat: meta.lat, lng: meta.lng,
@@ -443,7 +456,7 @@ export function useAddForm() {
     actions: {
       requestDevice, setPin, revertPin, search, pickResult, pasteText, pickConflict,
       pickFiles, removePhoto, rotate, dismissDuplicate,
-      setSoy, submit, addToExisting, discardDraft,
+      setSoy, setInstagram, setPostUrl, submit, addToExisting, discardDraft,
     },
   };
 }

@@ -1,12 +1,13 @@
 import { useMemo } from "preact/hooks";
 import { AppMenu } from "../components/AppMenu";
 import { Avatar } from "../components/Avatar";
+import { InstagramLink } from "../components/InstagramHandle";
 import { EmptyState } from "../components/EmptyState";
 import { MiniSpotsMap } from "../components/MiniSpotsMap";
 import { Shell } from "../components/Shell";
 import { formatDate, formatNumber } from "../lib/format";
 import { lang, t } from "../lib/i18n";
-import { people, spots } from "../lib/store";
+import { config, people, spots } from "../lib/store";
 
 /** /p/:name: counts as stickers, a mini map with the exact points and a photo grid (Page09Profile). */
 export default function ProfilePage({ name }: { name: string }) {
@@ -46,6 +47,7 @@ export default function ProfilePage({ name }: { name: string }) {
                 {rank > 0 && reported.length > 0 ? ` · ${t("profile.rank", { n: rank })}` : ""}
               </span>
             </div>
+            {person?.instagram && config.value?.features.instagram === true && <InstagramLink handle={person.instagram} button />}
             <div class="profile__stats">
               {[
                 { n: placed.length, label: t("profile.placed"), tone: "", tilt: 2 },

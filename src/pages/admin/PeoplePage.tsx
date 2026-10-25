@@ -9,10 +9,12 @@ import { type Column, DataTable } from "../../components/DataTable";
 import { Dialog } from "../../components/Dialog";
 import { EmptyState } from "../../components/EmptyState";
 import { TextField } from "../../components/Field";
+import { InstagramField } from "../../components/InstagramHandle";
 import { formatInt } from "../../components/StatSticker";
 import { cx } from "../../lib/cx";
 import { t } from "../../lib/i18n";
 import { loadBase } from "../../lib/store";
+import { normalizeHandle } from "../../shared/instagram";
 import { toast } from "../../lib/toast";
 import { Modal } from "./Modal";
 import { PageHead, SearchBox } from "./parts";
@@ -32,6 +34,8 @@ export default function PeoplePage() {
   const [renaming, setRenaming] = useState<AdminPerson | null>(null);
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState("");
+  const [handle, setHandle] = useState("");
+  const [handleError, setHandleError] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -73,6 +77,8 @@ export default function PeoplePage() {
     setRenaming(p);
     setName(p.name);
     setNameError("");
+    setHandle(p.instagram ?? "");
+    setHandleError("");
   };
 
   const saveRename = async () => {
@@ -82,18 +88,27 @@ export default function PeoplePage() {
       setNameError(t("admin.people.errEmpty"));
       return;
     }
-    if (next === renaming.name) {
+    const nextHandle = handle.trim() ? normalizeHandle(handle) : null;
+    if (handle.trim() && !nextHandle) {
+      setHandleError(t("add.instagram.error"));
+      return;
+    }
+    const body: { display_name?: string; instagram?: string | null } = {};
+    if (next !== renaming.name) body.display_name = next;
+    if (nextHandle !== (renaming.instagram ?? null)) body.instagram = nextHandle;
+    if (Object.keys(body).length === 0) {
       setRenaming(null);
       return;
     }
     setSaving(true);
     try {
-      await adminApi.renamePerson(renaming.id, next);
-      toast.show({ kind: "success", message: t("admin.people.renamed", { from: renaming.name, to: next }) });
+      await adminApi.updatePerson(renaming.id, body);
+      toast.show({ kind: "success", message: body.display_name ? t("admin.people.renamed", { from: renaming.name, to: next }) : t("admin.people.saved", { name: renaming.name }) });
       setRenaming(null);
       await Promise.all([loadAdminPeople(), loadBase()]);
     } catch (e) {
       if (e instanceof ApiError && e.code === "name_exists") setNameError(t("admin.people.errExists", { name: next }));
+      else if (e instanceof ApiError && e.code === "instagram_exists") setHandleError(t("admin.people.errInstagramExists"));
       else toast.show({ kind: "error", message: errorText(e) });
     } finally {
       setSaving(false);
@@ -118,6 +133,11 @@ export default function PeoplePage() {
         const others = p.aliases.filter((a) => a !== p.name);
         return others.length ? <span class="mp-admin-aliases">{others.join(", ")}</span> : <span class="mp-admin-muted">{t("admin.people.noAliases")}</span>;
       },
+    },
+    {
+      key: "instagram",
+      header: t("admin.people.colInstagram"),
+      cell: (p) => (p.instagram ? <span class="mp-admin-aliases">@{p.instagram}</span> : <span class="mp-admin-muted">—</span>),
     },
     { key: "placed", header: t("admin.people.colPlaced"), numeric: true, cell: (p) => formatInt(p.placed) },
     { key: "reported", header: t("admin.people.colReported"), numeric: true, cell: (p) => formatInt(p.reported) },
@@ -219,6 +239,7 @@ export default function PeoplePage() {
               setNameError("");
             }}
           />
+          <InstagramField id="people-ig" hint={t("admin.people.instagramHint")} value={handle} error={handleError || undefined} onInput={(v) => { setHandle(v); setHandleError(""); }} />
         </form>
       </Modal>
     </>

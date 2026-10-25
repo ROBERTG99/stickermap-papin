@@ -1,5 +1,6 @@
 /** Request validation shared by the Worker and the front end (BUILD.md §8, §9). */
 import { z } from "zod";
+import { normalizeHandle, normalizePostUrl } from "./instagram";
 
 export const MAX = {
   displayBytes: 1_500_000,
@@ -15,6 +16,10 @@ const trimmed = (max: number) => z.string().trim().max(max);
 const person = z.string().trim().min(1).max(MAX.name);
 const slug = z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/);
 
+/** Optional Instagram fields: blank means "none", anything else must be valid (the server stores the normalized form). */
+const igHandle = z.string().trim().max(40).refine((v) => v === "" || normalizeHandle(v) !== null, "invalid_instagram").nullish();
+const igPost = z.string().trim().max(300).refine((v) => v === "" || normalizePostUrl(v) !== null, "invalid_instagram_post").nullish();
+
 const coords = {
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
@@ -29,6 +34,9 @@ export const createSpotMeta = z
     types: z.array(slug).min(1).max(12),
     other_text: trimmed(MAX.otherText).nullish(),
     reporter: person.nullish(),
+    /** Handle of the reporter; only stored when that person has none yet (changing one is admin-only). */
+    reporter_instagram: igHandle,
+    instagram_post_url: igPost,
     note: trimmed(MAX.note).nullish(),
     /** EXIF DateTimeOriginal as naive local time. */
     taken_at: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/).nullish(),

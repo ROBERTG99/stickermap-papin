@@ -55,6 +55,8 @@ export interface AdminPerson {
   placed: number;
   reported: number;
   aliases: string[];
+  /** Instagram handle without "@" (F2). */
+  instagram: string | null;
 }
 
 export type FeatureKey = "video" | "instagram" | "sightings" | "globe_wrapped";
@@ -175,7 +177,7 @@ export const adminApi = {
 
   people: () => request<AdminPerson[]>("GET", "/api/admin/people"),
   mergePeople: (from_id: number, into_id: number) => request<{ id: number }>("POST", "/api/admin/people/merge", { from_id, into_id }),
-  renamePerson: (id: number, display_name: string) => request<{ id: number }>("PATCH", `/api/admin/people/${id}`, { display_name }),
+  updatePerson: (id: number, body: { display_name?: string; instagram?: string | null }) => request<{ id: number }>("PATCH", `/api/admin/people/${id}`, body),
 
   settings: () => request<AdminSettings>("GET", "/api/admin/settings"),
   saveSettings: (patch: SettingsPatch) => request<{ ok: true }>("PUT", "/api/admin/settings", patch),
