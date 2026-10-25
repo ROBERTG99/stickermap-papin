@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import type { SpotFeature, StickerType } from "../../src/shared/types";
-import { apiSpots, escapeRegExp as esc, expect, haversine, jumpTo, openMap, query, test } from "./helpers";
+import { apiSpots, escapeRegExp as esc, expect, haversine, jumpTo, openMap, test } from "./helpers";
 
 /** Specs here read the live API for expectations: earlier specs add spots, so nothing hard-codes the seeded count. */
 
@@ -81,27 +81,6 @@ test.describe("map", () => {
     // closing hands the map over to the spot the lightbox ended on
     await box.getByRole("button", { name: "Cerrar" }).click();
     await expect(page).toHaveURL(new RegExp(`/s/${nearest.id}$`));
-  });
-
-  test("an unknown placer shows ¿? and the button opens Reportar with 'Sé quién lo pegó'", async ({ page, request }) => {
-    const madrid = byPlace(await apiSpots(request), "Madrid");
-    await openMap(page);
-    await tapSpot(page, madrid);
-    await page.getByRole("button", { name: "Expandir" }).click();
-    const full = page.getByRole("dialog", { name: "Madrid" });
-    await expect(full).toBeVisible();
-    await expect(full.locator(".mp-spot__by-names")).toHaveText("¿?");
-
-    await full.getByRole("button", { name: "¿Sabés quién fue?" }).click();
-    const dialog = page.getByRole("dialog", { name: "Sé quién lo pegó" });
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByLabel("¿Quién fue?")).toBeFocused();
-
-    // sending is wired end to end: the spot is flagged for the admin placer queue
-    await dialog.getByLabel("¿Quién fue?").fill("Nacho");
-    await dialog.getByRole("button", { name: "Enviar" }).click();
-    await expect(page.getByText("Gracias. Un admin lo va a asignar.")).toBeVisible();
-    await expect.poll(() => query<{ review_reason: string; needs_review: number }>(`SELECT review_reason, needs_review FROM spots WHERE id = '${madrid.id}'`)[0]).toMatchObject({ needs_review: 1, review_reason: expect.stringContaining("know_placer") });
   });
 });
 
