@@ -14,7 +14,7 @@
     "discard": "Discard"
   },
   "photo": {
-    "title": "Photo",
+    "title": "Photo or video",
     "optional": "Optional",
     "reading": "Reading the photo…",
     "camera": "Take photo",
@@ -30,8 +30,16 @@
     "error": {
       "bad_type": "That file is not a photo we can use. Pick a JPG, PNG, WebP or HEIC.",
       "too_big": "That photo is over 25 MB. Pick a lighter one.",
-      "unreadable": "We could not read that photo. Try another or continue without a photo."
-    }
+      "unreadable": "We could not read that photo. Try another or continue without a photo.",
+      "video_bad_type": "That file is not a video we can use.",
+      "video_too_big": "That video is over 500 MB. Pick a shorter one.",
+      "video_unreadable": "We could not read that video. Try another one.",
+      "video_cannot_convert": "Your browser cannot shrink this video and it is too long to send as it is. Trim it or try another browser.",
+      "video_cannot_poster": "We could not grab a frame from the video. Try another one."
+    },
+    "video": "Record video",
+    "galleryAny": "Pick from gallery",
+    "hintVideo": "A photo, a clip of up to 15 s, or both. Best if the sticker shows."
   },
   "dup": {
     "title": "This photo is already on the map",
@@ -86,7 +94,8 @@
     "photo_busy": "finish reading the photo",
     "no_location": "location",
     "no_type": "sticker type",
-    "bad_instagram": "check the Instagram fields"
+    "bad_instagram": "check the Instagram fields",
+    "video_busy": "finish preparing the video"
   },
   "submit": {
     "missing": "Missing: {what}",
@@ -104,7 +113,8 @@
     "bad_image": "That photo format cannot be uploaded. Try a JPG, PNG, WebP or HEIC.",
     "exists": "This photo is already on the map.",
     "invalid": "Something you entered is not valid. Check the details and retry.",
-    "server": "Something failed on our side. Your sticker is still here: retry in a while."
+    "server": "Something failed on our side. Your sticker is still here: retry in a while.",
+    "storage_video": "We cannot store more videos right now. Send the photo on its own."
   },
   "thanks": {
     "view": "See on the map",
@@ -168,5 +178,30 @@
     "postReel": "Instagram reel",
     "postPost": "Instagram post",
     "postError": "Paste an instagram.com/p, /reel or /tv link."
+  },
+  "video": {
+    "title": "Video of the sticker",
+    "reading": "Reading the video…",
+    "trim": "Pick up to 15 seconds",
+    "start": "From",
+    "end": "To",
+    "length": "Runs {s} s",
+    "mute": "No sound",
+    "muteHint": "The video is sent without audio.",
+    "use": "Use this video",
+    "processing": "Processing video…",
+    "ready": "Video ready",
+    "change": "Change trim",
+    "remove": "Remove video",
+    "noLocation": "This video has no location.",
+    "location": "Video location",
+    "untranscoded": "Your browser cannot shrink the video. We send it as it is and an admin reviews it.",
+    "preview": "Video preview",
+    "oneAtATime": "Videos are uploaded one at a time.",
+    "status": {
+      "probing": "Reading the video…",
+      "trim": "Pick the trim",
+      "processing": "Processing…"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { cx } from "../lib/cx";
+import { VideoClip } from "./VideoClip";
 import { t } from "../lib/i18n";
 import type { IconFit } from "../shared/types";
 import { tiltStyle } from "./Avatar";
@@ -49,6 +50,8 @@ export interface PolaroidProps {
   ratio?: string;
   /** Placeholder style when there is no photoSrc. */
   tone?: PhotoTone;
+  /** F1: the spot's clip; the card autoplays it muted while it is on screen. */
+  videoSrc?: string | null;
   place: string;
   /** Placer name; null or empty shows "¿?". */
   placer: string | null;
@@ -56,7 +59,7 @@ export interface PolaroidProps {
 }
 
 /** Gallery tile: the photo as a tilted die-cut print with its type stickers on the corner. */
-export function Polaroid({ href, index, types, photoSrc, ratio = "4/5", tone = "stone", place, placer, class: className }: PolaroidProps) {
+export function Polaroid({ href, index, types, photoSrc, ratio = "4/5", tone = "stone", place, placer, videoSrc, class: className }: PolaroidProps) {
   const shown = types.slice(0, 2);
   const extra = types.length - shown.length;
   const alt = t("components.photo.alt", { type: types.map((ty) => ty.label).join(", ") });
@@ -69,7 +72,9 @@ export function Polaroid({ href, index, types, photoSrc, ratio = "4/5", tone = "
         ))}
         {extra > 0 && <span class="mp-badge mp-badge--plus">+{extra}</span>}
       </span>
-      {photoSrc ? (
+      {videoSrc ? (
+        <VideoClip src={videoSrc} poster={photoSrc ?? null} autoplayInView ratio={ratio} label={alt} />
+      ) : photoSrc ? (
         <img src={photoSrc} alt={alt} loading="lazy" style={{ display: "block", width: "100%", height: "auto", borderRadius: "3px" }} />
       ) : (
         <div class={cx("mp-photo", `mp-photo--${tone}`)} style={{ "--ratio": ratio, "--tilt": "var(--tilt-1)" }} role="img" aria-label={alt}>

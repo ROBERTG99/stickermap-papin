@@ -202,6 +202,11 @@ export default function SettingsPage() {
               {t(level === "warning" ? "admin.settings.storageWarning" : "admin.settings.storageCritical")}
             </Banner>
           )}
+          {used_bytes >= 8 * GB && (
+            <Banner kind="error" icon="video">
+              {t("admin.settings.videoRefused")}
+            </Banner>
+          )}
         </section>
 
         <section class="mp-card mp-settings__card" aria-labelledby="st-backup">

@@ -52,6 +52,7 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
         onOpenPhoto={hasPhoto ? onOpenPhoto : undefined}
         onShare={() => void shareSpot(detail.id, view.place)}
         instagram={instagram}
+        videoEnabled={config.value?.features.video === true}
         onShareStory={() => setStory(true)}
         onReport={onReport}
       />

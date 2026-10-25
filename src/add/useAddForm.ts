@@ -11,6 +11,8 @@ import { navigate } from "../lib/router";
 import { config, loadSpots, types as typeList } from "../lib/store";
 import { getTurnstileToken } from "../lib/turnstile";
 import { processPhoto } from "../lib/photo";
+import { convertVideo, posterFrame, probeVideo, probeWithElement } from "../lib/video";
+import { clampWindow, defaultWindow, type TrimWindow } from "../lib/video-meta";
 import { readExifFixed } from "./exif";
 import type { SearchResult } from "../components/LocationPicker";
 import { lastCreated } from "./created";
@@ -23,7 +25,7 @@ import {
 } from "./logic";
 import { derivativeName, rotatePhoto } from "./photo-tools";
 import { normalizeHandle } from "../shared/instagram";
-import type { AddState, PhotoState } from "./state";
+import type { AddState, PhotoState, VideoState } from "./state";
 
 const FALLBACK_VIEW = { lat: -34.9, lng: -56.16, zoom: 11 };
 
@@ -37,8 +39,8 @@ function initialState(): AddState {
   const soy = lastPerson.get();
   const remembered = storage.get<{ name: string; handle: string } | null>("lastInstagram", null);
   return {
-    photo: null, photoError: null,
-    choice: null, revert: null, exif: null, device: null, resolving: false, denied: false, conflict: null,
+    photo: null, photoError: null, video: null, videoError: null,
+    choice: null, revert: null, exif: null, exifFromVideo: false, device: null, resolving: false, denied: false, conflict: null,
     results: [], paste: null, pasteError: null, focus: null, approximate: false,
     types: [], otherText: "", soy, instagram: remembered && remembered.name.toLowerCase() === soy.toLowerCase() ? remembered.handle : "", postUrl: "", note: "", noteOpen: false,
     attempted: false, phase: "idle", progress: 0, error: null,
@@ -53,6 +55,9 @@ const hasBadInstagram = (cur: Pick<AddState, "instagram" | "postUrl">) => {
 
 const manual = (c: LocationChoice | null) => !!c && (c.source === "pin" || c.source === "search" || c.source === "paste");
 const revoke = (p: PhotoState | null) => { if (p?.previewUrl) URL.revokeObjectURL(p.previewUrl); };
+const revokeVideo = (v: VideoState | null) => { for (const url of [v?.previewUrl, v?.resultUrl, v?.posterUrl]) if (url) URL.revokeObjectURL(url); };
+const MAX_VIDEO_PICK_BYTES = 500 * 1024 * 1024;
+const isVideoFile = (f: File) => f.type.startsWith("video/") || /\.(mp4|mov|m4v|3gp|webm)$/i.test(f.name);
 
 /** A fresh photo needs the user to look at it again before the next one is judged. */
 const focusOf = (cur: AddState, lat: number, lng: number, zoom: number) => ({ lat, lng, zoom, nonce: (cur.focus?.nonce ?? 0) + 1 });
@@ -73,6 +78,7 @@ export function useAddForm() {
   }, []);
 
   const photoToken = useRef(0);
+  const videoToken = useRef(0);
   const deviceToken = useRef(0);
   const searchAbort = useRef<AbortController | undefined>(undefined);
   const draftActive = useRef(false);
@@ -227,7 +233,7 @@ export function useAddForm() {
     if (plan === "exif" && hasGps) {
       deviceToken.current++;
       patch((cur) => ({
-        exif: { lat, lng, accuracyM }, conflict: null, revert: null, resolving: false, denied: false,
+        exif: { lat, lng, accuracyM }, exifFromVideo: false, conflict: null, revert: null, resolving: false, denied: false,
         choice: { lat, lng, source: "exif", accuracyM },
         focus: focusOf(cur, lat, lng, 17),
       }));
@@ -239,16 +245,110 @@ export function useAddForm() {
     void lookUpDuplicate(processed.sha256, token);
   }, [patch, lookUpDuplicate, requestDevice]);
 
-  /** Files from the camera input (one) or the gallery input (one or many; many go to the bulk page). */
+  // ── video (F1) ────────────────────────────────────────────────────────
+
+  const pickVideo = useCallback(async (file: File, viaCamera: boolean) => {
+    if (file.size > MAX_VIDEO_PICK_BYTES) {
+      patch({ videoError: "too_big" });
+      return;
+    }
+    const token = ++videoToken.current;
+    revokeVideo(ref.current.video);
+    patch({
+      video: { file, viaCamera, status: "probing", probe: null, window: { startMs: 0, endMs: 0 }, muted: false, previewUrl: URL.createObjectURL(file), progress: 0, result: null, poster: null, resultUrl: null, posterUrl: null },
+      videoError: null,
+    });
+    let probe;
+    try {
+      probe = await probeVideo(file).catch(() => probeWithElement(file));
+    } catch {
+      if (token !== videoToken.current) return;
+      revokeVideo(ref.current.video);
+      patch({ video: null, videoError: "unreadable" });
+      return;
+    }
+    if (token !== videoToken.current) return;
+    patch((cur) => (cur.video ? { video: { ...cur.video, status: "trim", probe, window: defaultWindow(probe.durationMs) } } : {}));
+    // the clip's own location (when the phone wrote one) is used like photo EXIF, but never over a pin someone already set
+    if (ref.current.choice) return;
+    const plan = planLocation({ hasGps: probe.location !== null, viaCamera, takenAt: probe.takenAt });
+    if (plan === "exif" && probe.location) {
+      const { lat, lng } = probe.location;
+      deviceToken.current++;
+      patch((cur) => ({ exif: { lat, lng, accuracyM: null }, exifFromVideo: true, conflict: null, revert: null, resolving: false, denied: false, choice: { lat, lng, source: "exif", accuracyM: null }, focus: focusOf(cur, lat, lng, 17) }));
+    } else if (plan === "device") {
+      void requestDevice(true);
+    }
+  }, [patch, requestDevice]);
+
+  const setVideoWindow = useCallback((window: TrimWindow, moved: "start" | "end") => {
+    patch((cur) => (cur.video?.probe ? { video: { ...cur.video, window: clampWindow(window, cur.video.probe.durationMs, moved) } } : {}));
+  }, [patch]);
+
+  const setVideoMuted = useCallback((muted: boolean) => {
+    patch((cur) => (cur.video ? { video: { ...cur.video, muted } } : {}));
+  }, [patch]);
+
+  /** "Usar este video": convert the chosen window, grab the poster and turn it into the spot's display + thumb. */
+  const confirmVideo = useCallback(async () => {
+    const cur = ref.current.video;
+    if (!cur || cur.status !== "trim" || !cur.probe) return;
+    const token = ++videoToken.current;
+    patch({ video: { ...cur, status: "processing", progress: 0 }, videoError: null });
+    try {
+      const result = await convertVideo(cur.file, cur.probe, cur.window, {
+        muted: cur.muted,
+        onProgress: (fraction) => { if (token === videoToken.current) patch((c) => (c.video ? { video: { ...c.video, progress: Math.round(fraction * 100) } } : {})); },
+      });
+      if (token !== videoToken.current) return;
+      const at = result.needsTranscode ? cur.window.startMs + 500 : Math.min(500, result.durationMs / 2);
+      const posterBlob = await posterFrame(result.blob, at).catch(() => { throw new Error("cannot_poster"); });
+      const processed = await processPhoto(new File([posterBlob], "poster.jpg", { type: "image/jpeg" }));
+      if (!processed.display || !processed.thumb) throw new Error("cannot_poster");
+      if (token !== videoToken.current) return;
+      const poster = { display: processed.display, thumb: processed.thumb };
+      patch((c) => (c.video
+        ? { video: { ...c.video, status: "ready", progress: 100, result, poster, resultUrl: URL.createObjectURL(result.blob), posterUrl: URL.createObjectURL(poster.display.blob) } }
+        : {}));
+    } catch (error) {
+      if (token !== videoToken.current) return;
+      const kind = (error as Error).message === "cannot_convert" ? "cannot_convert" : "cannot_poster";
+      patch((c) => (c.video ? { video: { ...c.video, status: "trim", progress: 0 }, videoError: kind } : {}));
+    }
+  }, [patch]);
+
+  const editVideo = useCallback(() => {
+    patch((cur) => {
+      if (!cur.video) return {};
+      for (const url of [cur.video.resultUrl, cur.video.posterUrl]) if (url) URL.revokeObjectURL(url);
+      return { video: { ...cur.video, status: "trim", result: null, poster: null, resultUrl: null, posterUrl: null, progress: 0 } };
+    });
+  }, [patch]);
+
+  const removeVideo = useCallback(() => {
+    videoToken.current++;
+    revokeVideo(ref.current.video);
+    patch({ video: null, videoError: null });
+  }, [patch]);
+
+  /** Files from the camera input (one) or the gallery input (one or many; many photos go to the bulk page). */
   const pickFiles = useCallback((files: File[], viaCamera: boolean) => {
     if (files.length === 0) return;
-    if (files.length > 1) {
-      pendingFiles.value = files;
+    const videos = files.filter(isVideoFile);
+    if (videos.length === 1 && files.length === 1) {
+      void pickVideo(videos[0]!, viaCamera);
+      return;
+    }
+    if (videos.length > 0) toast.show({ message: t("add.video.oneAtATime") });
+    const images = files.filter((f) => !isVideoFile(f));
+    if (images.length === 0) return;
+    if (images.length > 1) {
+      pendingFiles.value = images;
       navigate("/nuevo/varias");
       return;
     }
-    void pickFile(files[0]!, viaCamera);
-  }, [pickFile]);
+    void pickFile(images[0]!, viaCamera);
+  }, [pickFile, pickVideo]);
 
   const removePhoto = useCallback(() => {
     photoToken.current++;
@@ -295,6 +395,7 @@ export function useAddForm() {
 
   const issues = validateAdd({
     photoBusy: s.photo?.status === "processing",
+    videoBusy: !!s.video && s.video.status !== "ready",
     location: s.choice,
     locationBusy: false,
     types: s.types,
@@ -347,10 +448,11 @@ export function useAddForm() {
     void clearDraft();
     photoToken.current++;
     revoke(ref.current.photo);
+    revokeVideo(ref.current.video);
     patch({ ...initialState(), soy: ref.current.soy, instagram: ref.current.instagram });
   }, [patch]);
 
-  useEffect(() => () => revoke(ref.current.photo), []);
+  useEffect(() => () => { revoke(ref.current.photo); revokeVideo(ref.current.video); }, []);
 
   // ── submit ────────────────────────────────────────────────────────────
 
@@ -378,14 +480,16 @@ export function useAddForm() {
 
   const submit = useCallback(async () => {
     const cur = ref.current;
-    if (cur.phase === "uploading" || !cur.choice || validateAdd({ photoBusy: cur.photo?.status === "processing", location: cur.choice, locationBusy: false, types: cur.types, badInstagram: hasBadInstagram(cur) }).length) return;
+    if (cur.phase === "uploading" || !cur.choice || validateAdd({ photoBusy: cur.photo?.status === "processing", videoBusy: !!cur.video && cur.video.status !== "ready", location: cur.choice, locationBusy: false, types: cur.types, badInstagram: hasBadInstagram(cur) }).length) return;
     patch({ phase: "uploading", progress: 0, error: null });
     try {
       const token = await turnstile();
+      const readyVideo = cur.video?.status === "ready" && cur.video.result && cur.video.poster ? cur.video : null;
       const meta = buildMeta({
         location: cur.choice, approximate: cur.approximate, types: cur.types,
         otherText: cur.types.some((slug) => textSlugs.has(slug)) ? cur.otherText : "",
         soy: cur.soy, instagram: cur.instagram, postUrl: cur.postUrl, note: cur.note,
+        video: readyVideo ? { durationMs: readyVideo.result!.durationMs, width: readyVideo.result!.width, height: readyVideo.result!.height, needsTranscode: readyVideo.result!.needsTranscode } : null,
         takenAt: cur.photo?.processed?.exif.takenAt ?? null,
         photoSha256: cur.photo && !cur.photo.keepAnyway ? (cur.photo.processed?.sha256 ?? null) : null,
         turnstileToken: token,
@@ -396,6 +500,16 @@ export function useAddForm() {
       if (processed?.display && processed.thumb) {
         form.set("display", processed.display.blob, derivativeName("display", processed.display.blob));
         form.set("thumb", processed.thumb.blob, derivativeName("thumb", processed.thumb.blob));
+      }
+      if (readyVideo?.result && readyVideo.poster) {
+        form.set("video", readyVideo.result.blob, readyVideo.result.needsTranscode ? readyVideo.file.name || "video.mov" : "video.mp4");
+        if (processed?.display) {
+          form.set("video_poster", readyVideo.poster.display.blob, derivativeName("display", readyVideo.poster.display.blob));
+        } else {
+          // no photo: the poster frame is the spot's photo
+          form.set("display", readyVideo.poster.display.blob, derivativeName("display", readyVideo.poster.display.blob));
+          form.set("thumb", readyVideo.poster.thumb.blob, derivativeName("thumb", readyVideo.poster.thumb.blob));
+        }
       }
       // The original goes along when it is an accepted format (the server sniffs it again); a "different place" photo skips it so the hash check does not refuse it.
       if (cur.photo && !cur.photo.keepAnyway && photoMime(cur.photo.file)) form.set("original", cur.photo.file, cur.photo.file.name || "original");
@@ -456,7 +570,7 @@ export function useAddForm() {
     actions: {
       requestDevice, setPin, revertPin, search, pickResult, pasteText, pickConflict,
       pickFiles, removePhoto, rotate, dismissDuplicate,
-      setSoy, setInstagram, setPostUrl, submit, addToExisting, discardDraft,
+      setSoy, setInstagram, setPostUrl, pickVideo, setVideoWindow, setVideoMuted, confirmVideo, editVideo, removeVideo, submit, addToExisting, discardDraft,
     },
   };
 }

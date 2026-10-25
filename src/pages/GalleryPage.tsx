@@ -8,7 +8,7 @@ import { GallerySkeleton } from "../components/Skeleton";
 import { TypeSticker } from "../components/Polaroid";
 import { formatNumber } from "../lib/format";
 import { t } from "../lib/i18n";
-import { people, spots, spotsStatus, typeBySlug, types } from "../lib/store";
+import { config, people, spots, spotsStatus, typeBySlug, types } from "../lib/store";
 
 const PAGE = 40;
 const RATIOS = ["4/5", "1/1", "3/4", "5/4", "4/5", "5/6"] as const;
@@ -88,6 +88,7 @@ export default function GalleryPage() {
                   ratio={RATIOS[i % RATIOS.length]}
                   types={p.types.flatMap((s) => { const ty = typeBySlug.value.get(s); return ty ? [ty] : []; })}
                   photoSrc={p.thumb}
+                  videoSrc={p.v && config.value?.features.video ? `/media/video/${f.id}.${p.v}` : null}
                   place={p.place_name ?? p.country ?? "—"}
                   placer={p.placers.join(", ") || null}
                 />

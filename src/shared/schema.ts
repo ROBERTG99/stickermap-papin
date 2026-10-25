@@ -6,6 +6,14 @@ export const MAX = {
   displayBytes: 1_500_000,
   thumbBytes: 200_000,
   originalBytes: 25 * 1024 * 1024,
+  /** A converted clip is about 3-5 MB per 15 s; this is the ceiling after conversion. */
+  videoBytes: 60 * 1024 * 1024,
+  /** The untranscoded fallback (browser that cannot encode H.264): up to 50 MB and 20 s. */
+  videoFallbackBytes: 50 * 1024 * 1024,
+  videoMaxMs: 15_000,
+  videoFallbackMaxMs: 20_000,
+  /** At this many bytes in R2 new videos are refused (photos still work): 2 GB of headroom under the 10 GB free tier. */
+  videoStorageCap: 8 * 1024 * 1024 * 1024,
   name: 255,
   note: 280,
   otherText: 40,
@@ -37,6 +45,11 @@ export const createSpotMeta = z
     /** Handle of the reporter; only stored when that person has none yet (changing one is admin-only). */
     reporter_instagram: igHandle,
     instagram_post_url: igPost,
+    /** F1: about the `video` part (the Worker never decodes video). */
+    video_duration_ms: z.number().int().min(100).max(MAX.videoFallbackMaxMs + 1000).nullish(),
+    video_w: z.number().int().min(16).max(8192).nullish(),
+    video_h: z.number().int().min(16).max(8192).nullish(),
+    video_needs_transcode: z.boolean().default(false),
     note: trimmed(MAX.note).nullish(),
     /** EXIF DateTimeOriginal as naive local time. */
     taken_at: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/).nullish(),

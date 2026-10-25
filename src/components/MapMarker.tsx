@@ -17,6 +17,8 @@ export interface MarkerOptions {
   selected?: boolean;
   /** 32px head, optional at zoom 3-5 for lone spots. */
   small?: boolean;
+  /** F1: the spot has a video (play badge on the head). */
+  video?: boolean;
   /** Place name appended to the accessible name ("Papa y 1 más, Puerta del Sol"). */
   label?: string | null;
 }
@@ -73,6 +75,13 @@ export function createMarkerElement(o: MarkerOptions): HTMLButtonElement {
   head.append(img);
   el.append(head);
 
+  if (o.video) {
+    const play = document.createElement("span");
+    play.className = "mp-marker__play";
+    play.innerHTML = '<svg class="mp-i" aria-hidden="true"><use href="#i-play"/></svg>';
+    el.append(play);
+  }
+
   if (count > 1) {
     const badge = document.createElement("span");
     badge.className = "mp-marker__badge";
@@ -112,7 +121,7 @@ interface MapMarkerProps extends MarkerOptions {
 }
 
 /** Preact version of the marker (kitchen sink, stories). The map itself uses `createMarkerElement`. */
-export function MapMarker({ id, types, iconUrl, fit, n, selected, small, label, onClick, class: className }: MapMarkerProps) {
+export function MapMarker({ id, types, iconUrl, fit, n, selected, small, label, video, onClick, class: className }: MapMarkerProps) {
   const count = n ?? types.length;
   return (
     <button
@@ -127,6 +136,7 @@ export function MapMarker({ id, types, iconUrl, fit, n, selected, small, label, 
       <span class={cx("mp-marker__head", fit === "contain" && "mp-marker__head--contain")}>
         <img src={iconUrl} alt="" draggable={false} />
       </span>
+      {video && <span class="mp-marker__play"><svg class="mp-i" aria-hidden="true"><use href="#i-play" /></svg></span>}
       {count > 1 && <span class="mp-marker__badge">{`+${count - 1}`}</span>}
       <span class="mp-marker__tail" />
       <span class="mp-marker__dot" />

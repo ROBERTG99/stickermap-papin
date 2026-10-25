@@ -22,7 +22,7 @@ export function pickerState(s: AddForm["s"]): LocationState {
   if (resolving) return { kind: "resolving" };
   if (!choice) return { kind: "empty" };
   switch (choice.source) {
-    case "exif": return { kind: "exif" };
+    case "exif": return { kind: "exif", media: s.exifFromVideo ? "video" : undefined };
     case "device": return { kind: "device", accuracyM: choice.accuracyM ?? 0 };
     case "search": return { kind: "search" };
     case "paste": return { kind: "link", text: paste?.text ?? "", coords: formatCoords(choice.lat, choice.lng) };

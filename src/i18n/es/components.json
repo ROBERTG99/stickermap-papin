@@ -199,9 +199,17 @@
     "iphoneBold": "Opciones → Ubicación",
     "iphonePost": " al elegir la foto.",
     "approx": "Ubicación aproximada",
-    "approxHint": "Se muestra redondeada (~100 m). Útil para casas."
+    "approxHint": "Se muestra redondeada (~100 m). Útil para casas.",
+    "exifVideo": "Ubicación del video"
   },
   "ig": {
     "open": "Abrir @{handle} en Instagram"
+  },
+  "video": {
+    "label": "Video del sticker",
+    "play": "Reproducir",
+    "mute": "Silenciar",
+    "unmute": "Activar sonido",
+    "fullscreen": "Pantalla completa"
   }
 }

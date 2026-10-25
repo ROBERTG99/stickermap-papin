@@ -8,6 +8,9 @@ export const call = (path: string, init?: RequestInit) =>
 export const WEBP = (size = 64) => new Uint8Array([...new TextEncoder().encode("RIFF\0\0\0\0WEBPVP8 "), ...new Array(Math.max(0, size - 16)).fill(7)]);
 export const JPEG = (size = 64) => new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(Math.max(0, size - 4)).fill(9)]);
 
+/** An `ftyp` box with the given major brand, then filler: all the Worker looks at to accept a video. */
+export const MP4 = (size = 256, brand = "isom") => new Uint8Array([0, 0, 0, 0x18, ...new TextEncoder().encode(`ftyp${brand}`), ...new Array(Math.max(0, size - 12)).fill(3)]);
+
 /** Answer Cloudflare's siteverify like Turnstile would: `ok` -> success, otherwise a failure. */
 export function mockTurnstile(ok: boolean) {
   const real = globalThis.fetch;
@@ -20,13 +23,15 @@ export function mockTurnstile(ok: boolean) {
   });
 }
 
-export interface SpotInput { meta: Record<string, unknown>; display?: Uint8Array | null; thumb?: Uint8Array | null; original?: Uint8Array | null }
+export interface SpotInput { meta: Record<string, unknown>; display?: Uint8Array | null; thumb?: Uint8Array | null; original?: Uint8Array | null; video?: Uint8Array | null; videoPoster?: Uint8Array | null }
 
-export function spotForm({ meta, display = WEBP(), thumb = WEBP(), original }: SpotInput): FormData {
+export function spotForm({ meta, display = WEBP(), thumb = WEBP(), original, video, videoPoster }: SpotInput): FormData {
   const form = new FormData();
   form.set("meta", JSON.stringify({ lat: -34.9, lng: -56.16, location_source: "pin", types: ["papa"], turnstile_token: "tok", ...meta }));
   if (display) form.set("display", new File([display.slice().buffer], "d.webp", { type: "image/webp" }));
   if (thumb) form.set("thumb", new File([thumb.slice().buffer], "t.webp", { type: "image/webp" }));
+  if (video) form.set("video", new File([video.slice().buffer], "v.mp4", { type: "video/mp4" }));
+  if (videoPoster) form.set("video_poster", new File([videoPoster.slice().buffer], "p.webp", { type: "image/webp" }));
   if (original) form.set("original", new File([original.slice().buffer], "o.jpg", { type: "image/jpeg" }));
   return form;
 }

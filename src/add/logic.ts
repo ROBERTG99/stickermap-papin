@@ -90,11 +90,13 @@ export interface LocationChoice extends LatLng {
 
 // ── validation ────────────────────────────────────────────────────────────
 
-export type IssueCode = "photo_busy" | "no_location" | "no_type" | "bad_instagram";
+export type IssueCode = "photo_busy" | "video_busy" | "no_location" | "no_type" | "bad_instagram";
 export interface Issue { card: 1 | 2 | 3; code: IssueCode }
 
 export interface ValidationInput {
   photoBusy: boolean;
+  /** F1: a clip is being read, trimmed or converted. */
+  videoBusy?: boolean;
   location: LocationChoice | null;
   /** Location card still waiting for the device. */
   locationBusy: boolean;
@@ -107,6 +109,7 @@ export interface ValidationInput {
 export function validateAdd(input: ValidationInput): Issue[] {
   const issues: Issue[] = [];
   if (input.photoBusy) issues.push({ card: 1, code: "photo_busy" });
+  if (input.videoBusy) issues.push({ card: 1, code: "video_busy" });
   if (!input.location || input.locationBusy) issues.push({ card: 2, code: "no_location" });
   if (input.types.length === 0) issues.push({ card: 3, code: "no_type" });
   if (input.badInstagram) issues.push({ card: 3, code: "bad_instagram" });
@@ -132,6 +135,8 @@ export interface MetaInput {
   /** F2: the reporter's Instagram handle and the post link, as typed (blank = none). */
   instagram?: string;
   postUrl?: string;
+  /** F1: facts about the attached clip (the file itself goes in its own form part). */
+  video?: { durationMs: number; width: number; height: number; needsTranscode: boolean } | null;
   note: string;
   takenAt: string | null;
   photoSha256: string | null;
@@ -173,6 +178,10 @@ export function buildMeta(input: MetaInput): CreateSpotMeta {
     reporter,
     reporter_instagram: reporter ? normalizeHandle(input.instagram) : null,
     instagram_post_url: normalizePostUrl(input.postUrl),
+    video_duration_ms: input.video?.durationMs ?? null,
+    video_w: input.video?.width ?? null,
+    video_h: input.video?.height ?? null,
+    video_needs_transcode: input.video?.needsTranscode ?? false,
     note: note || null,
     taken_at: input.takenAt,
     photo_sha256: input.photoSha256,
@@ -182,12 +191,13 @@ export function buildMeta(input: MetaInput): CreateSpotMeta {
 
 // ── server errors ─────────────────────────────────────────────────────────
 
-export type SubmitErrorKind = "network" | "rate_limited" | "turnstile" | "too_large" | "bad_image" | "exists" | "invalid" | "server";
+export type SubmitErrorKind = "network" | "rate_limited" | "turnstile" | "too_large" | "bad_image" | "exists" | "invalid" | "storage_video" | "server";
 
 /** Map an `ApiError` status/code to a kind the UI has a message for. */
 export function classifySubmitError(status: number, code: string): SubmitErrorKind {
   if (status === 0) return "network";
   if (status === 409 && code === "photo_exists") return "exists";
+  if (status === 507) return "storage_video";
   if (status === 429) return "rate_limited";
   if (status === 403 && code === "turnstile_failed") return "turnstile";
   if (status === 413 || code === "too_large") return "too_large";

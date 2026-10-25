@@ -51,6 +51,19 @@ export interface SpotProps {
   ig?: Record<string, string>;
   /** Link to the spot's Instagram post or reel (F2). */
   ig_post?: string;
+  /** F1: extension of the spot's video (`/media/video/<id>.<v>`); marker play badge and gallery autoplay. */
+  v?: "mp4" | "mov";
+}
+
+/** F1: the video of a spot, as `GET /api/spots/:id` returns it. */
+export interface SpotVideo {
+  /** `/media/video/<id>.mp4` (HTTP Range supported). */
+  src: string;
+  /** Poster frame, `/img/display/...`. */
+  poster: string | null;
+  duration_ms: number | null;
+  w: number | null;
+  h: number | null;
 }
 
 export interface SpotFeature {
@@ -80,6 +93,7 @@ export interface SpotDetail extends SpotProps {
   photo_h: number | null;
   /** Reporter name or null for anonymous. */
   reporter: string | null;
+  video?: SpotVideo;
 }
 
 export interface AppConfig {

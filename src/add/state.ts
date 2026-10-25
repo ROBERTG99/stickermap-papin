@@ -1,4 +1,6 @@
-import type { ProcessedPhoto } from "../lib/photo";
+import type { Derivative, ProcessedPhoto } from "../lib/photo";
+import type { VideoProbe, VideoResult } from "../lib/video";
+import type { TrimWindow } from "../lib/video-meta";
 import type { SpotDetail } from "../shared/types";
 import type { DeviceFix } from "./device";
 import type { Place } from "./geocode";
@@ -24,6 +26,29 @@ export interface PhotoState {
 
 export type PhotoError = "bad_type" | "too_big" | "unreadable";
 
+/** F1: the clip being prepared. `trim` waits for "Usar este video"; `ready` has the converted file and its poster. */
+export interface VideoState {
+  file: File;
+  viaCamera: boolean;
+  status: "probing" | "trim" | "processing" | "ready";
+  probe: VideoProbe | null;
+  window: TrimWindow;
+  muted: boolean;
+  /** Object URL of the original, for the trim preview. */
+  previewUrl: string;
+  /** 0-100 while converting. */
+  progress: number;
+  result: VideoResult | null;
+  /** Poster frame as display + thumb, ready to upload. */
+  poster: { display: Derivative; thumb: Derivative } | null;
+  /** Object URL of the converted clip (or of the original in the fallback). */
+  resultUrl: string | null;
+  /** Object URL of the poster, to show before the video loads. */
+  posterUrl: string | null;
+}
+
+export type VideoError = "bad_type" | "too_big" | "unreadable" | "cannot_convert" | "cannot_poster";
+
 /** Camera request for the map: a new `nonce` means "go there". */
 export interface MapFocus extends LatLngLike {
   zoom: number;
@@ -41,12 +66,17 @@ export type DuplicateStage = "closed" | "ask" | "add";
 export interface AddState {
   photo: PhotoState | null;
   photoError: PhotoError | null;
+  /** F1 */
+  video: VideoState | null;
+  videoError: VideoError | null;
 
   /** The confirmed pin; null until the photo, the device, a search, a link or a tap puts one. */
   choice: LocationChoice | null;
   /** The choice before the pin was dragged, for "Volver a …". */
   revert: LocationChoice | null;
   exif: Candidate | null;
+  /** F1: the `exif` candidate was read from the clip, not from a photo. */
+  exifFromVideo: boolean;
   device: DeviceFix | null;
   resolving: boolean;
   denied: boolean;

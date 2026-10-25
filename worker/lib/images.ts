@@ -18,3 +18,17 @@ export const CONTENT_TYPE: Record<ImageKind, string> = {
   heic: "image/heic",
 };
 export const EXTENSION: Record<ImageKind, string> = { jpeg: "jpg", png: "png", webp: "webp", heic: "heic" };
+
+export type VideoKind = "mp4" | "mov";
+
+/** MP4 / QuickTime by the `ftyp` box (the client-sent MIME type is never trusted). HEIC images share the box, so they are excluded. */
+export function sniffVideo(head: Uint8Array): VideoKind | null {
+  const tag = (from: number, len: number) => String.fromCharCode(...head.slice(from, from + len));
+  if (tag(4, 4) !== "ftyp") return null;
+  const brand = tag(8, 4);
+  if (brand === "qt  ") return "mov";
+  if (/^(heic|heix|hevc|hevx|mif1|msf1|heim|heis|avif)/.test(brand)) return null;
+  return "mp4";
+}
+
+export const VIDEO_CONTENT_TYPE: Record<VideoKind, string> = { mp4: "video/mp4", mov: "video/quicktime" };

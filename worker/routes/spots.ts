@@ -6,7 +6,8 @@ import { normalizeHandle, normalizePostUrl } from "../../src/shared/instagram";
 import type { SpotDetail } from "../../src/shared/types";
 import { adminFromRequest } from "../lib/access";
 import { hashToken, randomToken, sha256Hex, timingSafeEqual, verifyBatchToken } from "../lib/crypto";
-import { CONTENT_TYPE, EXTENSION, sniffImage, type ImageKind } from "../lib/images";
+import { CONTENT_TYPE, EXTENSION, VIDEO_CONTENT_TYPE, sniffImage, sniffVideo, type ImageKind, type VideoKind } from "../lib/images";
+import { featureEnabled } from "../lib/features";
 import { findOrCreatePerson, placerStatusFor } from "../lib/people";
 import { allowed, ipHash, record } from "../lib/ratelimit";
 import { meterStatement, putAll, type PutObject } from "../lib/r2";
@@ -52,6 +53,21 @@ async function readImage(part: unknown, maxBytes: number, allowHeic: boolean): P
   const bytes = await file.arrayBuffer();
   const kind = sniffImage(new Uint8Array(bytes, 0, Math.min(32, bytes.byteLength)));
   if (!kind || (!allowHeic && kind === "heic")) return "bad_image";
+  return { bytes, kind };
+}
+
+interface CheckedVideo { bytes: ArrayBuffer; kind: VideoKind }
+
+/** `video/mp4` by magic bytes up to 60 MB; QuickTime only as the untranscoded fallback (50 MB). */
+async function readVideo(part: unknown): Promise<CheckedVideo | "too_large" | "bad_video" | null> {
+  if (part === null || part === undefined || typeof part === "string") return null;
+  const file = part as File;
+  if (file.size === 0) return null;
+  if (file.size > MAX.videoBytes) return "too_large";
+  const bytes = await file.arrayBuffer();
+  const kind = sniffVideo(new Uint8Array(bytes, 0, Math.min(32, bytes.byteLength)));
+  if (!kind) return "bad_video";
+  if (kind === "mov" && bytes.byteLength > MAX.videoFallbackBytes) return "too_large";
   return { bytes, kind };
 }
 
@@ -123,6 +139,9 @@ export async function loadSpotDetail(db: D1Database, id: string): Promise<SpotDe
     city: (s.city as string | null) ?? null, note: (s.note as string | null) ?? null, other_text: (s.other_text as string | null) ?? null,
     placer_note: (s.placer_note as string | null) ?? null, photo_w: (s.photo_w as number | null) ?? null, photo_h: (s.photo_h as number | null) ?? null,
     ...(Object.keys(ig).length ? { ig } : {}), ...(typeof s.instagram_post_url === "string" ? { ig_post: s.instagram_post_url } : {}),
+    ...(typeof s.video_key === "string"
+      ? { v: (s.video_key.endsWith(".mov") ? "mov" : "mp4") as "mp4" | "mov", video: { src: `/media/${s.video_key}`, poster: key(s.video_poster_key), duration_ms: (s.video_duration_ms as number | null) ?? null, w: (s.video_w as number | null) ?? null, h: (s.video_h as number | null) ?? null } }
+      : {}),
   };
 }
 
@@ -135,7 +154,7 @@ spots.get("/:id", async (c) => {
 // ── create ────────────────────────────────────────────────────────────────
 
 spots.post("/", async (c) => {
-  if (Number(c.req.header("Content-Length") ?? 0) > MAX.originalBytes + MAX.displayBytes + MAX.thumbBytes + 200_000) return c.json({ error: "too_large" }, 413);
+  if (Number(c.req.header("Content-Length") ?? 0) > MAX.originalBytes + MAX.videoBytes + MAX.displayBytes * 2 + MAX.thumbBytes + 200_000) return c.json({ error: "too_large" }, 413);
   const form = await c.req.formData().catch(() => null);
   if (!form) return c.json({ error: "bad_request" }, 400);
   let rawMeta: unknown;
@@ -182,6 +201,23 @@ spots.post("/", async (c) => {
   const derived = (f: CheckedFile | null) => f !== null && (f.kind === "webp" || f.kind === "jpeg");
   if ((d && !derived(d)) || (t && !derived(t))) return c.json({ error: "bad_image" }, 415);
 
+  const video = await readVideo(form.get("video"));
+  if (video === "too_large") return c.json({ error: "too_large" }, 413);
+  if (video === "bad_video") return c.json({ error: "bad_video" }, 415);
+  const posterPart = await readImage(form.get("video_poster"), MAX.displayBytes, false);
+  if (posterPart === "too_large") return c.json({ error: "too_large" }, 413);
+  if (posterPart === "bad_image") return c.json({ error: "bad_image" }, 415);
+  const v = video as CheckedVideo | null;
+  const poster = posterPart as CheckedFile | null;
+  if (poster && !derived(poster)) return c.json({ error: "bad_image" }, 415);
+  if (v && !d && !poster) return c.json({ error: "video_needs_poster" }, 400);
+  if (v) {
+    // F1 is behind its flag on the server too: an old cached client cannot upload a video while the feature is off
+    if (!(await featureEnabled(c.env, c.req.raw, await settingsMap(db), "video"))) return c.json({ error: "feature_off" }, 403);
+    const used = Number((await db.prepare("SELECT value FROM settings WHERE key = 'r2_bytes'").first<{ value: string }>())?.value ?? 0);
+    if (used >= MAX.videoStorageCap) return c.json({ error: "storage_full_video" }, 507);
+  }
+
   const sha = o ? await sha256Hex(o.bytes) : (meta.photo_sha256 ?? null);
   if (sha) {
     const existing = await db.prepare("SELECT id FROM spots WHERE photo_sha256 = ?1 AND status != 'hidden'").bind(sha).first<{ id: string }>();
@@ -200,6 +236,12 @@ spots.post("/", async (c) => {
     objects.push({ key: displayKey, body: d.bytes, contentType: CONTENT_TYPE[d.kind] }, { key: thumbKey, body: t.bytes, contentType: CONTENT_TYPE[t.kind] });
   }
   if (o) objects.push({ key: `orig/${id}.${EXTENSION[o.kind]}`, body: o.bytes, contentType: CONTENT_TYPE[o.kind] });
+  const videoKey = v ? `video/${id}.${v.kind}` : null;
+  // with a photo the poster is a second image; without one the poster IS the spot's photo (the client derives display + thumb from it)
+  const posterKey = v ? (d && poster ? `display/${id}-poster.${EXTENSION[poster.kind]}` : displayKey) : null;
+  if (v && videoKey) objects.push({ key: videoKey, body: v.bytes, contentType: VIDEO_CONTENT_TYPE[v.kind] });
+  if (v && d && poster && posterKey) objects.push({ key: posterKey, body: poster.bytes, contentType: CONTENT_TYPE[poster.kind] });
+  const needsTranscode = !!v && (v.kind === "mov" || meta.video_needs_transcode);
 
   const reporterId = meta.reporter ? await findOrCreatePerson(db, meta.reporter) : null;
   const placerIds = reporterId ? [reporterId] : [];
@@ -224,14 +266,17 @@ spots.post("/", async (c) => {
   const insertSpot = db
     .prepare(
       `INSERT INTO spots (id, lat, lng, location_source, location_accuracy_m, is_approximate, reporter_person_id, reporter_raw, placer_status, placer_note, note, other_text,
-         photo_key, thumb_key, orig_key, photo_sha256, taken_at, created_at, updated_at, status, edit_token_hash, batch_id, client_ref, submitter_ip_hash, instagram_post_url)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?18,?19,?20,?21,?22,?23,?24)`,
+         photo_key, thumb_key, orig_key, photo_sha256, taken_at, created_at, updated_at, status, edit_token_hash, batch_id, client_ref, submitter_ip_hash, instagram_post_url,
+         video_key, video_poster_key, video_duration_ms, video_w, video_h, video_bytes, video_needs_transcode, needs_review, review_reason)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,?28,?29,?30,?31,?32,?33)`,
     )
     .bind(
       id, lat, lng, meta.location_source, meta.location_accuracy_m ?? null, meta.is_approximate ? 1 : 0, reporterId, meta.reporter ?? null, placerStatusFor(reporterId),
       null, meta.note ?? null, meta.other_text ?? null,
       displayKey, thumbKey, o ? `orig/${id}.${EXTENSION[o.kind]}` : null, sha, meta.taken_at ?? null, now,
       settings.moderation_mode === "approval" ? "pending" : "published", editHash, auth.batchId, meta.client_ref ?? null, ipH, igPost,
+      videoKey, posterKey, v ? (meta.video_duration_ms ?? null) : null, v ? (meta.video_w ?? null) : null, v ? (meta.video_h ?? null) : null, v ? v.bytes.byteLength : null,
+      needsTranscode ? 1 : 0, needsTranscode ? 1 : 0, needsTranscode ? "video_needs_transcode" : null,
     );
   const statements: D1PreparedStatement[] = [
     insertSpot,
@@ -241,7 +286,7 @@ spots.post("/", async (c) => {
   ];
   // anti-hijack: the public form can only fill an empty handle (and never one that already belongs to someone else); changing it is admin-only.
   // Not while the feature is off, and not while spots wait for approval: an unreviewed submission must not edit a public person (the admin can set it in People).
-  if (reporterId && igHandle && settings.feature_instagram !== "off" && settings.moderation_mode !== "approval") {
+  if (reporterId && igHandle && settings.moderation_mode !== "approval" && (await featureEnabled(c.env, c.req.raw, settings, "instagram"))) {
     statements.push(
       db.prepare("UPDATE people SET instagram_handle = ?2 WHERE id = ?1 AND instagram_handle IS NULL AND NOT EXISTS (SELECT 1 FROM people WHERE instagram_handle = ?2)").bind(reporterId, igHandle),
     );

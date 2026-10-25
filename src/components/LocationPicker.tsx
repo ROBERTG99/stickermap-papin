@@ -52,11 +52,13 @@ export interface LocationBadgeProps {
   source: LocationSource | "pending";
   /** Device accuracy in metres; shown as "(±12 m)" and turns the badge tomato above `LOW_ACCURACY_M`. */
   accuracyM?: number | null;
+  /** F1: the "exif" location came from a video, not a photo. */
+  media?: "video";
   class?: string;
 }
 
 /** The `mp-src` badge under the mini-map: line icon + words, never emoji. */
-export function LocationBadge({ source, accuracyM, class: className }: LocationBadgeProps) {
+export function LocationBadge({ source, accuracyM, media, class: className }: LocationBadgeProps) {
   if (source === "pending") {
     return (
       <span class={cx("mp-src mp-src--pending", className)}>
@@ -65,7 +67,10 @@ export function LocationBadge({ source, accuracyM, class: className }: LocationB
       </span>
     );
   }
-  const { icon, label } = sourceInfo(source);
+  const info = sourceInfo(source);
+  const video = source === "exif" && media === "video";
+  const icon = video ? "video" : info.icon;
+  const label = video ? t("components.loc.exifVideo") : info.label;
   const hasAccuracy = source === "device" && accuracyM != null;
   const warn = hasAccuracy && accuracyM > LOW_ACCURACY_M;
   return (
@@ -92,7 +97,7 @@ export type LocationState =
   /** Waiting for the device position. */
   | { kind: "resolving" }
   /** Photo EXIF GPS. */
-  | { kind: "exif" }
+  | { kind: "exif"; media?: "video" }
   /** Device position (`accuracyM` > 100 renders as the low-accuracy state). */
   | { kind: "device"; accuracyM: number }
   /** A place picked from the search results. */
@@ -231,7 +236,7 @@ export function LocationPicker(props: LocationPickerProps) {
 
   const badge =
     state.kind === "resolving" ? <LocationBadge source="pending" />
-    : state.kind === "exif" ? <LocationBadge source="exif" />
+    : state.kind === "exif" ? <LocationBadge source="exif" media={state.media} />
     : state.kind === "device" ? <LocationBadge source="device" accuracyM={state.accuracyM} />
     : state.kind === "lowAccuracy" ? <LocationBadge source="device" accuracyM={state.accuracyM} />
     : state.kind === "search" ? <LocationBadge source="search" />

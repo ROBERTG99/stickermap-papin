@@ -67,6 +67,11 @@
     },
     "other": {
       "help": "Motivo de revisión: {code}."
+    },
+    "video_needs_transcode": {
+      "label": "Falta convertir el video",
+      "chip": "Falta convertir",
+      "help": "El navegador no pudo achicar este video y subió el original. Corré scripts/transcode-pending.ts para convertirlo a MP4 y después aprobá el spot."
     }
   },
   "filter": {
@@ -380,7 +385,8 @@
     "auditNone": "Todavía no hay cambios anotados.",
     "auditWhen": "Cuándo",
     "auditWho": "Quién",
-    "auditWhat": "Qué"
+    "auditWhat": "Qué",
+    "videoRefused": "Con 8 GB o más ya no se aceptan videos nuevos (las fotos siguen). Mové originales a Drive para liberar lugar."
   },
   "error": {
     "offline": "Se cortó la conexión. Probá de nuevo.",

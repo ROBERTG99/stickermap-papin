@@ -8,6 +8,7 @@ import { admin } from "./routes/admin";
 import { batches } from "./routes/batches";
 import { catalog } from "./routes/catalog";
 import { img } from "./routes/img";
+import { media } from "./routes/media";
 import { spots } from "./routes/spots";
 
 const app = new Hono<AppEnv>();
@@ -22,6 +23,7 @@ app.use("*", secureHeaders({
     imgSrc: ["'self'", "data:", "blob:", "https://tiles.openfreemap.org", "https://tiles.maps.eox.at"],
     connectSrc: ["'self'", "https://tiles.openfreemap.org", "https://tiles.maps.eox.at", "https://photon.komoot.io", "https://nominatim.openstreetmap.org", "https://challenges.cloudflare.com"],
     scriptSrc: ["'self'", "https://challenges.cloudflare.com"],
+    mediaSrc: ["'self'", "blob:"],
     frameSrc: ["https://challenges.cloudflare.com"],
     workerSrc: ["'self'", "blob:"],
     styleSrc: ["'self'", "'unsafe-inline'"],
@@ -36,6 +38,7 @@ app.route("/api/batches", batches);
 app.route("/api/admin", admin);
 app.route("/api", catalog);
 app.route("/img", img);
+app.route("/media", media);
 
 // On workers.dev Cloudflare Access can only protect a whole Worker, so /admin lives in a second Worker (stickermap-admin)
 // and the public one just points there. On the admin Worker (no ADMIN_ORIGIN) the SPA is served from the assets.

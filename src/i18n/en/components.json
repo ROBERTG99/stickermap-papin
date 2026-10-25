@@ -199,9 +199,17 @@
     "iphoneBold": "Options → Location",
     "iphonePost": " when choosing the photo.",
     "approx": "Approximate location",
-    "approxHint": "Shown rounded (~100 m). Handy for houses."
+    "approxHint": "Shown rounded (~100 m). Handy for houses.",
+    "exifVideo": "Video location"
   },
   "ig": {
     "open": "Open @{handle} on Instagram"
+  },
+  "video": {
+    "label": "Sticker video",
+    "play": "Play",
+    "mute": "Mute",
+    "unmute": "Turn sound on",
+    "fullscreen": "Full screen"
   }
 }

@@ -67,6 +67,11 @@
     },
     "other": {
       "help": "Review reason: {code}."
+    },
+    "video_needs_transcode": {
+      "label": "Video needs converting",
+      "chip": "To convert",
+      "help": "The browser could not shrink this video and uploaded the original. Run scripts/transcode-pending.ts to convert it to MP4, then approve the spot."
     }
   },
   "filter": {
@@ -380,7 +385,8 @@
     "auditNone": "No changes written down yet.",
     "auditWhen": "When",
     "auditWho": "Who",
-    "auditWhat": "What"
+    "auditWhat": "What",
+    "videoRefused": "At 8 GB or more new videos are refused (photos still work). Move originals to Drive to free space."
   },
   "error": {
     "offline": "The connection dropped. Try again.",

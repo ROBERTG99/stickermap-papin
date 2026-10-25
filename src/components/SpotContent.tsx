@@ -1,8 +1,9 @@
-import type { SpotDetail, StickerType } from "../shared/types";
+import type { SpotDetail, SpotVideo, StickerType } from "../shared/types";
 import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
 import { Icon } from "./Icon";
 import { InstagramLink } from "./InstagramHandle";
+import { VideoClip } from "./VideoClip";
 import { Flag, PlacerAvatar, TypeSticker, formatSpotDate, placersLabel } from "./map-parts";
 
 /** What the spot block needs, already resolved (type slugs -> StickerType, dates -> labels). */
@@ -20,6 +21,8 @@ export interface SpotView {
   /** Instagram handle by person name, and the spot's post/reel link (F2). */
   ig: Record<string, string>;
   igPost: string | null;
+  /** F1: the clip, when the spot has one (and the feature is on). */
+  video: SpotVideo | null;
   /** Date label already formatted ("15 abr 2025" or "hace 1 h"). */
   dateLabel: string;
   /** `/img/display/<id>.webp`; null renders the placeholder photo. */
@@ -42,6 +45,7 @@ export function toSpotView(spot: SpotDetail, allTypes: StickerType[]): SpotView 
     placers: spot.placers,
     ig: spot.ig ?? {},
     igPost: spot.ig_post ?? null,
+    video: spot.video ?? null,
     dateLabel: formatSpotDate(spot.taken_at ?? spot.created_at),
     photo: spot.photo,
     lat: spot.lat,
@@ -62,6 +66,8 @@ interface SpotContentProps {
   /** F2: shows "Compartir en historia" (and the @handles) when the feature is on. */
   onShareStory?: () => void;
   instagram?: boolean;
+  /** F1: show the clip when the spot has one (feature flag). */
+  videoEnabled?: boolean;
   onReport?: () => void;
   onEdit?: () => void;
 }
@@ -125,7 +131,7 @@ function mapsUrl(spot: SpotView): string {
 }
 
 /** The shared `mp-spot` block: same inside the mobile BottomSheet and the desktop SidePanel. */
-export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onShare, onShareStory, instagram, onReport, onEdit }: SpotContentProps) {
+export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onShare, onShareStory, instagram, videoEnabled, onReport, onEdit }: SpotContentProps) {
   if (variant === "peek") {
     return (
       <div class="mp-spot">
@@ -146,14 +152,21 @@ export function SpotContent({ spot, variant, me, editHoursLeft, onOpenPhoto, onS
   const names = spot.placers;
   const written = names.map((n) => (n === me ? t("common.person.you", { name: n }) : n));
 
+  // F1: the clip leads; a separate photo (not just the poster) stays available below it
+  const clip = videoEnabled && spot.video ? spot.video : null;
+  const showPhoto = !clip || (spot.photo !== null && spot.photo !== clip.poster);
+
   return (
     <div class="mp-spot">
-      <button type="button" class="mp-spot__thumb" aria-label={t("components.spot.viewFull")} onClick={onOpenPhoto}>
-        <SpotPhoto spot={spot} ratio="4/3" natural />
-        <span class="mp-spot__zoom">
-          <Icon name="expand" />
-        </span>
-      </button>
+      {clip && <VideoClip src={clip.src} poster={clip.poster} durationMs={clip.duration_ms} ratio={clip.w && clip.h ? `${clip.w}/${clip.h}` : "4/5"} />}
+      {showPhoto && (
+        <button type="button" class="mp-spot__thumb" aria-label={t("components.spot.viewFull")} onClick={onOpenPhoto}>
+          <SpotPhoto spot={spot} ratio="4/3" natural />
+          <span class="mp-spot__zoom">
+            <Icon name="expand" />
+          </span>
+        </button>
+      )}
       <PlaceBlock spot={spot} />
       <TypeTags types={spot.types} />
       <div class="mp-spot__by">

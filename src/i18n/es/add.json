@@ -14,7 +14,7 @@
     "discard": "Descartar"
   },
   "photo": {
-    "title": "Foto",
+    "title": "Foto o video",
     "optional": "Opcional",
     "reading": "Leyendo la foto…",
     "camera": "Sacar foto",
@@ -30,8 +30,16 @@
     "error": {
       "bad_type": "Ese archivo no es una foto que podamos usar. Elegí un JPG, PNG, WebP o HEIC.",
       "too_big": "Esa foto pesa más de 25 MB. Elegí una más liviana.",
-      "unreadable": "No pudimos leer esa foto. Probá con otra o seguí sin foto."
-    }
+      "unreadable": "No pudimos leer esa foto. Probá con otra o seguí sin foto.",
+      "video_bad_type": "Ese archivo no es un video que podamos usar.",
+      "video_too_big": "Ese video pesa más de 500 MB. Elegí uno más corto.",
+      "video_unreadable": "No pudimos leer ese video. Probá con otro.",
+      "video_cannot_convert": "Tu navegador no puede achicar este video y es muy largo para mandarlo así. Recortalo o probá desde otro navegador.",
+      "video_cannot_poster": "No pudimos sacar una imagen del video. Probá con otro."
+    },
+    "video": "Grabar video",
+    "galleryAny": "Elegir de galería",
+    "hintVideo": "Foto, video de hasta 15 s, o los dos. Mejor si se ve el sticker."
   },
   "dup": {
     "title": "Esta foto ya está en el mapa",
@@ -86,7 +94,8 @@
     "photo_busy": "terminar de leer la foto",
     "no_location": "ubicación",
     "no_type": "tipo de sticker",
-    "bad_instagram": "revisar el Instagram"
+    "bad_instagram": "revisar el Instagram",
+    "video_busy": "terminar de preparar el video"
   },
   "submit": {
     "missing": "Falta: {what}",
@@ -104,7 +113,8 @@
     "bad_image": "Ese formato de foto no se puede subir. Probá con un JPG, PNG, WebP o HEIC.",
     "exists": "Esta foto ya está en el mapa.",
     "invalid": "Algo de lo que cargaste no es válido. Revisá los datos y reintentá.",
-    "server": "Algo falló de nuestro lado. Tu sticker sigue acá: reintentá en un rato."
+    "server": "Algo falló de nuestro lado. Tu sticker sigue acá: reintentá en un rato.",
+    "storage_video": "Por ahora no podemos guardar más videos. Mandá la foto sola."
   },
   "thanks": {
     "view": "Ver en el mapa",
@@ -168,5 +178,30 @@
     "postReel": "Reel de Instagram",
     "postPost": "Post de Instagram",
     "postError": "Pegá un link de instagram.com/p, /reel o /tv."
+  },
+  "video": {
+    "title": "Video del pegado",
+    "reading": "Leyendo el video…",
+    "trim": "Elegí hasta 15 segundos",
+    "start": "Desde",
+    "end": "Hasta",
+    "length": "Dura {s} s",
+    "mute": "Sin sonido",
+    "muteHint": "Se manda el video sin audio.",
+    "use": "Usar este video",
+    "processing": "Procesando video…",
+    "ready": "Video listo",
+    "change": "Cambiar recorte",
+    "remove": "Quitar video",
+    "noLocation": "Este video no trae ubicación.",
+    "location": "Ubicación del video",
+    "untranscoded": "Tu navegador no puede achicar el video. Lo mandamos tal cual y un admin lo revisa.",
+    "preview": "Vista previa del video",
+    "oneAtATime": "Los videos se suben de a uno.",
+    "status": {
+      "probing": "Leyendo el video…",
+      "trim": "Elegí el recorte",
+      "processing": "Procesando…"
+    }
   }
 }
