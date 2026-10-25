@@ -7,7 +7,7 @@ import { activeFilterCount, applyFilters, EMPTY_FILTERS, facetCounts, type Filte
  * Map page state that outlives the page (going to the gallery and back keeps your filters): the active filters and the
  * values derived from them. Everything is client side; the dataset is a few hundred points.
  */
-export const filters = signal<Filters>(EMPTY_FILTERS);
+export const filters = signal<Filters>({ ...EMPTY_FILTERS, showGone: storage.get("showGone", false) });
 
 export const allFeatures = computed(() => spots.value?.features ?? []);
 export const filteredFeatures = computed(() => applyFilters(allFeatures.value, filters.value));
@@ -16,8 +16,9 @@ export const activeCount = computed(() => activeFilterCount(filters.value));
 
 export const setFilters = (next: Filters): void => {
   filters.value = next;
+  storage.set("showGone", next.showGone);
 };
-export const clearFilters = (): void => setFilters(EMPTY_FILTERS);
+export const clearFilters = (): void => setFilters({ ...EMPTY_FILTERS, showGone: filters.value.showGone });
 
 /** `null` = never touched: collapsed on phones, open on desktop. */
 export const legendPref = signal<boolean | null>(storage.get<boolean | null>("legendCollapsed", null));

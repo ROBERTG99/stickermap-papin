@@ -53,7 +53,8 @@
     "dateAll": "Siempre",
     "dateMonth": "Último mes",
     "dateHalfYear": "Últimos 6 meses",
-    "dateYear": "Último año"
+    "dateYear": "Último año",
+    "life": "Vida"
   },
   "legend": {
     "only": "Mostrando solo {type}"

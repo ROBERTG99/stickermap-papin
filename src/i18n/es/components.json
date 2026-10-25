@@ -141,7 +141,9 @@
     "sticker": "Sticker",
     "withMore": "{first} y {n} más",
     "cluster": "{count} stickers, acercá para ver",
-    "exactDot": "← coordenada exacta"
+    "exactDot": "← coordenada exacta",
+    "gone": "despegado",
+    "noNews": "sin noticias"
   },
   "submit": {
     "missing": "Falta: {what}",
@@ -211,5 +213,35 @@
     "mute": "Silenciar",
     "unmute": "Activar sonido",
     "fullscreen": "Pantalla completa"
+  },
+  "life": {
+    "alive": "Vivo",
+    "aliveSeen": "Vivo · visto {ago}",
+    "unknown": "Sin noticias {ago}",
+    "gone": "Despegado · duró {days}",
+    "count": "{n} avistajes",
+    "countOne": "1 avistaje",
+    "check": "¿Sigue ahí?",
+    "timeline": "Historial",
+    "verified": "verificado",
+    "pending": "pendiente",
+    "anonymous": "Anónimo",
+    "before": "Antes",
+    "after": "Ahora",
+    "compare": "Comparar antes y ahora",
+    "status": {
+      "alive": "Sigue ahí",
+      "damaged": "Dañado",
+      "covered": "Lo taparon",
+      "removed": "Lo arrancaron",
+      "moved": "Lo movieron"
+    },
+    "statusHint": {
+      "alive": "Entero",
+      "damaged": "Descolorido o roto",
+      "covered": "Otro sticker",
+      "removed": "Ya no está"
+    },
+    "show_gone": "Mostrar despegados"
   }
 }

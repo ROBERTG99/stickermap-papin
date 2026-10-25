@@ -1,0 +1,23 @@
+{
+  "how": "How is it?",
+  "finding": "Finding where you are to verify it…",
+  "near": "You are {dist} away: your report counts right away.",
+  "far": "You are {dist} away: add a new photo so it counts now. Otherwise an admin confirms it.",
+  "noLocation": "We could not tell where you are: add a new photo so it counts now. Otherwise an admin confirms it.",
+  "noLocationDenied": "Location permission was not given: add a new photo so it counts now. Otherwise an admin confirms it.",
+  "video": "Video",
+  "hasPhoto": "Photo ready",
+  "hasVideo": "Video ready",
+  "removeMedia": "Remove",
+  "photoFailed": "We could not read that photo. Try another one.",
+  "videoFailed": "We could not prepare that video. Try another or send a photo.",
+  "done": "Thanks. It is in the history now.",
+  "donePending": "Thanks. An admin reviews it, or another report confirms it.",
+  "error": {
+    "offline": "Connection lost. Try again.",
+    "rate_limited": "You sent many reports in a row. Wait a while.",
+    "storage": "We cannot store more videos right now. Send a photo.",
+    "turnstile": "We could not verify you are a person. Try again.",
+    "server": "Something failed on our side. Try again in a while."
+  }
+}

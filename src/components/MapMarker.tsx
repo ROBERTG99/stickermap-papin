@@ -17,6 +17,8 @@ export interface MarkerOptions {
   selected?: boolean;
   /** 32px head, optional at zoom 3-5 for lone spots. */
   small?: boolean;
+  /** F4: not alive: "unknown" gets an extra ring, "dead" is greyed. */
+  life?: "unknown" | "dead";
   /** F1: the spot has a video (play badge on the head). */
   video?: boolean;
   /** Place name appended to the accessible name ("Papa y 1 más, Puerta del Sol"). */
@@ -24,12 +26,13 @@ export interface MarkerOptions {
 }
 
 /** "Papa y 1 más, Puerta del Sol" */
-export function markerAriaLabel(o: Pick<MarkerOptions, "types" | "n" | "label">): string {
+export function markerAriaLabel(o: Pick<MarkerOptions, "types" | "n" | "label" | "life">): string {
   const count = o.n ?? o.types.length;
   const first = o.types[0] ?? t("components.marker.sticker");
   const head = count > 1 ? t("components.marker.withMore", { first, n: count - 1 }) : first;
   const place = o.label ? `, ${o.label}` : "";
-  return `${head}${place}`;
+  const life = o.life === "dead" ? `, ${t("components.marker.gone")}` : o.life === "unknown" ? `, ${t("components.marker.noNews")}` : "";
+  return `${head}${place}${life}`;
 }
 
 /** Cluster bubble size by count: default 36px for 2-9, `md` 48px for 10-49, `lg` 64px for 50+. */
@@ -60,7 +63,7 @@ export function createMarkerElement(o: MarkerOptions): HTMLButtonElement {
   const count = o.n ?? o.types.length;
   const el = document.createElement("button");
   el.type = "button";
-  el.className = cx("mp-marker", o.small && "mp-marker--sm", o.selected && "is-selected");
+  el.className = cx("mp-marker", o.small && "mp-marker--sm", o.selected && "is-selected", o.life === "unknown" && "is-unknown", o.life === "dead" && "is-gone");
   el.dataset.spotId = o.id;
   el.style.setProperty("--tilt", tiltById(o.id));
   el.setAttribute("aria-label", markerAriaLabel(o));
@@ -121,14 +124,14 @@ interface MapMarkerProps extends MarkerOptions {
 }
 
 /** Preact version of the marker (kitchen sink, stories). The map itself uses `createMarkerElement`. */
-export function MapMarker({ id, types, iconUrl, fit, n, selected, small, label, video, onClick, class: className }: MapMarkerProps) {
+export function MapMarker({ id, types, iconUrl, fit, n, selected, small, label, video, life, onClick, class: className }: MapMarkerProps) {
   const count = n ?? types.length;
   return (
     <button
       type="button"
-      class={cx("mp-marker", small && "mp-marker--sm", selected && "is-selected", className)}
+      class={cx("mp-marker", small && "mp-marker--sm", selected && "is-selected", life === "unknown" && "is-unknown", life === "dead" && "is-gone", className)}
       style={`--tilt:${tiltById(id)}`}
-      aria-label={markerAriaLabel({ types, n, label })}
+      aria-label={markerAriaLabel({ types, n, label, life })}
       aria-current={selected ? "true" : undefined}
       data-spot-id={id}
       onClick={onClick ? () => onClick(id) : undefined}

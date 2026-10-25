@@ -45,3 +45,17 @@ export function formatRemaining(ms: number): string {
   const m = totalMin % 60;
   return h > 0 ? `${h} h ${m} min` : `${m} min`;
 }
+
+/** "hace 3 meses" / "3 months ago": the coarsest unit that is still a whole number (days, weeks, months, years). */
+export function formatAgo(iso: string, now = Date.now(), lang: "es" | "en" = "es"): string {
+  const days = Math.max(0, Math.floor((now - Date.parse(iso)) / 86_400_000));
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "always" });
+  if (days < 1) return lang === "es" ? "hoy" : "today";
+  if (days < 14) return rtf.format(-days, "day");
+  if (days < 60) return rtf.format(-Math.floor(days / 7), "week");
+  if (days < 730) return rtf.format(-Math.floor(days / 30.44), "month");
+  return rtf.format(-Math.floor(days / 365.25), "year");
+}
+
+/** "412 días" / "1 día". */
+export const formatDays = (n: number, lang: "es" | "en" = "es"): string => (lang === "es" ? `${formatNumber(n)} ${n === 1 ? "día" : "días"}` : `${formatNumber(n)} ${n === 1 ? "day" : "days"}`);

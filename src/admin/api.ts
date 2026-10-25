@@ -159,6 +159,23 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return data as T;
 }
 
+export interface AdminSighting {
+  id: string;
+  spot_id: string;
+  status: "alive" | "damaged" | "covered" | "removed" | "moved";
+  created_at: string;
+  verified: boolean;
+  review: "auto" | "pending" | "approved" | "rejected";
+  distance_m: number | null;
+  note: string | null;
+  reporter: string | null;
+  place_name: string | null;
+  country_code: string | null;
+  life_status: "alive" | "unknown" | "dead";
+  thumb: string | null;
+  spot_thumb: string | null;
+}
+
 export interface SpotsPage { total: number; rows: AdminSpot[] }
 
 export const adminApi = {
@@ -168,6 +185,8 @@ export const adminApi = {
   patchSpot: (id: string, body: SpotPatch) => request<{ id: string }>("PATCH", `/api/admin/spots/${encodeURIComponent(id)}`, body),
   bulk: (ids: string[], action: BulkAction, extra: { person?: string; types?: string[] } = {}) =>
     request<{ ok: true; count: number }>("POST", "/api/admin/spots/bulk", { ids, action, ...extra }),
+  sightings: (review: string) => request<{ pending: number; rows: AdminSighting[] }>("GET", `/api/admin/sightings?review=${encodeURIComponent(review)}`),
+  reviewSighting: (id: string, decision: "approve" | "reject") => request<{ id: string; review: string; life: string | null }>("POST", `/api/admin/sightings/${encodeURIComponent(id)}/review`, { decision }),
   hideBatch: (id: string) => request<{ id: string; hidden: number }>("DELETE", `/api/batches/${encodeURIComponent(id)}`),
 
   types: () => request<AdminType[]>("GET", "/api/admin/types"),

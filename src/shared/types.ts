@@ -51,6 +51,8 @@ export interface SpotProps {
   ig?: Record<string, string>;
   /** Link to the spot's Instagram post or reel (F2). */
   ig_post?: string;
+  /** F4: only when the spot is not alive: "unknown" (no news for 12 months) or "dead" (covered or removed). */
+  life?: "unknown" | "dead";
   /** F1: extension of the spot's video (`/media/video/<id>.<v>`); marker play badge and gallery autoplay. */
   v?: "mp4" | "mov";
 }
@@ -94,6 +96,38 @@ export interface SpotDetail extends SpotProps {
   /** Reporter name or null for anonymous. */
   reporter: string | null;
   video?: SpotVideo;
+  /** F4: the life of the sticker, from the sightings people reported. */
+  life_info?: SpotLife;
+}
+
+/** F4: life of a spot. `placed_at` is when it was stuck (photo date, else upload date). */
+export interface SpotLife {
+  status: "alive" | "unknown" | "dead";
+  placed_at: string;
+  last_seen_at: string | null;
+  died_at: string | null;
+  /** Sightings that are not rejected. */
+  count: number;
+  /** Whole days it lasted (dead), or its age so far. */
+  days: number;
+}
+
+export type SightingStatus = "alive" | "damaged" | "covered" | "removed" | "moved";
+
+/** `GET /api/spots/:id/sightings` */
+export interface SightingView {
+  id: string;
+  status: SightingStatus;
+  created_at: string;
+  /** Verified (device within 300 m, or a fresh photo) or approved by an admin. */
+  verified: boolean;
+  /** Waiting for an admin or a second sighting: shown as "pendiente". */
+  pending: boolean;
+  reporter: string | null;
+  note: string | null;
+  photo: string | null;
+  thumb: string | null;
+  video: SpotVideo | null;
 }
 
 export interface AppConfig {

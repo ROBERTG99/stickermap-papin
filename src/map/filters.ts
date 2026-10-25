@@ -17,13 +17,15 @@ export interface Filters {
   /** Lowercase ISO country codes. */
   countries: string[];
   date: DatePreset;
+  /** F4: show the stickers that were covered or torn off ("despegados"); hidden by default. Not counted as an active filter. */
+  showGone: boolean;
 }
 
 export const UNKNOWN_PLACER = "__unknown__";
 
-export const EMPTY_FILTERS: Filters = { types: [], placers: [], countries: [], date: "all" };
+export const EMPTY_FILTERS: Filters = { types: [], placers: [], countries: [], date: "all", showGone: false };
 
-export type Facet = "types" | "placers" | "countries" | "date";
+export type Facet = "types" | "placers" | "countries" | "date" | "life";
 
 const DAY_MS = 86_400_000;
 const PRESET_DAYS: Record<Exclude<DatePreset, "all">, number> = { month: 30, halfYear: 183, year: 365 };
@@ -65,6 +67,7 @@ interface Pass {
   placers: boolean;
   countries: boolean;
   date: boolean;
+  life: boolean;
 }
 
 function passes(f: SpotFeature, filters: Filters, cutoff: number | null): Pass {
@@ -75,18 +78,18 @@ function passes(f: SpotFeature, filters: Filters, cutoff: number | null): Pass {
     placers: filters.placers.length === 0 || placerKeys(f).some((k) => filters.placers.includes(k)),
     countries: filters.countries.length === 0 || (country !== null && filters.countries.includes(country)),
     date: cutoff === null || spotTime(f) >= cutoff,
+    life: filters.showGone || p.life !== "dead",
   };
 }
 
-const FACETS: readonly Facet[] = ["types", "placers", "countries", "date"];
+const FACETS: readonly Facet[] = ["types", "placers", "countries", "date", "life"];
 const allExcept = (pass: Pass, skip: Facet): boolean => FACETS.every((d) => d === skip || pass[d]);
 
 export function applyFilters(features: readonly SpotFeature[], filters: Filters, now = Date.now()): SpotFeature[] {
-  if (!isFiltering(filters)) return features.slice();
   const cutoff = dateCutoff(filters.date, now);
   return features.filter((f) => {
     const pass = passes(f, filters, cutoff);
-    return pass.types && pass.placers && pass.countries && pass.date;
+    return pass.types && pass.placers && pass.countries && pass.date && pass.life;
   });
 }
 

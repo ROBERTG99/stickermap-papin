@@ -2,8 +2,9 @@ import type { IconName } from "./Icon";
 import { Icon } from "./Icon";
 import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
+import { config } from "../lib/store";
 
-export type NavTabId = "map" | "gallery" | "stats";
+export type NavTabId = "map" | "gallery" | "near" | "stats";
 
 export interface NavTab {
   id: NavTabId;
@@ -31,6 +32,14 @@ export const NAV_TABS: readonly NavTab[] = [
     icon: "gallery",
   },
   {
+    id: "near",
+    get label() {
+      return t("common.nav.near");
+    },
+    href: "/cerca",
+    icon: "compass",
+  },
+  {
     id: "stats",
     get label() {
       return t("common.nav.stats");
@@ -39,6 +48,9 @@ export const NAV_TABS: readonly NavTab[] = [
     icon: "stats",
   },
 ];
+
+/** The tabs to show: "Cerca" only while the sightings feature is on. */
+export const visibleTabs = (): readonly NavTab[] => NAV_TABS.filter((tab) => tab.id !== "near" || config.value?.features.sightings === true);
 
 interface TabBarProps {
   active: NavTabId;
@@ -49,7 +61,7 @@ interface TabBarProps {
 export function TabBar({ active, class: className }: TabBarProps) {
   return (
     <nav class={cx("mp-tabbar", className)} aria-label={t("components.header.sections")}>
-      {NAV_TABS.map((tab) => (
+      {visibleTabs().map((tab) => (
         <a key={tab.id} class="mp-tabbar__tab" href={tab.href} aria-current={tab.id === active ? "page" : undefined}>
           <span class="mp-tabbar__pill">
             <Icon name={tab.icon} />

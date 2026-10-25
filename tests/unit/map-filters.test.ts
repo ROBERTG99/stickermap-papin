@@ -84,6 +84,14 @@ describe("applyFilters", () => {
     expect(applyFilters(taken, f({ date: "month" }), NOW)).toHaveLength(1);
   });
 
+  it("hides the despegados unless asked, without counting it as a filter", () => {
+    const withGone = [...spots, { ...spots[0]!, id: "GONE", properties: { ...spots[0]!.properties, id: "GONE", life: "dead" as const } }];
+    expect(applyFilters(withGone, EMPTY_FILTERS, NOW).map((s) => s.id)).toEqual(["A", "B", "C"]);
+    expect(applyFilters(withGone, f({ showGone: true }), NOW).map((s) => s.id)).toEqual(["A", "B", "C", "GONE"]);
+    expect(activeFilterCount(f({ showGone: true }))).toBe(0);
+    expect(facetCounts(withGone, EMPTY_FILTERS, NOW).total).toBe(3);
+  });
+
   it("yields an empty list when nothing matches", () => {
     expect(applyFilters(spots, f({ types: ["sexo-pregunta"] }), NOW)).toEqual([]);
   });

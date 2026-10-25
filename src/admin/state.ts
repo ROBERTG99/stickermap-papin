@@ -12,7 +12,7 @@ export const adminTypes = signal<AdminType[]>([]);
 export const adminPeople = signal<AdminPerson[]>([]);
 
 /** Sidebar badges: spots waiting for review and all spots. */
-export const counts = signal<{ queue: number | null; total: number | null }>({ queue: null, total: null });
+export const counts = signal<{ queue: number | null; total: number | null; sightings: number | null }>({ queue: null, total: null, sightings: null });
 
 export async function checkAuth(): Promise<void> {
   auth.value = { state: "loading", email: null };
@@ -42,11 +42,12 @@ export async function loadAdminPeople(): Promise<void> {
 
 export async function refreshCounts(): Promise<void> {
   try {
-    const [queue, total] = await Promise.all([
+    const [queue, total, sightings] = await Promise.all([
       adminApi.spots(new URLSearchParams({ status: "queue", limit: "1" })),
       adminApi.spots(new URLSearchParams({ limit: "1" })),
+      adminApi.sightings("pending").catch(() => null),
     ]);
-    counts.value = { queue: queue.total, total: total.total };
+    counts.value = { queue: queue.total, total: total.total, sightings: sightings?.pending ?? null };
   } catch {
     /* badges are a nicety */
   }

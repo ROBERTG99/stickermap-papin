@@ -26,7 +26,7 @@
     "ACCESS_AUD": ""
     // CONTACT_EMAIL, ADMIN_ORIGIN, ACCESS_TEAM_DOMAIN and ACCESS_AUD are injected at deploy time (scripts/deploy.ts)
   },
-  // Reverse-geocode backfill, at most 4 Nominatim requests per run (BUILD.md §7.3b, §8)
-  "triggers": { "crons": ["* * * * *"] },
+  // Every minute: reverse-geocode backfill, at most 4 Nominatim requests per run (BUILD.md §7.3b, §8). Daily at 04:00 UTC: life status flip (F4)
+  "triggers": { "crons": ["* * * * *", "0 4 * * *"] },
   "observability": { "enabled": true }
 }

@@ -1,0 +1,23 @@
+{
+  "how": "¿Cómo está?",
+  "finding": "Buscando dónde estás para verificarlo…",
+  "near": "Estás a {dist}: tu aviso cuenta enseguida.",
+  "far": "Estás a {dist}: sumá una foto nueva para que cuente ya. Si no, lo confirma un admin.",
+  "noLocation": "No pudimos ver dónde estás: sumá una foto nueva para que cuente ya. Si no, lo confirma un admin.",
+  "noLocationDenied": "No diste permiso de ubicación: sumá una foto nueva para que cuente ya. Si no, lo confirma un admin.",
+  "video": "Video",
+  "hasPhoto": "Foto lista",
+  "hasVideo": "Video listo",
+  "removeMedia": "Quitar",
+  "photoFailed": "No pudimos leer esa foto. Probá con otra.",
+  "videoFailed": "No pudimos preparar ese video. Probá con otro o mandá una foto.",
+  "done": "Gracias. Ya figura en el historial.",
+  "donePending": "Gracias. Lo revisa un admin o lo confirma otro aviso.",
+  "error": {
+    "offline": "Se cortó la conexión. Probá de nuevo.",
+    "rate_limited": "Mandaste muchos avisos seguidos. Esperá un rato.",
+    "storage": "Por ahora no podemos guardar más videos. Mandá una foto.",
+    "turnstile": "No pudimos verificar que sos una persona. Probá de nuevo.",
+    "server": "Algo falló de nuestro lado. Probá en un rato."
+  }
+}

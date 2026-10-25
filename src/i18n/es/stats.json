@@ -12,5 +12,16 @@
   "countriesPerPlacer": "{n} países",
   "empty": "Todavía no hay stats",
   "loadError": "No pudimos cargar las stats.",
-  "noPlacers": "Todavía nadie cargó stickers con su nombre."
+  "noPlacers": "Todavía nadie cargó stickers con su nombre.",
+  "longevity": {
+    "title": "Longevidad",
+    "oldest": "Los más viejos que siguen ahí",
+    "byType": "Cuánto dura cada tipo",
+    "byCity": "Cuánto duran por ciudad",
+    "cemetery": "Cementerio",
+    "cemeteryEmpty": "Todavía no hay stickers despegados.",
+    "curves": "Supervivencia",
+    "curvesHint": "Qué porcentaje sigue pegado a los X días de pegarlo.",
+    "all": "Todos"
+  }
 }

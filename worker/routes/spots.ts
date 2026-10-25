@@ -3,11 +3,15 @@ import { addTypesBody, createSpotMeta, MAX, patchOwnSpot, reportBody, sha256List
 import { round3 } from "../../src/shared/geo";
 import { newUlid } from "../../src/shared/ulid";
 import { normalizeHandle, normalizePostUrl } from "../../src/shared/instagram";
+import { ageDays, placedAtOf, survivalDays } from "../../src/shared/life";
 import type { SpotDetail } from "../../src/shared/types";
 import { adminFromRequest } from "../lib/access";
 import { hashToken, randomToken, sha256Hex, timingSafeEqual, verifyBatchToken } from "../lib/crypto";
-import { CONTENT_TYPE, EXTENSION, VIDEO_CONTENT_TYPE, sniffImage, sniffVideo, type ImageKind, type VideoKind } from "../lib/images";
+import { CONTENT_TYPE, EXTENSION, VIDEO_CONTENT_TYPE } from "../lib/images";
+import { readImage, readVideo, type CheckedFile, type CheckedVideo } from "../lib/uploads";
 import { featureEnabled } from "../lib/features";
+import { settingsMap } from "../lib/settings";
+import { sightings } from "./sightings";
 import { findOrCreatePerson, placerStatusFor } from "../lib/people";
 import { allowed, ipHash, record } from "../lib/ratelimit";
 import { meterStatement, putAll, type PutObject } from "../lib/r2";
@@ -17,6 +21,7 @@ import type { AppEnv } from "../app";
 import { bustSpotsCache, cachedJson } from "../lib/cache";
 
 export const spots = new Hono<AppEnv>();
+spots.route("/:id/sightings", sightings);
 
 const EDIT_WINDOW_MS = 24 * 3_600_000;
 
@@ -24,11 +29,6 @@ const EDIT_WINDOW_MS = 24 * 3_600_000;
 
 function clientIp(req: Request): string | null {
   return req.headers.get("CF-Connecting-IP");
-}
-
-async function settingsMap(db: D1Database): Promise<Record<string, string>> {
-  const { results } = await db.prepare("SELECT key, value FROM settings").all<{ key: string; value: string }>();
-  return Object.fromEntries(results.map((r) => [r.key, r.value]));
 }
 
 /** Every requested slug must be an active type; free text only for types that allow it. */
@@ -41,34 +41,6 @@ async function checkTypes(db: D1Database, slugs: string[], otherText: string | n
   if (results.length !== unique.length) return "unknown_type";
   if (otherText && !results.some((r) => r.allows_text === 1)) return "other_text_not_allowed";
   return null;
-}
-
-interface CheckedFile { bytes: ArrayBuffer; kind: ImageKind }
-
-async function readImage(part: unknown, maxBytes: number, allowHeic: boolean): Promise<CheckedFile | "too_large" | "bad_image" | null> {
-  if (part === null || part === undefined || typeof part === "string") return null;
-  const file = part as File;
-  if (file.size === 0) return null;
-  if (file.size > maxBytes) return "too_large";
-  const bytes = await file.arrayBuffer();
-  const kind = sniffImage(new Uint8Array(bytes, 0, Math.min(32, bytes.byteLength)));
-  if (!kind || (!allowHeic && kind === "heic")) return "bad_image";
-  return { bytes, kind };
-}
-
-interface CheckedVideo { bytes: ArrayBuffer; kind: VideoKind }
-
-/** `video/mp4` by magic bytes up to 60 MB; QuickTime only as the untranscoded fallback (50 MB). */
-async function readVideo(part: unknown): Promise<CheckedVideo | "too_large" | "bad_video" | null> {
-  if (part === null || part === undefined || typeof part === "string") return null;
-  const file = part as File;
-  if (file.size === 0) return null;
-  if (file.size > MAX.videoBytes) return "too_large";
-  const bytes = await file.arrayBuffer();
-  const kind = sniffVideo(new Uint8Array(bytes, 0, Math.min(32, bytes.byteLength)));
-  if (!kind) return "bad_video";
-  if (kind === "mov" && bytes.byteLength > MAX.videoFallbackBytes) return "too_large";
-  return { bytes, kind };
 }
 
 type Authorized = { ok: true; batchId: string | null } | { ok: false; status: 401 | 403 | 429; error: string };
@@ -116,6 +88,13 @@ spots.post("/exists", async (c) => {
   return c.json(Object.fromEntries(results.map((r) => [r.sha, r.id])));
 });
 
+function lifeOf(s: Record<string, unknown>): NonNullable<SpotDetail["life_info"]> {
+  const placed = placedAtOf((s.taken_at as string | null) ?? null, s.created_at as string);
+  const life = { diedAt: (s.died_at as string | null) ?? null, lastSeenAt: (s.last_seen_at as string | null) ?? null };
+  const status = s.life_status as "alive" | "unknown" | "dead";
+  return { status, placed_at: placed, last_seen_at: life.lastSeenAt, died_at: life.diedAt, count: (s.sightings_count as number) ?? 0, days: status === "dead" ? survivalDays(placed, life) : ageDays(placed) };
+}
+
 export async function loadSpotDetail(db: D1Database, id: string): Promise<SpotDetail | null> {
   const [row, types, placers] = await db.batch([
     db.prepare(
@@ -139,6 +118,7 @@ export async function loadSpotDetail(db: D1Database, id: string): Promise<SpotDe
     city: (s.city as string | null) ?? null, note: (s.note as string | null) ?? null, other_text: (s.other_text as string | null) ?? null,
     placer_note: (s.placer_note as string | null) ?? null, photo_w: (s.photo_w as number | null) ?? null, photo_h: (s.photo_h as number | null) ?? null,
     ...(Object.keys(ig).length ? { ig } : {}), ...(typeof s.instagram_post_url === "string" ? { ig_post: s.instagram_post_url } : {}),
+    life_info: lifeOf(s),
     ...(typeof s.video_key === "string" && s.video_needs_transcode === 0
       ? { v: (s.video_key.endsWith(".mov") ? "mov" : "mp4") as "mp4" | "mov", video: { src: `/media/${s.video_key}`, poster: key(s.video_poster_key), duration_ms: (s.video_duration_ms as number | null) ?? null, w: (s.video_w as number | null) ?? null, h: (s.video_h as number | null) ?? null } }
       : {}),

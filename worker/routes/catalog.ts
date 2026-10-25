@@ -2,6 +2,9 @@ import { Hono } from "hono";
 import type { AppConfig, FeatureFlag, Lang, ModerationMode, PersonSummary, StickerType } from "../../src/shared/types";
 import type { AppEnv } from "../app";
 import { adminFromRequest } from "../lib/access";
+import { bearingDegrees, haversineMeters } from "../../src/shared/geo";
+import { ageDays, placedAtOf, survivalDays } from "../../src/shared/life";
+import { averageBy, survivalCurve } from "../../src/shared/survival";
 import { cachedJson } from "../lib/cache";
 
 export const catalog = new Hono<AppEnv>();
@@ -80,3 +83,80 @@ catalog.get("/config", async (c) => {
   // depends on who asks (admin-only flags), so never shared
   return c.json(body, 200, { "Cache-Control": "private, max-age=60" });
 });
+
+// ── F4 ────────────────────────────────────────────────────────────────────
+
+/** The nearest published, not-dead stickers to a point: a bounding box first (indexed lat/lng), then exact distances. */
+catalog.get("/nearby", async (c) => {
+  const lat = Number(c.req.query("lat"));
+  const lng = Number(c.req.query("lng"));
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return c.json({ error: "bad_position" }, 400);
+  const limit = Math.min(20, Math.max(1, Math.floor(Number(c.req.query("limit") ?? 10)) || 10));
+  type Row = { id: string; lat: number; lng: number; place_name: string | null; country_code: string | null; thumb_key: string | null; life_status: string; reporter: string | null };
+  let rows: Row[] = [];
+  // widen the box until it holds enough spots: ~5 km, ~55 km, ~550 km, then everything
+  for (const delta of [0.05, 0.5, 5, 360]) {
+    const lngSpan = delta === 360 ? 360 : Math.min(360, delta / Math.max(0.05, Math.cos((lat * Math.PI) / 180)));
+    const res = await c.env.DB
+      .prepare(
+        `SELECT s.id, s.lat, s.lng, s.place_name, s.country_code, s.thumb_key, s.life_status, p.display_name AS reporter
+           FROM spots s LEFT JOIN people p ON p.id = s.reporter_person_id
+          WHERE s.status = 'published' AND s.life_status != 'dead' AND s.lat BETWEEN ?1 AND ?2 AND s.lng BETWEEN ?3 AND ?4`,
+      )
+      .bind(lat - delta, lat + delta, lng - lngSpan, lng + lngSpan)
+      .all<Row>();
+    rows = res.results;
+    if (rows.length >= limit) break;
+  }
+  const ranked = rows
+    .map((r) => ({ r, d: haversineMeters(lat, lng, r.lat, r.lng) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, limit);
+  const ids = ranked.map((x) => x.r.id);
+  const types = ids.length
+    ? await c.env.DB.prepare("SELECT spot_id AS id, type_slug AS slug FROM spot_types WHERE spot_id IN (SELECT value FROM json_each(?1))").bind(JSON.stringify(ids)).all<{ id: string; slug: string }>()
+    : { results: [] as { id: string; slug: string }[] };
+  const body = ranked.map(({ r, d }) => ({
+    id: r.id, lat: r.lat, lng: r.lng, distance_m: Math.round(d), bearing: Math.round(bearingDegrees(lat, lng, r.lat, r.lng)),
+    place_name: r.place_name || null, country_code: r.country_code, thumb: r.thumb_key ? `/img/${r.thumb_key}` : null, life: r.life_status,
+    reporter: r.reporter, types: types.results.filter((t) => t.id === r.id).map((t) => t.slug),
+  }));
+  return c.json(body, 200, { "Cache-Control": "private, no-store" });
+});
+
+/** Longevity stats (F4): oldest living, average survival by type and city, the cemetery and survival curves. */
+catalog.get("/stats/longevity", (c) =>
+  cachedJson(c, async () => {
+    const { results } = await c.env.DB
+      .prepare(
+        `SELECT s.id, s.place_name, s.city, s.country_code, s.taken_at, s.created_at, s.life_status, s.last_seen_at, s.died_at,
+                (SELECT group_concat(st.type_slug) FROM spot_types st WHERE st.spot_id = s.id) AS types, p.display_name AS reporter
+           FROM spots s LEFT JOIN people p ON p.id = s.reporter_person_id WHERE s.status = 'published'`,
+      )
+      .all<{ id: string; place_name: string | null; city: string | null; country_code: string | null; taken_at: string | null; created_at: string; life_status: string; last_seen_at: string | null; died_at: string | null; types: string | null; reporter: string | null }>();
+    const typeLabels = new Map((await c.env.DB.prepare("SELECT slug, label FROM sticker_types").all<{ slug: string; label: string }>()).results.map((t) => [t.slug, t.label]));
+    const now = Date.now();
+    const rows = results.map((r) => {
+      const placed = placedAtOf(r.taken_at, r.created_at);
+      const dead = r.life_status === "dead";
+      return { ...r, placed, dead, days: survivalDays(placed, { diedAt: r.died_at, lastSeenAt: r.last_seen_at }, now), age: ageDays(placed, now), slugs: r.types ? r.types.split(",") : [] };
+    });
+    const brief = (r: (typeof rows)[number]) => ({ id: r.id, place_name: r.place_name || r.city || null, country_code: r.country_code, types: r.slugs, reporter: r.reporter });
+    const oldestLiving = rows.filter((r) => !r.dead).sort((a, b) => b.age - a.age).slice(0, 5).map((r) => ({ ...brief(r), age_days: r.age }));
+    const cemetery = rows.filter((r) => r.dead).sort((a, b) => (b.died_at ?? "").localeCompare(a.died_at ?? "")).slice(0, 10).map((r) => ({ ...brief(r), died_at: r.died_at, days: r.days }));
+    const byType = averageBy(rows.flatMap((r) => r.slugs.map((slug) => ({ key: slug, label: typeLabels.get(slug) ?? slug, days: r.days }))), 1);
+    const byCity = averageBy(rows.filter((r) => r.city).map((r) => ({ key: `${r.country_code ?? ""}:${r.city}`, label: r.city!, days: r.days })), 3).slice(0, 8);
+    const lifetime = (r: (typeof rows)[number]) => ({ days: r.dead ? r.days : r.age, dead: r.dead });
+    const curves = [{ key: "all", label: "all", points: survivalCurve(rows.map(lifetime)) }];
+    for (const slug of typeLabels.keys()) {
+      const group = rows.filter((r) => r.slugs.includes(slug));
+      if (group.length >= 5) curves.push({ key: slug, label: typeLabels.get(slug) ?? slug, points: survivalCurve(group.map(lifetime)) });
+    }
+    const body = {
+      totals: { alive: rows.filter((r) => r.life_status === "alive").length, unknown: rows.filter((r) => r.life_status === "unknown").length, dead: rows.filter((r) => r.dead).length },
+      oldest_living: oldestLiving, by_type: byType, by_city: byCity, cemetery, curves,
+    };
+    const stamp = `${rows.length}-${body.totals.dead}-${body.totals.unknown}-${rows.map((r) => r.died_at ?? r.last_seen_at ?? "").sort().at(-1) ?? ""}`;
+    return { body, etag: `W/"longevity-${stamp}-${new Date(now).toISOString().slice(0, 10)}"` };
+  }, FIVE_MIN),
+);

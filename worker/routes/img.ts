@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../app";
+import { isPublicOwner } from "../lib/owner";
 
 export const img = new Hono<AppEnv>();
 
@@ -13,10 +14,7 @@ img.on(["GET", "HEAD"], "/*", async (c) => {
   if (key.includes("..") || !PUBLIC_PREFIXES.some((p) => key.startsWith(p))) return new Response("Not found", { status: 404 });
   // Photos of spots that are hidden, deleted or awaiting approval are not public (admins see them through /api/admin/img/*).
   const owner = /^(?:display|thumb)\/([0-9A-Z]{26})[.-]/.exec(key)?.[1];
-  if (owner) {
-    const row = await c.env.DB.prepare("SELECT status FROM spots WHERE id = ?1").bind(owner).first<{ status: string }>();
-    if (!row || row.status !== "published") return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
-  }
+  if (owner && !(await isPublicOwner(c.env.DB, owner))) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   const ifNoneMatch = c.req.header("If-None-Match");
   const object = await c.env.PHOTOS.get(key, { onlyIf: ifNoneMatch ? { etagDoesNotMatch: ifNoneMatch.replace(/^W\//, "").replaceAll('"', "") } : undefined });
   if (!object) return new Response("Not found", { status: 404 });

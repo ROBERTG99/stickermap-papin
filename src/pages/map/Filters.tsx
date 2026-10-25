@@ -3,7 +3,7 @@ import { useMemo, useState } from "preact/hooks";
 import { Icon } from "../../components/Icon";
 import { FilterChip, PersonAvatar, TypeChip } from "../../components/Chip";
 import { t } from "../../lib/i18n";
-import { people, types } from "../../lib/store";
+import { config, people, types } from "../../lib/store";
 import {
   DATE_PRESETS,
   UNKNOWN_PLACER,
@@ -99,6 +99,7 @@ export function FilterSections() {
   const f = filters.value;
   const counts = facets.value;
   const features = allFeatures.value;
+  const gone = useMemo(() => features.filter((x) => x.properties.life === "dead").length, [features]);
 
   const countries = useMemo(() => listCountries(features), [features]);
   const placerNames = useMemo(() => {
@@ -146,6 +147,13 @@ export function FilterSections() {
           })}
         </div>
       </Section>
+      {config.value?.features.sightings === true && gone > 0 && (
+        <Section title={t("map.filters.life")}>
+          <div class="mp-chips">
+            <FilterChip label={t("components.life.show_gone")} count={gone} selected={f.showGone} onToggle={() => setFilters({ ...filters.value, showGone: !filters.value.showGone })} />
+          </div>
+        </Section>
+      )}
     </>
   );
 }

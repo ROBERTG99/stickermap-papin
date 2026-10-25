@@ -1,4 +1,4 @@
-import type { AppConfig, PersonSummary, SpotCollection, SpotDetail, StickerType } from "../shared/types";
+import type { AppConfig, PersonSummary, SightingView, SpotCollection, SpotDetail, StickerType } from "../shared/types";
 
 export class ApiError extends Error {
   constructor(public status: number, public code: string, public body?: unknown) {
@@ -53,10 +53,23 @@ export interface StatsPayload {
   months: { month: string; count: number }[];
 }
 
+/** F4 `GET /api/stats/longevity`. */
+export interface LongevityPayload {
+  totals: { alive: number; unknown: number; dead: number };
+  oldest_living: { id: string; place_name: string | null; country_code: string | null; types: string[]; reporter: string | null; age_days: number }[];
+  by_type: { key: string; label: string; avg_days: number; count: number }[];
+  by_city: { key: string; label: string; avg_days: number; count: number }[];
+  cemetery: { id: string; place_name: string | null; country_code: string | null; types: string[]; reporter: string | null; died_at: string | null; days: number }[];
+  curves: { key: string; label: string; points: { day: number; alive: number }[] }[];
+}
+
+export interface CreatedSighting { id: string; verified: boolean; pending: boolean; life: string | null }
+
 export const api = {
   config: () => json<AppConfig>("/api/config"),
   spots: () => json<SpotCollection>("/api/spots"),
-  spot: (id: string) => json<SpotDetail>(`/api/spots/${id}`),
+  /** `fresh` skips the browser cache (after a write that changes the spot). */
+  spot: (id: string, fresh = false) => json<SpotDetail>(`/api/spots/${id}`, fresh ? { cache: "reload" } : undefined),
   types: () => json<StickerType[]>("/api/types"),
   people: () => json<PersonSummary[]>("/api/people"),
   stats: () => json<StatsPayload>("/api/stats"),
@@ -69,5 +82,8 @@ export const api = {
   addTypes: (id: string, body: unknown) => send<{ id: string }>("POST", `/api/spots/${id}/types`, body),
   report: (id: string, body: { turnstile_token?: string | null }) => send<{ id: string }>("POST", `/api/spots/${id}/report`, body),
   patchSpot: (id: string, editToken: string, body: unknown) => send<{ id: string }>("PATCH", `/api/spots/${id}`, body, { "X-Edit-Token": editToken }),
+  sightings: (id: string, fresh = false) => json<SightingView[]>(`/api/spots/${id}/sightings`, fresh ? { cache: "reload" } : undefined),
+  createSighting: (id: string, form: FormData, opts?: { onProgress?: (f: number) => void; signal?: AbortSignal }) => postForm<CreatedSighting>(`/api/spots/${id}/sightings`, form, opts),
+  longevity: () => json<LongevityPayload>("/api/stats/longevity"),
   deleteSpot: (id: string, editToken: string) => send<{ id: string }>("DELETE", `/api/spots/${id}`, undefined, { "X-Edit-Token": editToken }),
 };

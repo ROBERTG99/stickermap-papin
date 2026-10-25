@@ -9,7 +9,8 @@
     "people": "Personas",
     "settings": "Ajustes",
     "map": "Ver el mapa",
-    "access": "Cloudflare Access"
+    "access": "Cloudflare Access",
+    "sightings": "Avistajes"
   },
   "login": {
     "title": "Mapa Papin · Admin",
@@ -403,5 +404,25 @@
     "otherRequiresNames": "Agregá al menos una persona.",
     "selfRequiresReporter": "Este sticker no tiene quien lo cargó, así que no puede ser “Soy yo”.",
     "noBackup": "Todavía no hay backups para bajar."
+  },
+  "sightings": {
+    "title": "Avistajes",
+    "intro": "Avisos de que un sticker sigue o ya no está. Los que no se pudieron verificar esperan acá; aprobar uno cambia el estado del spot.",
+    "filterPending": "Pendientes",
+    "filterAll": "Todos",
+    "empty": "No hay avistajes pendientes.",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "far": "a {dist} del spot",
+    "noLocation": "sin ubicación",
+    "approved": "Aprobado.",
+    "rejected": "Rechazado.",
+    "state": {
+      "auto": "verificado",
+      "pending": "pendiente",
+      "approved": "aprobado",
+      "rejected": "rechazado"
+    },
+    "spot": "Ver spot"
   }
 }

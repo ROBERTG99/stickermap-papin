@@ -1,0 +1,29 @@
+{
+  "title": "Near you",
+  "intro": "The nearest stickers while the app is open.",
+  "start": "Use my location",
+  "why": "Only while the app is open. We do not store where you are.",
+  "finding": "Finding where you are…",
+  "denied": "Location permission was not given. You can turn it on in the browser settings.",
+  "failed": "We could not tell where you are. Try again.",
+  "empty": "No stickers to show yet.",
+  "nearTitle": "You are close!",
+  "nearBody": "{place} is {dist} away. Is it still there?",
+  "nearBy": "{type} by {name}, {dist} away. Is it still there?",
+  "report": "Say how it is",
+  "compass": "Turn on compass",
+  "compassOn": "Compass on",
+  "compassNote": "Without the compass, arrows point relative to north.",
+  "direction": {
+    "n": "towards the north",
+    "ne": "towards the northeast",
+    "e": "towards the east",
+    "se": "towards the southeast",
+    "s": "towards the south",
+    "sw": "towards the southwest",
+    "w": "towards the west",
+    "nw": "towards the northwest"
+  },
+  "unnamed": "Unnamed place",
+  "anyone": "someone"
+}

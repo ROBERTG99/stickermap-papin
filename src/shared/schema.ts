@@ -91,3 +91,22 @@ export const patchOwnSpot = z
   .strict();
 
 export const sha256List = z.object({ sha256: z.array(z.string().regex(/^[0-9a-f]{64}$/)).max(100) });
+
+/** F4: a sighting of an existing spot (multipart `meta` part; optional `display`/`thumb`/`video` parts like a new spot). */
+export const sightingMeta = z.object({
+  status: z.enum(["alive", "damaged", "covered", "removed"]),
+  /** Device position when the person checked, for the 300 m check; blank when location was refused. */
+  lat: z.number().min(-90).max(90).nullish(),
+  lng: z.number().min(-180).max(180).nullish(),
+  location_accuracy_m: z.number().min(0).max(1_000_000).nullish(),
+  reporter: person.nullish(),
+  note: trimmed(MAX.note).nullish(),
+  /** EXIF DateTimeOriginal of the attached photo (naive local time): a fresh photo verifies the sighting. */
+  taken_at: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/).nullish(),
+  via: z.enum(["app", "radar"]).default("app"),
+  video_duration_ms: z.number().int().min(100).max(MAX.videoFallbackMaxMs + 1000).nullish(),
+  video_w: z.number().int().min(16).max(8192).nullish(),
+  video_h: z.number().int().min(16).max(8192).nullish(),
+  turnstile_token: z.string().max(4096).nullish(),
+});
+export type SightingMeta = z.infer<typeof sightingMeta>;

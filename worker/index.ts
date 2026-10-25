@@ -2,6 +2,7 @@ import { Hono, type Context } from "hono";
 import { secureHeaders } from "hono/secure-headers";
 import type { AppEnv } from "./app";
 import { runGeocodeCron } from "./cron/geocode";
+import { flipStaleSpots } from "./lib/life";
 import type { Env } from "./env";
 import { ogTags, spotOg } from "./lib/og";
 import { admin } from "./routes/admin";
@@ -10,6 +11,8 @@ import { catalog } from "./routes/catalog";
 import { img } from "./routes/img";
 import { media } from "./routes/media";
 import { spots } from "./routes/spots";
+
+const DAILY_CRON = "0 4 * * *";
 
 const app = new Hono<AppEnv>();
 
@@ -67,7 +70,9 @@ app.notFound((c) => (c.req.path.startsWith("/api/") ? c.json({ error: "not_found
 
 export default {
   fetch: app.fetch,
-  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(runGeocodeCron(env));
+  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
+    // every minute: reverse geocoding (<= 4 requests); once a day: spots nobody has seen for 12 months become "sin noticias"
+    if (event.cron === DAILY_CRON) ctx.waitUntil(flipStaleSpots(env.DB));
+    else ctx.waitUntil(runGeocodeCron(env));
   },
 } satisfies ExportedHandler<Env>;

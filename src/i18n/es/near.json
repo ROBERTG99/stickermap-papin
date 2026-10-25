@@ -1,0 +1,29 @@
+{
+  "title": "Cerca tuyo",
+  "intro": "Los stickers más cercanos mientras tenés la app abierta.",
+  "start": "Usar mi ubicación",
+  "why": "Solo mientras la app está abierta. No guardamos dónde estás.",
+  "finding": "Buscando dónde estás…",
+  "denied": "No diste permiso de ubicación. Podés activarlo en los ajustes del navegador.",
+  "failed": "No pudimos saber dónde estás. Probá de nuevo.",
+  "empty": "Todavía no hay stickers para mostrar.",
+  "nearTitle": "¡Estás cerca!",
+  "nearBody": "{place} a {dist}. ¿Sigue ahí?",
+  "nearBy": "{type} de {name} a {dist}. ¿Sigue ahí?",
+  "report": "Contar cómo está",
+  "compass": "Activar brújula",
+  "compassOn": "Brújula activada",
+  "compassNote": "Sin brújula, las flechas apuntan respecto del norte.",
+  "direction": {
+    "n": "hacia el norte",
+    "ne": "hacia el noreste",
+    "e": "hacia el este",
+    "se": "hacia el sureste",
+    "s": "hacia el sur",
+    "sw": "hacia el suroeste",
+    "w": "hacia el oeste",
+    "nw": "hacia el noroeste"
+  },
+  "unnamed": "Lugar sin nombre",
+  "anyone": "alguien"
+}

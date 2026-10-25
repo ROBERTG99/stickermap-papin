@@ -14,9 +14,10 @@ const DataPage = lazy(() => import("./DataPage"));
 const TypesPage = lazy(() => import("./TypesPage"));
 const PeoplePage = lazy(() => import("./PeoplePage"));
 const SettingsPage = lazy(() => import("./SettingsPage"));
+const SightingsPage = lazy(() => import("./SightingsPage"));
 
 interface Section {
-  id: "review" | "data" | "types" | "people" | "settings";
+  id: "review" | "sightings" | "data" | "types" | "people" | "settings";
   href: string;
   icon: IconName;
   label: string;
@@ -24,6 +25,7 @@ interface Section {
 
 const SECTIONS: readonly Section[] = [
   { id: "review", href: "/admin", icon: "inbox", label: "admin.nav.review" },
+  { id: "sightings", href: "/admin/avistajes", icon: "eye", label: "admin.nav.sightings" },
   { id: "data", href: "/admin/datos", icon: "table", label: "admin.nav.data" },
   { id: "types", href: "/admin/tipos", icon: "tag", label: "admin.nav.types" },
   { id: "people", href: "/admin/personas", icon: "users", label: "admin.nav.people" },
@@ -32,6 +34,7 @@ const SECTIONS: readonly Section[] = [
 
 function currentSection(p: string): Section["id"] | null {
   if (match("/admin", p)) return "review";
+  if (match("/admin/avistajes", p)) return "sightings";
   if (match("/admin/datos", p)) return "data";
   if (match("/admin/tipos", p)) return "types";
   if (match("/admin/personas", p)) return "people";
@@ -64,6 +67,7 @@ function Sidebar({ active }: { active: Section["id"] | null }) {
             <Icon name={s.icon} />
             <span class="mp-side__label">{t(s.label)}</span>
             {s.id === "review" && c.queue !== null && c.queue > 0 && <span class="mp-badge mp-badge--solid">{c.queue}</span>}
+            {s.id === "sightings" && c.sightings !== null && c.sightings > 0 && <span class="mp-badge mp-badge--solid">{c.sightings}</span>}
             {s.id === "data" && c.total !== null && <span class="mp-badge">{c.total}</span>}
           </a>
         ))}
@@ -127,6 +131,8 @@ function Body({ section }: { section: Section["id"] | null }) {
   switch (section) {
     case "review":
       return <ReviewPage />;
+    case "sightings":
+      return <SightingsPage />;
     case "data":
       return <DataPage />;
     case "types":

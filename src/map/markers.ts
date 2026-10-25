@@ -32,6 +32,9 @@ export interface MarkerHost {
 /** F1: the play badge shows only while the feature is on. */
 const hasVideo = (spot: SpotFeature): boolean => spot.properties.v !== undefined && config.value?.features.video === true;
 
+/** F4: only while the feature is on. */
+const lifeOf = (spot: SpotFeature): "unknown" | "dead" | undefined => (config.value?.features.sightings === true ? spot.properties.life : undefined);
+
 interface Entry {
   marker: Marker;
   el: HTMLElement;
@@ -103,7 +106,7 @@ export class MarkerLayer {
     const types = this.host.types();
     for (const w of wanted.values()) {
       const spec = w.spot ? markerSpec(w.spot, types) : null;
-      const sig = w.spot && spec ? `${spec.iconUrl}|${spec.fit}|${w.spot.properties.n}|${w.spot.properties.place_name ?? ""}|${spec.labels.join(",")}|${hasVideo(w.spot)}` : `${w.count}`;
+      const sig = w.spot && spec ? `${spec.iconUrl}|${spec.fit}|${w.spot.properties.n}|${w.spot.properties.place_name ?? ""}|${spec.labels.join(",")}|${hasVideo(w.spot)}|${lifeOf(w.spot)}` : `${w.count}`;
       let entry = this.entries.get(w.key);
       if (entry && entry.sig !== sig) {
         entry.marker.remove();
@@ -157,6 +160,7 @@ export class MarkerLayer {
         n: spot.properties.n,
         label: spot.properties.place_name,
         video: hasVideo(spot),
+        life: lifeOf(spot),
       });
       el.addEventListener("click", (e) => {
         e.stopPropagation();

@@ -7,6 +7,7 @@ import { adminFromRequest } from "../lib/access";
 import { bustSpotsCache } from "../lib/cache";
 import { sha256Hex } from "../lib/crypto";
 import { CONTENT_TYPE, sniffImage } from "../lib/images";
+import { refreshLife } from "../lib/life";
 import { findOrCreatePerson, placerStatusFor, syncPlacerStatements } from "../lib/people";
 import { meterStatement } from "../lib/r2";
 
@@ -481,6 +482,44 @@ admin.patch("/people/:id", async (c) => {
   await db.batch([...stmts, audit(db, c.get("email"), "update_person", "person", String(id), parsed.data)]);
   c.executionCtx.waitUntil(bustSpotsCache(c));
   return c.json({ id });
+});
+
+// ── sightings (F4): the ones nobody could verify wait here ─────────────────
+
+admin.get("/sightings", async (c) => {
+  const review = c.req.query("review") ?? "pending";
+  if (!["pending", "approved", "rejected", "auto", "all"].includes(review)) return c.json({ error: "invalid" }, 400);
+  const { results } = await c.env.DB
+    .prepare(
+      `SELECT x.id, x.spot_id, x.status, x.created_at, x.verified, x.status_review AS review, x.distance_m, x.note, x.reporter_raw AS reporter, x.thumb_key,
+              s.place_name, s.country_code, s.thumb_key AS spot_thumb, s.life_status
+         FROM sightings x JOIN spots s ON s.id = x.spot_id
+        WHERE (?1 = 'all' OR x.status_review = ?1) ORDER BY x.created_at DESC LIMIT 200`,
+    )
+    .bind(review)
+    .all<Record<string, unknown>>();
+  const pending = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM sightings WHERE status_review = 'pending'").first<{ n: number }>();
+  const img = (k: unknown) => (typeof k === "string" ? `/api/admin/img/${k}` : null);
+  return c.json({
+    pending: pending?.n ?? 0,
+    rows: results.map((r) => ({ ...r, verified: r.verified === 1, thumb: img(r.thumb_key), spot_thumb: img(r.spot_thumb), thumb_key: undefined })),
+  });
+});
+
+admin.post("/sightings/:id/review", async (c) => {
+  const parsed = z.object({ decision: z.enum(["approve", "reject"]) }).safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: "invalid" }, 400);
+  const id = c.req.param("id");
+  const row = await c.env.DB.prepare("SELECT spot_id FROM sightings WHERE id = ?1").bind(id).first<{ spot_id: string }>();
+  if (!row) return c.json({ error: "not_found" }, 404);
+  const review = parsed.data.decision === "approve" ? "approved" : "rejected";
+  await c.env.DB.batch([
+    c.env.DB.prepare("UPDATE sightings SET status_review = ?2 WHERE id = ?1").bind(id, review),
+    audit(c.env.DB, c.get("email"), `sighting_${review}`, "sighting", id, { spot: row.spot_id }),
+  ]);
+  const life = await refreshLife(c.env.DB, row.spot_id);
+  c.executionCtx.waitUntil(bustSpotsCache(c));
+  return c.json({ id, review, life: life?.status ?? null });
 });
 
 // ── settings, storage meter, backups, audit ───────────────────────────────

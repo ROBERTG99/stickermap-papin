@@ -9,7 +9,8 @@
     "people": "People",
     "settings": "Settings",
     "map": "View the map",
-    "access": "Cloudflare Access"
+    "access": "Cloudflare Access",
+    "sightings": "Sightings"
   },
   "login": {
     "title": "Mapa Papin · Admin",
@@ -403,5 +404,25 @@
     "otherRequiresNames": "Add at least one person.",
     "selfRequiresReporter": "This sticker has no uploader, so it cannot be “Me”.",
     "noBackup": "There is no backup to download yet."
+  },
+  "sightings": {
+    "title": "Sightings",
+    "intro": "Reports that a sticker is still there or gone. The ones nobody could verify wait here; approving one changes the spot.",
+    "filterPending": "Pending",
+    "filterAll": "All",
+    "empty": "No pending sightings.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "far": "{dist} from the spot",
+    "noLocation": "no location",
+    "approved": "Approved.",
+    "rejected": "Rejected.",
+    "state": {
+      "auto": "verified",
+      "pending": "pending",
+      "approved": "approved",
+      "rejected": "rejected"
+    },
+    "spot": "View spot"
   }
 }

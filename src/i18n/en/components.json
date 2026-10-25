@@ -141,7 +141,9 @@
     "sticker": "Sticker",
     "withMore": "{first} and {n} more",
     "cluster": "{count} stickers, zoom in to see",
-    "exactDot": "← exact coordinate"
+    "exactDot": "← exact coordinate",
+    "gone": "gone",
+    "noNews": "no news"
   },
   "submit": {
     "missing": "Missing: {what}",
@@ -211,5 +213,35 @@
     "mute": "Mute",
     "unmute": "Turn sound on",
     "fullscreen": "Full screen"
+  },
+  "life": {
+    "alive": "Alive",
+    "aliveSeen": "Alive · seen {ago}",
+    "unknown": "No news {ago}",
+    "gone": "Gone · lasted {days}",
+    "count": "{n} sightings",
+    "countOne": "1 sighting",
+    "check": "Still there?",
+    "timeline": "History",
+    "verified": "verified",
+    "pending": "pending",
+    "anonymous": "Anonymous",
+    "before": "Before",
+    "after": "Now",
+    "compare": "Compare before and now",
+    "status": {
+      "alive": "Still there",
+      "damaged": "Damaged",
+      "covered": "Covered up",
+      "removed": "Torn off",
+      "moved": "Moved"
+    },
+    "statusHint": {
+      "alive": "In one piece",
+      "damaged": "Faded or torn",
+      "covered": "Another sticker on top",
+      "removed": "It is gone"
+    },
+    "show_gone": "Show gone ones"
   }
 }

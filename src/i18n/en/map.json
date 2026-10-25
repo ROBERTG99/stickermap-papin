@@ -53,7 +53,8 @@
     "dateAll": "Any time",
     "dateMonth": "Last month",
     "dateHalfYear": "Last 6 months",
-    "dateYear": "Last year"
+    "dateYear": "Last year",
+    "life": "Life"
   },
   "legend": {
     "only": "Showing only {type}"

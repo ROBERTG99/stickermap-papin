@@ -1,8 +1,21 @@
+import { signal } from "@preact/signals";
 import { useEffect, useState } from "preact/hooks";
 import { api, ApiError } from "../../lib/api";
 import type { SpotDetail } from "../../shared/types";
 
 const cache = new Map<string, SpotDetail>();
+/** Bumped when a cached detail is replaced, so open sheets re-render with the new data. */
+const tick = signal(0);
+
+/** Fetch the spot again (its life changed after a sighting) and replace the cached copy. */
+export async function refreshSpotDetail(id: string): Promise<void> {
+  try {
+    cache.set(id, await api.spot(id, true));
+    tick.value++;
+  } catch {
+    /* keep the old copy */
+  }
+}
 
 export type DetailStatus = "loading" | "ready" | "missing" | "offline" | "error";
 
@@ -15,6 +28,7 @@ interface DetailState {
 /** `GET /api/spots/:id` for the selected spot (note, other_text...). "missing" = 404: unknown or hidden. */
 export function useSpotDetail(id: string | undefined): { status: DetailStatus; detail: SpotDetail | null } {
   const [state, setState] = useState<DetailState | null>(null);
+  void tick.value; // subscribe: `refreshSpotDetail` re-renders the sheet
 
   useEffect(() => {
     if (!id) return;

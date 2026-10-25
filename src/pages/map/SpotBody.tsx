@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { Icon } from "../../components/Icon";
 import { SpotContent, toSpotView } from "../../components/SpotContent";
+import { SightingSheet } from "../../components/SightingSheet";
+import { SpotLife } from "../../components/SpotLife";
 import { StorySheet } from "../../components/StorySheet";
 import { EDIT_WINDOW_MS, editGrants, lastPerson } from "../../lib/local";
 import { formatRemaining } from "../../lib/format";
@@ -16,6 +18,8 @@ interface Props {
   variant: "peek" | "full";
   onOpenPhoto: () => void;
   onReport: () => void;
+  /** The life of the spot changed (a sighting was sent): reload the detail. */
+  onChanged?: () => void;
 }
 
 /** Time left to edit, ticking every 30 s. 0 when the visitor did not upload this spot (or the 24 h are over). */
@@ -31,7 +35,7 @@ function useEditRemaining(id: string): number {
 }
 
 /** The shared `mp-spot` block (SpotContent) plus what it does not render: note, "Otro" text and the edit countdown. */
-export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
+export function SpotBody({ detail, variant, onOpenPhoto, onReport, onChanged }: Props) {
   const all = types.value;
   const order = new Map(all.map((tp) => [tp.slug, tp.sort_order]));
   const sorted = { ...detail, types: [...detail.types].sort((a, b) => (order.get(a) ?? 999) - (order.get(b) ?? 999)) };
@@ -41,6 +45,9 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
   const hasPhoto = Boolean(detail.photo);
   const instagram = config.value?.features.instagram === true;
   const [story, setStory] = useState(false);
+  const sightingsOn = config.value?.features.sightings === true;
+  const [checking, setChecking] = useState(false);
+  const [lifeVersion, setLifeVersion] = useState(0);
   const storyInput = useMemo(() => (story ? storyInputFor(detail, all) : null), [story, detail, all]);
 
   return (
@@ -56,6 +63,17 @@ export function SpotBody({ detail, variant, onOpenPhoto, onReport }: Props) {
         onShareStory={() => setStory(true)}
         onReport={onReport}
       />
+      {variant === "full" && sightingsOn && detail.life_info && (
+        <>
+          <SpotLife detail={detail} version={lifeVersion} onCheck={() => setChecking(true)} />
+          <SightingSheet
+            open={checking}
+            onClose={() => setChecking(false)}
+            onDone={() => { setLifeVersion((n) => n + 1); onChanged?.(); }}
+            spot={{ id: detail.id, lat: detail.lat, lng: detail.lng, place: view.place }}
+          />
+        </>
+      )}
       {variant === "full" && detail.other_text && (
         <div class="mp-spot__meta">
           {t("map.spot.other")} <b>{detail.other_text}</b>

@@ -1,12 +1,13 @@
 import { hmacHex } from "./crypto";
 
-export type LimitKind = "single" | "batch" | "batch_spot";
+export type LimitKind = "single" | "batch" | "batch_spot" | "sighting";
 
 /** Per-IP limits (BUILD.md §8): [window ms, max] pairs per kind. */
 export const LIMITS: Record<LimitKind, [number, number][]> = {
   single: [[3_600_000, 10], [86_400_000, 50]],
   batch: [[86_400_000, 3]],
   batch_spot: [[86_400_000, 200]],
+  sighting: [[3_600_000, 20], [86_400_000, 100]],
 };
 
 export const ipHash = (secret: string, ip: string | null) => hmacHex(secret, ip ?? "unknown");

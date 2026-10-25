@@ -12,5 +12,16 @@
   "countriesPerPlacer": "{n} countries",
   "empty": "No stats yet",
   "loadError": "We could not load the stats.",
-  "noPlacers": "Nobody has uploaded stickers with a name yet."
+  "noPlacers": "Nobody has uploaded stickers with a name yet.",
+  "longevity": {
+    "title": "Longevity",
+    "oldest": "The oldest still standing",
+    "byType": "How long each type lasts",
+    "byCity": "How long they last by city",
+    "cemetery": "Cemetery",
+    "cemeteryEmpty": "No stickers have come off yet.",
+    "curves": "Survival",
+    "curvesHint": "What share is still stuck X days after it was placed.",
+    "all": "All"
+  }
 }

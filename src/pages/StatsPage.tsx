@@ -10,7 +10,8 @@ import { api, type StatsPayload } from "../lib/api";
 import { formatNumber } from "../lib/format";
 import { t } from "../lib/i18n";
 import { lastPerson } from "../lib/local";
-import { people, typeBySlug } from "../lib/store";
+import { config, people, typeBySlug } from "../lib/store";
+import { Longevity } from "./stats/Longevity";
 
 /** /stats: hero numbers as stickers, per-type counts, the leaderboard, countries and the monthly timeline (Page07/08). */
 export default function StatsPage() {
@@ -83,6 +84,7 @@ export default function StatsPage() {
               </div>
               <div class="mp-bars__axis"><span>{stats.months[0]?.month}</span><span>{stats.months.at(-1)?.month}</span></div>
             </section>
+            {config.value?.features.sightings === true && <Longevity />}
           </div>
         )}
       </div>

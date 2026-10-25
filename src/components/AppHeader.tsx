@@ -3,7 +3,7 @@ import { cx } from "../lib/cx";
 import { t } from "../lib/i18n";
 import { CountBadge } from "./Badge";
 import { Icon } from "./Icon";
-import { NAV_TABS, type NavTabId } from "./TabBar";
+import { visibleTabs, type NavTabId } from "./TabBar";
 
 interface LogoProps {
   /** Show the tagline under the name (desktop). */
@@ -162,7 +162,7 @@ export function AppHeader(props: AppHeaderProps) {
     <header class={cx("mp-topnav", props.class)}>
       <Logo tagline />
       <nav class="mp-topnav__tabs" aria-label={t("components.header.sections")}>
-        {NAV_TABS.map((tab) => (
+        {visibleTabs().map((tab) => (
           <a key={tab.id} class="mp-topnav__tab" href={tab.href} aria-current={tab.id === props.active ? "page" : undefined}>
             <Icon name={tab.icon} />
             {tab.label}

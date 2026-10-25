@@ -30,7 +30,7 @@ import { PhotoViewer } from "./map/PhotoViewer";
 import { PlaceSearchBox } from "./map/PlaceSearchBox";
 import { ReportDialog, type ReportTarget } from "./map/ReportDialog";
 import { SpotBody } from "./map/SpotBody";
-import { useSpotDetail } from "./map/detail";
+import { refreshSpotDetail, useSpotDetail } from "./map/detail";
 import { activeCount, allFeatures, clearFilters, facets, filteredFeatures, filters, legendPref, setFilters, setLegendCollapsed } from "./map/state";
 import "./map/map.css";
 
@@ -292,6 +292,7 @@ export default function MapPage({ spotId }: { spotId?: string }) {
         variant={variant}
         onOpenPhoto={() => setPhotoFor(shown.id)}
         onReport={() => setReport({ id: shown.id })}
+        onChanged={() => void refreshSpotDetail(shown.id)}
       />
     ) : (
       <SpotSkeleton />
